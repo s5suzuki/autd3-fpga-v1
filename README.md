@@ -1,5 +1,7 @@
 # README
 
+Version: 0.7
+
 This repository contains the FPGA design of [AUTD3](https://hapislab.org/airborne-ultrasound-tactile-display?lang=en).
 
 The code is written in SystemVerilog with Vivado 2020.2.
