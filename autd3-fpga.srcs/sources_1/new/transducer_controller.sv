@@ -124,13 +124,13 @@ generate begin:TRANSDUCER_GEN
         genvar ii;
         for(ii = 0; ii < `TRANS_NUM; ii++) begin
             assign amp_modulated[ii] = modulate_amp(OP_MODE ? lm_amp : amp[ii], mod);
-            transducer_ip tr(
-                              .TIME(TIME),
-                              .D(amp_modulated[ii]),
-                              .PHASE(OP_MODE ? lm_phase[ii] : normal_phase[ii]),
-                              .SILENT(SILENT),
-                              .PWM_OUT(XDCR_OUT[cvt_uid(ii) + 1])
-                          );
+            transducer tr(
+                           .TIME(TIME),
+                           .D(amp_modulated[ii]),
+                           .PHASE(OP_MODE ? lm_phase[ii] : normal_phase[ii]),
+                           .SILENT(SILENT),
+                           .PWM_OUT(XDCR_OUT[cvt_uid(ii) + 1])
+                       );
         end
     end
 endgenerate
