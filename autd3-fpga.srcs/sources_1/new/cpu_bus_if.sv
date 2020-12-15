@@ -11,20 +11,28 @@
  * 
  */
 
-interface cpu_cbus_if(
-              input var [16:0] CPU_ADDR,
-              input var [15:0] CPU_DATA,
-              input var CPU_CKIO,
-              input var CPU_CS1_N,
-              input var CPU_WE0_N
+interface cpu_bus_if(
+              //   input var [16:0] CPU_ADDR,
+              //   input var [15:0] CPU_DATA,
+              //   input var CPU_CKIO,
+              //   input var CPU_CS1_N,
+              //   input var CPU_WE0_N
           );
-logic BUS_CLK = CPU_CKIO;
-logic EN = ~CPU_CS1_N;
-logic WE = ~CPU_WE0_N;
-logic [1:0] BRAM_SELECT = CPU_ADDR[16:15];
-logic [13:0] BRAM_ADDR = CPU_ADDR[14:1];
-logic[15:0] DATA_IN = CPU_DATA;
 
-modport slave_port(input BUS_CLK, input EN, input WE, input BRAM_SELECT, input BRAM_ADDR,input  DATA_IN);
+logic BUS_CLK;
+logic EN;
+logic WE;
+logic [1:0] BRAM_SELECT;
+logic [13:0] BRAM_ADDR;
+logic [15:0] DATA_IN;
+
+// assign BUS_CLK = CPU_CKIO;
+// assign EN = ~CPU_CS1_N;
+// assign WE = ~CPU_WE0_N;
+// assign BRAM_SELECT = CPU_ADDR[16:15];
+// assign BRAM_ADDR = CPU_ADDR[14:1];
+// assign DATA_IN = CPU_DATA;
+
+modport slave_port(input BUS_CLK, input EN, input WE, input BRAM_SELECT, input BRAM_ADDR, input DATA_IN);
 
 endinterface

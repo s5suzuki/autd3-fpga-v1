@@ -121,24 +121,6 @@ initial begin
     lm_clk_calib = 0;
 end
 
-transducer_controller tr_cnt(
-                          .BUS_CLK(CPU_CKIO),
-                          .BRAM_SELECT(bram_select),
-                          .EN(~CPU_CS1_N),
-                          .WE(~CPU_WE0_N),
-                          .ADDR(bram_addr),
-                          .DATA_IN(CPU_DATA),
-
-                          .SYS_CLK(MRCC_25P6M),
-                          .TIME(time_cnt),
-                          .LM_IDX(lm_idx),
-                          .LM_CLK_DIV(lm_div),
-                          .MOD_IDX(mod_idx),
-                          .SILENT(silent),
-                          .OP_MODE(op_mode),
-                          .XDCR_OUT(XDCR_OUT)
-                      );
-
 synchronizer synchronizer(
                  .SYS_CLK(MRCC_25P6M),
                  .RST(soft_rst),
@@ -167,7 +149,7 @@ BRAM16x256 ram_props(
                .clka(CPU_CKIO),
                .ena(prop_en),
                .wea(~CPU_WE0_N),
-               .addra(bram_addr),
+               .addra(bram_addr[7:0]),
                .dina(CPU_DATA),
                .douta(cpu_data_out),
 
@@ -303,5 +285,54 @@ always_ff @(posedge MRCC_25P6M) begin
         end
     endcase
 end
+
+logic [7:0] duty[0:`TRANS_NUM-1];
+logic [7:0] phase[0:`TRANS_NUM-1];
+
+logic [7:0] mod;
+
+cpu_bus_if cpu_bus();
+
+assign cpu_bus.BUS_CLK = CPU_CKIO;
+assign cpu_bus.EN = ~CPU_CS1_N;
+assign cpu_bus.WE = ~CPU_WE0_N;
+assign cpu_bus.BRAM_SELECT = CPU_ADDR[16:15];
+assign cpu_bus.BRAM_ADDR = CPU_ADDR[14:1];
+assign cpu_bus.DATA_IN = CPU_DATA;
+
+operator_selector operator_selector(
+                      .CPU_BUS(cpu_bus.slave_port),
+
+                      .SYS_CLK(MRCC_25P6M),
+                      .op_mode(op_mode),
+
+                      .STM_IDX(lm_idx),
+                      .STM_CLK_DIV(lm_div),
+
+                      .DUTY(duty),
+                      .PHASE(phase)
+                  );
+
+mod_controller mod_cnt(
+                   .BUS_CLK(CPU_CKIO),
+                   .BRAM_SELECT(bram_select),
+                   .EN(~CPU_CS1_N),
+                   .WE(~CPU_WE0_N),
+                   .ADDR(bram_addr),
+                   .DATA_IN(CPU_DATA),
+
+                   .SYS_CLK(MRCC_25P6M),
+                   .MOD_IDX(mod_idx),
+                   .MOD_OUT(mod)
+               );
+
+transducers_array transducers_array(
+                      .TIME(time_cnt),
+                      .AMP(duty),
+                      .PHASE(phase),
+                      .MOD(mod),
+                      .SILENT(silent),
+                      .XDCR_OUT(XDCR_OUT)
+                  );
 
 endmodule
