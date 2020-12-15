@@ -4,7 +4,7 @@
  * Created Date: 06/11/2019
  * Author: Shun Suzuki
  * -----
- * Last Modified: 07/12/2020
+ * Last Modified: 15/12/2020
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2019 Hapis Lab. All rights reserved.
@@ -13,6 +13,7 @@
 
 `timescale 1ns / 1ps
 `include "consts.vh"
+`include "cvt_uid.vh"
 
 module transducer_controller(
            input var BUS_CLK,
@@ -31,8 +32,6 @@ module transducer_controller(
            input var OP_MODE,
            output var [252:1] XDCR_OUT
        );
-
-`include "cvt_uid.vh"
 
 `define LM_BRAM_ADDR_OFFSET_ADDR 14'h0005
 
@@ -123,12 +122,12 @@ BRAM256x14000 lm_ram(
 
 generate begin:TRANSDUCER_GEN
         genvar ii;
-        for(ii = 0; ii<`TRANS_NUM;ii++) begin
+        for(ii = 0; ii < `TRANS_NUM; ii++) begin
             assign amp_modulated[ii] = modulate_amp(OP_MODE ? lm_amp : amp[ii], mod);
             transducer tr(
                            .TIME(TIME),
                            .D(amp_modulated[ii]),
-                           .S(OP_MODE ? lm_phase[ii] : normal_phase[ii]),
+                           .PHASE(OP_MODE ? lm_phase[ii] : normal_phase[ii]),
                            .SILENT(SILENT),
                            .PWM_OUT(XDCR_OUT[cvt_uid(ii) + 1])
                        );
