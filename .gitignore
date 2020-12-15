@@ -7,7 +7,7 @@
 !/*.srcs/sources_1/
 !/*.srcs/sources_1/*
 !/*.srcs/sources_1/new/*
-!/*.srcs/sources_1/macros/*
+!/*.srcs/sources_1/new/**
 !/*.srcs/sources_1/ip/*
 !/*.srcs/sources_1/ip/**/*.xci
 !/*.xpr
