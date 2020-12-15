@@ -4,7 +4,7 @@
  * Created Date: 02/10/2019
  * Author: Shun Suzuki
  * -----
- * Last Modified: 07/12/2020
+ * Last Modified: 15/12/2020
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2019 Hapis Lab. All rights reserved.
@@ -16,7 +16,6 @@
 module main(
            input var [16:0] CPU_ADDR,
            inout tri [15:0] CPU_DATA,
-           output var [252:1] XDCR_OUT,
            input var CPU_CKIO,
            input var CPU_CS1_N,
            input var RESET_N,
@@ -29,6 +28,7 @@ module main(
            output var FORCE_FAN,
            input var THERMO,
            input var [3:0]GPIO_IN,
+           output var [252:1] XDCR_OUT,
            output var [3:0]GPIO_OUT
        );
 

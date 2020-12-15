@@ -13,7 +13,6 @@
 
 `timescale 1ns / 1ps
 `include "consts.vh"
-`include "cvt_uid.vh"
 
 module transducer_controller(
            input var BUS_CLK,
@@ -35,13 +34,7 @@ module transducer_controller(
 
 `define LM_BRAM_ADDR_OFFSET_ADDR 14'h0005
 
-logic normal_op_en = (BRAM_SELECT == `BRAM_NORMAL_OP_SELECT) & EN;
-logic [7:0] tr_cnt;
-logic [7:0] tr_cnt_bram = (tr_cnt + 8'd2 < `TRANS_NUM) ? tr_cnt + 8'd2 : tr_cnt + 8'd2 - `TRANS_NUM; // BRAM has a 2 clock latency
-logic [15:0] normal_op_dout;
-logic [7:0] amp[0:`TRANS_NUM-1] = '{`TRANS_NUM{8'h00}};
 logic [7:0] normal_phase[0:`TRANS_NUM-1] = '{`TRANS_NUM{8'h00}};
-logic [7:0] amp_modulated[0:`TRANS_NUM-1];
 logic [7:0] phase_modulated[0:`TRANS_NUM-1];
 
 logic lm_op_en = (BRAM_SELECT == `BRAM_LM_SELECT) & EN;
@@ -90,20 +83,6 @@ mod_controller mod_cnt(
                    .MOD_OUT(mod)
                );
 
-BRAM8x252 normal_op_ram(
-              .clka(BUS_CLK),
-              .ena(normal_op_en),
-              .wea(WE),
-              .addra(ADDR[7:0]),
-              .dina(DATA_IN),
-              .douta(),
-
-              .clkb(SYS_CLK),
-              .web(1'b0),
-              .addrb(tr_cnt_bram),
-              .dinb(8'h00),
-              .doutb(normal_op_dout)
-          );
 
 BRAM256x14000 lm_ram(
                   .clka(BUS_CLK),
@@ -120,20 +99,6 @@ BRAM256x14000 lm_ram(
                   .doutb(lm_data_out)
               );
 
-generate begin:TRANSDUCER_GEN
-        genvar ii;
-        for(ii = 0; ii < `TRANS_NUM; ii++) begin
-            assign amp_modulated[ii] = modulate_amp(OP_MODE ? lm_amp : amp[ii], mod);
-            transducer tr(
-                           .TIME(TIME),
-                           .D(amp_modulated[ii]),
-                           .PHASE(OP_MODE ? lm_phase[ii] : normal_phase[ii]),
-                           .SILENT(SILENT),
-                           .PWM_OUT(XDCR_OUT[cvt_uid(ii) + 1])
-                       );
-        end
-    end
-endgenerate
 
 focus_calculator focus_calculator(
                      .SYS_CLK(SYS_CLK),
@@ -149,7 +114,6 @@ focus_calculator focus_calculator(
                  );
 
 initial begin
-    tr_cnt = 0;
     lm_addr_in_offset = 0;
     bram_lm_idx_old = 0;
     fc_trig = 0;
@@ -169,9 +133,6 @@ initial begin
 end
 
 always_ff @(posedge SYS_CLK) begin
-    tr_cnt <= (tr_cnt == `TRANS_NUM - 1) ? 0: tr_cnt +1;
-    amp[tr_cnt] <= normal_op_dout[15:8];
-    normal_phase[tr_cnt] <= normal_op_dout[7:0];
     if(bram_lm_idx_old != bram_lm_idx) begin
         bram_lm_idx_old <= bram_lm_idx;
         lm_idx_change <= 1;
@@ -238,10 +199,5 @@ always_ff @(posedge BUS_CLK) begin
     end
 end
 
-function automatic [7:0] modulate_amp;
-    input [7:0] amp;
-    input [7:0] mod;
-    modulate_amp = ((amp + 17'd1) * (mod + 17'd1) - 17'd1) >> 8;
-endfunction
 
 endmodule

@@ -4,7 +4,7 @@
  * Created Date: 28/08/2019
  * Author: Shun Suzuki
  * -----
- * Last Modified: 07/12/2020
+ * Last Modified: 15/12/2020
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2019 Hapis Lab. All rights reserved.
@@ -12,13 +12,13 @@
  */
 
 `timescale 1ns / 1ps
-`include "consts.vh"
+`include "../consts.vh"
 
 module mod_controller(
            input var BUS_CLK,
-           input var [1:0] BRAM_SELECT,
            input var EN,
            input var WE,
+           input var [1:0] BRAM_SELECT,
            input var [13:0] ADDR,
            input var [15:0] DATA_IN,
 
