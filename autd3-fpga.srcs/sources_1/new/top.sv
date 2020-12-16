@@ -34,7 +34,8 @@ module top(
 
 `include "consts.vh"
 
-logic [2:0] sync0;
+logic [2:0] sync0 = 0;
+
 logic [15:0]cpu_data_out;
 
 logic [7:0] ref_clk_cycle_shift;
@@ -60,6 +61,7 @@ logic [15:0] stm_idx;
 
 logic [7:0] duty[0:`TRANS_NUM-1];
 logic [7:0] phase[0:`TRANS_NUM-1];
+logic [7:0] delay[0:`TRANS_NUM-1];
 
 logic [7:0] mod;
 
@@ -127,12 +129,14 @@ operator_selector operator_selector(
 
                       .SYS_CLK(MRCC_25P6M),
                       .op_mode(op_mode),
+                      .TIME(time_cnt),
 
                       .STM_IDX(stm_idx),
                       .STM_CLK_DIV(stm_div),
 
                       .DUTY(duty),
-                      .PHASE(phase)
+                      .PHASE(phase),
+                      .DELAY(delay)
                   );
 
 mod_controller mod_cnt(
@@ -147,14 +151,11 @@ transducers_array transducers_array(
                       .TIME(time_cnt),
                       .DUTY(duty),
                       .PHASE(phase),
+                      .DELAY(delay),
                       .MOD(mod),
                       .SILENT(silent),
                       .XDCR_OUT(XDCR_OUT)
                   );
-
-initial begin
-    sync0 = 0;
-end
 
 always_ff @(posedge MRCC_25P6M) begin
     sync0 <= {sync0[1:0], CAT_SYNC0};

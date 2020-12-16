@@ -4,7 +4,7 @@
  * Created Date: 15/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 15/12/2020
+ * Last Modified: 16/12/2020
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -18,13 +18,15 @@ module operator_selector(
            cpu_bus_if.slave_port CPU_BUS,
 
            input var SYS_CLK,
+           input var [9:0] TIME,
            input var op_mode,
 
            input var [15:0] STM_IDX,
            input var [15:0] STM_CLK_DIV,
 
            output var [7:0] DUTY[0:`TRANS_NUM-1],
-           output var [7:0] PHASE[0:`TRANS_NUM-1]
+           output var [7:0] PHASE[0:`TRANS_NUM-1],
+           output var [7:0] DELAY[0:`TRANS_NUM-1]
        );
 
 logic [7:0] normal_duty[0:`TRANS_NUM-1];
@@ -40,8 +42,10 @@ normal_operator normal_operator(
                     .CPU_BUS(CPU_BUS),
 
                     .SYS_CLK(SYS_CLK),
+                    .TIME(TIME),
                     .DUTY(normal_duty),
-                    .PHASE(normal_phase)
+                    .PHASE(normal_phase),
+                    .DELAY_OUT(DELAY)
                 );
 
 stm_operator stm_operator(

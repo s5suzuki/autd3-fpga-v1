@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="sim_delayed_fifo_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="sim_delayed_fifo" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="5097656fs"></ZoomStartTime>
+      <ZoomEndTime time="14345097657fs"></ZoomEndTime>
+      <Cursor1Time time="5625097656fs"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="132"></NameColumnWidth>
+      <ValueColumnWidth column_width="88"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="27" />
+   <wvobject fp_name="/sim_delayed_fifo/MRCC_25P6M" type="logic">
+      <obj_property name="ElementShortName">MRCC_25P6M</obj_property>
+      <obj_property name="ObjectShortName">MRCC_25P6M</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/rst" type="logic">
+      <obj_property name="ElementShortName">rst</obj_property>
+      <obj_property name="ObjectShortName">rst</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/time_t" type="array">
+      <obj_property name="ElementShortName">time_t[9:0]</obj_property>
+      <obj_property name="ObjectShortName">time_t[9:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/duty" type="array">
+      <obj_property name="ElementShortName">duty[7:0]</obj_property>
+      <obj_property name="ObjectShortName">duty[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/delay" type="array">
+      <obj_property name="ElementShortName">delay[8:0]</obj_property>
+      <obj_property name="ObjectShortName">delay[8:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/pwm_out_1" type="logic">
+      <obj_property name="ElementShortName">pwm_out_1</obj_property>
+      <obj_property name="ObjectShortName">pwm_out_1</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/pwm_out_2" type="logic">
+      <obj_property name="ElementShortName">pwm_out_2</obj_property>
+      <obj_property name="ObjectShortName">pwm_out_2</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/update" type="logic">
+      <obj_property name="ElementShortName">update</obj_property>
+      <obj_property name="ObjectShortName">update</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/transducer_1/pwm_generator/TIME" type="array">
+      <obj_property name="ElementShortName">TIME[9:0]</obj_property>
+      <obj_property name="ObjectShortName">TIME[9:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/transducer_1/pwm_generator/D" type="array">
+      <obj_property name="ElementShortName">D[7:0]</obj_property>
+      <obj_property name="ObjectShortName">D[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/transducer_1/pwm_generator/PHASE" type="array">
+      <obj_property name="ElementShortName">PHASE[7:0]</obj_property>
+      <obj_property name="ObjectShortName">PHASE[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/transducer_1/pwm_generator/PWM_OUT" type="logic">
+      <obj_property name="ElementShortName">PWM_OUT</obj_property>
+      <obj_property name="ObjectShortName">PWM_OUT</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/transducer_1/pwm_generator/time_t" type="array">
+      <obj_property name="ElementShortName">time_t[9:0]</obj_property>
+      <obj_property name="ObjectShortName">time_t[9:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/transducer_1/pwm_generator/d" type="array">
+      <obj_property name="ElementShortName">d[7:0]</obj_property>
+      <obj_property name="ObjectShortName">d[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/transducer_1/pwm_generator/s" type="array">
+      <obj_property name="ElementShortName">s[7:0]</obj_property>
+      <obj_property name="ObjectShortName">s[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/transducer_1/pwm_generator/d_pwm" type="array">
+      <obj_property name="ElementShortName">d_pwm[9:0]</obj_property>
+      <obj_property name="ObjectShortName">d_pwm[9:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/transducer_1/pwm_generator/s_pwm" type="array">
+      <obj_property name="ElementShortName">s_pwm[9:0]</obj_property>
+      <obj_property name="ObjectShortName">s_pwm[9:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/transducer_1/delayed_fifo_phase/CLK" type="logic">
+      <obj_property name="ElementShortName">CLK</obj_property>
+      <obj_property name="ObjectShortName">CLK</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/transducer_1/delayed_fifo_phase/DELAY" type="array">
+      <obj_property name="ElementShortName">DELAY[8:0]</obj_property>
+      <obj_property name="ObjectShortName">DELAY[8:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/transducer_1/delayed_fifo_phase/DATA_IN" type="array">
+      <obj_property name="ElementShortName">DATA_IN[7:0]</obj_property>
+      <obj_property name="ObjectShortName">DATA_IN[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/transducer_1/delayed_fifo_phase/DATA_OUT" type="array">
+      <obj_property name="ElementShortName">DATA_OUT[7:0]</obj_property>
+      <obj_property name="ObjectShortName">DATA_OUT[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/transducer_1/delayed_fifo_phase/mem" type="array">
+      <obj_property name="ElementShortName">mem[0:255][7:0]</obj_property>
+      <obj_property name="ObjectShortName">mem[0:255][7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/transducer_1/delayed_fifo_phase/ptr" type="array">
+      <obj_property name="ElementShortName">ptr[7:0]</obj_property>
+      <obj_property name="ObjectShortName">ptr[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/transducer_1/delayed_fifo_phase/data_out" type="array">
+      <obj_property name="ElementShortName">data_out[7:0]</obj_property>
+      <obj_property name="ObjectShortName">data_out[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/transducer_1/delayed_fifo_phase/WIDTH" type="array">
+      <obj_property name="ElementShortName">WIDTH[31:0]</obj_property>
+      <obj_property name="ObjectShortName">WIDTH[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/transducer_1/delayed_fifo_phase/DEPTH_RADIX" type="array">
+      <obj_property name="ElementShortName">DEPTH_RADIX[31:0]</obj_property>
+      <obj_property name="ObjectShortName">DEPTH_RADIX[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_delayed_fifo/transducer_1/delayed_fifo_phase/DEPTH" type="array">
+      <obj_property name="ElementShortName">DEPTH[31:0]</obj_property>
+      <obj_property name="ObjectShortName">DEPTH[31:0]</obj_property>
+   </wvobject>
+</wave_config>

@@ -23,19 +23,17 @@ module pwm_generator(
            output var PWM_OUT
        );
 
-logic[9:0] time_t = TIME;
-logic[7:0] d = D;
-logic[7:0] s = keep_phase(PHASE, d); // s is a shift duration of PWM signal.
+logic[9:0] time_t;
+logic[7:0] d;
+logic[7:0] s;
 
-logic[9:0] d_pwm;
-logic[9:0] s_pwm;
+logic[9:0] d_pwm = 10'd0;
+logic[9:0] s_pwm = 10'd0;
 
+assign time_t = TIME;
+assign d = D;
+assign s = keep_phase(PHASE, d); // s is a shift duration of PWM signal.
 assign PWM_OUT = pwm(time_t, d_pwm, s_pwm);
-
-initial begin
-    d_pwm = 10'b0;
-    s_pwm = 10'b0;
-end
 
 always_comb begin
     d_pwm = ({d, 7'b0} + {2'b0, d, 5'b0} + {8'b0, d}) >> 7; // normalized to 0-319 (= 0 to 50%)
