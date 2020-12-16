@@ -16,7 +16,7 @@
 
 module transducers_array(
            input var [9:0] TIME,
-           input var [7:0] AMP[0:`TRANS_NUM-1],
+           input var [7:0] DUTY[0:`TRANS_NUM-1],
            input var [7:0] PHASE[0:`TRANS_NUM-1],
            input var [7:0] MOD,
            input var SILENT,
@@ -28,10 +28,10 @@ module transducers_array(
 generate begin:TRANSDUCERS_GEN
         genvar ii;
         for(ii = 0; ii < `TRANS_NUM; ii++) begin
-            logic [7:0] amp_modulated = modulate_amp(AMP[ii], MOD);
+            logic [7:0] duty_modulated = modulate_duty(DUTY[ii], MOD);
             transducer tr(
                            .TIME(TIME),
-                           .D(amp_modulated),
+                           .D(duty_modulated),
                            .PHASE(PHASE[ii]),
                            .SILENT(SILENT),
                            .PWM_OUT(XDCR_OUT[cvt_uid(ii) + 1])
@@ -40,10 +40,10 @@ generate begin:TRANSDUCERS_GEN
     end
 endgenerate
 
-function automatic [7:0] modulate_amp;
-    input [7:0] amp;
+function automatic [7:0] modulate_duty;
+    input [7:0] duty;
     input [7:0] mod;
-    modulate_amp = ((amp + 17'd1) * (mod + 17'd1) - 17'd1) >> 8;
+    modulate_duty = ((duty + 17'd1) * (mod + 17'd1) - 17'd1) >> 8;
 endfunction
 
 endmodule

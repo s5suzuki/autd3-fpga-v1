@@ -47,8 +47,8 @@ transducer_controller transducer_controller(
 
                           .SYS_CLK(MRCC_25P6M),
                           .TIME(),
-                          .LM_IDX(),
-                          .LM_CLK_DIV(),
+                          .STM_IDX(),
+                          .STM_CLK_DIV(),
                           .MOD_IDX(),
                           .SILENT(),
                           .OP_MODE(1'b0),

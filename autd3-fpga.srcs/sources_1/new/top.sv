@@ -40,13 +40,13 @@ logic [15:0]cpu_data_out;
 logic [7:0] ref_clk_cycle_shift;
 logic ref_clk_init;
 logic ref_clk_init_done;
-logic lm_clk_init;
-logic [15:0] lm_clk_cycle;
-logic [15:0] lm_div;
-logic [10:0] lm_clk_init_lap;
-logic lm_clk_calib;
-logic [15:0] lm_clk_calib_shift;
-logic lm_clk_calib_done;
+logic stm_clk_init;
+logic [15:0] stm_clk_cycle;
+logic [15:0] stm_div;
+logic [10:0] stm_clk_init_lap;
+logic stm_clk_calib;
+logic [15:0] stm_clk_calib_shift;
+logic stm_clk_calib_done;
 logic [7:0] mod_idx_shift;
 
 logic soft_rst;
@@ -56,7 +56,7 @@ logic op_mode;
 
 logic [9:0] time_cnt;
 logic [`MOD_BUF_IDX_WIDTH-1:0] mod_idx;
-logic [15:0] lm_idx;
+logic [15:0] stm_idx;
 
 logic [7:0] duty[0:`TRANS_NUM-1];
 logic [7:0] phase[0:`TRANS_NUM-1];
@@ -84,13 +84,13 @@ global_config global_config(
                   .REF_CLK_CYCLE_SHIFT(ref_clk_cycle_shift),
                   .REF_CLK_INIT_OUT(ref_clk_init),
                   .REF_CLK_INIT_DONE(ref_clk_init_done),
-                  .LM_CLK_INIT_OUT(lm_clk_init),
-                  .LM_CLK_CYCLE(lm_clk_cycle),
-                  .LM_CLK_DIV(lm_div),
-                  .LM_LAP(lm_clk_init_lap),
-                  .LM_CLK_CALIB_OUT(lm_clk_calib),
-                  .LM_CLK_CALIB_SHIFT(lm_clk_calib_shift),
-                  .LM_CLK_CALIB_DONE(lm_clk_calib_done),
+                  .STM_CLK_INIT_OUT(stm_clk_init),
+                  .STM_CLK_CYCLE(stm_clk_cycle),
+                  .STM_CLK_DIV(stm_div),
+                  .STM_LAP(stm_clk_init_lap),
+                  .STM_CLK_CALIB_OUT(stm_clk_calib),
+                  .STM_CLK_CALIB_SHIFT(stm_clk_calib_shift),
+                  .STM_CLK_CALIB_DONE(stm_clk_calib_done),
                   .MOD_IDX_SHIFT(mod_idx_shift),
 
                   .SILENT_MODE(silent),
@@ -108,18 +108,18 @@ synchronizer synchronizer(
                  .REF_CLK_INIT(ref_clk_init),
                  .REF_CLK_INIT_DONE_OUT(ref_clk_init_done),
 
-                 .LM_CLK_INIT(lm_clk_init),
-                 .LM_CLK_CYCLE(lm_clk_cycle),
-                 .LAP_OUT(lm_clk_init_lap),
-                 .LM_CLK_CALIB(lm_clk_calib),
-                 .LM_CLK_CALIB_SHIFT(lm_clk_calib_shift),
-                 .LM_CLK_CALIB_DONE_OUT(lm_clk_calib_done),
+                 .STM_CLK_INIT(stm_clk_init),
+                 .STM_CLK_CYCLE(stm_clk_cycle),
+                 .LAP_OUT(stm_clk_init_lap),
+                 .STM_CLK_CALIB(stm_clk_calib),
+                 .STM_CLK_CALIB_SHIFT(stm_clk_calib_shift),
+                 .STM_CLK_CALIB_DONE_OUT(stm_clk_calib_done),
 
                  .MOD_IDX_SHIFT(mod_idx_shift),
 
                  .TIME_CNT_OUT(time_cnt),
                  .MOD_IDX_OUT(mod_idx),
-                 .LM_IDX_OUT(lm_idx)
+                 .STM_IDX_OUT(stm_idx)
              );
 
 operator_selector operator_selector(
@@ -128,8 +128,8 @@ operator_selector operator_selector(
                       .SYS_CLK(MRCC_25P6M),
                       .op_mode(op_mode),
 
-                      .STM_IDX(lm_idx),
-                      .STM_CLK_DIV(lm_div),
+                      .STM_IDX(stm_idx),
+                      .STM_CLK_DIV(stm_div),
 
                       .DUTY(duty),
                       .PHASE(phase)
@@ -145,7 +145,7 @@ mod_controller mod_cnt(
 
 transducers_array transducers_array(
                       .TIME(time_cnt),
-                      .AMP(duty),
+                      .DUTY(duty),
                       .PHASE(phase),
                       .MOD(mod),
                       .SILENT(silent),

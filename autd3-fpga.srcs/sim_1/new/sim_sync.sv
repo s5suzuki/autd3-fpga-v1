@@ -40,7 +40,7 @@ wire ref_clk_init_done;
 
 wire [9:0] time_cnt;
 wire [14:0] mod_idx;
-wire [15:0] lm_idx;
+wire [15:0] stm_idx;
 wire [20:0] ref_clk;
 
 synchronizer synchronizer(
@@ -53,18 +53,18 @@ synchronizer synchronizer(
                  .REF_CLK_INIT(ref_clk_init),
                  .REF_CLK_INIT_DONE_OUT(ref_clk_init_done),
 
-                 .LM_CLK_INIT(),
-                 .LM_CLK_CYCLE(),
+                 .STM_CLK_INIT(),
+                 .STM_CLK_CYCLE(),
                  .LAP_OUT(),
-                 .LM_CLK_CALIB(),
-                 .LM_CLK_CALIB_SHIFT(),
-                 .LM_CLK_CALIB_DONE_OUT(),
+                 .STM_CLK_CALIB(),
+                 .STM_CLK_CALIB_SHIFT(),
+                 .STM_CLK_CALIB_DONE_OUT(),
 
                  .MOD_IDX_SHIFT(8'd1),
 
                  .TIME_CNT_OUT(time_cnt),
                  .MOD_IDX_OUT(mod_idx),
-                 .LM_IDX_OUT(lm_idx),
+                 .STM_IDX_OUT(stm_idx),
                  .REF_CLK_OUT(ref_clk)
              );
 

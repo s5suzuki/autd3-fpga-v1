@@ -4,7 +4,7 @@
  * Created Date: 15/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 15/12/2020
+ * Last Modified: 16/12/2020
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -26,7 +26,7 @@ module stm_operator(
        );
 
 `include "../cvt_uid.vh"
-`define LM_BRAM_ADDR_OFFSET_ADDR 14'h0005
+`define STM_BRAM_ADDR_OFFSET_ADDR 14'h0005
 
 reg fc_trig;
 logic signed [23:0] focus_x, focus_y, focus_z;
@@ -38,13 +38,13 @@ logic [15:0] bram_idx = STM_IDX / STM_CLK_DIV;
 logic [15:0] bram_idx_old;
 logic idx_change;
 
-logic op_en = (CPU_BUS.BRAM_SELECT == `BRAM_LM_SELECT) & CPU_BUS.EN;
+logic op_en = (CPU_BUS.BRAM_SELECT == `BRAM_STM_SELECT) & CPU_BUS.EN;
 logic [4:0] addr_in_offset;
 logic [2:0] we_edge;
 logic addr_in_offset_en = (CPU_BUS.BRAM_SELECT == `BRAM_PROP_SELECT) & CPU_BUS.EN;
 logic [18:0] addr_in = {addr_in_offset, CPU_BUS.BRAM_ADDR};
 
-logic [7:0] amp, amp_buf;
+logic [7:0] duty, duty_buf;
 logic [7:0] phase[0:`TRANS_NUM-1] = '{`TRANS_NUM{8'h00}};
 logic [7:0] phase_buf[0:`TRANS_NUM-1] = '{`TRANS_NUM{8'h00}};
 logic [127:0] data_out;
@@ -62,7 +62,7 @@ enum logic [3:0] {
          PHASE_CALC_WAIT
      } state_calc;
 
-assign DUTY = '{`TRANS_NUM{amp}};
+assign DUTY = '{`TRANS_NUM{duty}};
 assign PHASE = phase;
 
 focus_calculator focus_calculator(
@@ -98,12 +98,12 @@ initial begin
     bram_idx_old = 0;
     fc_trig = 0;
     state_calc = WAIT;
-    amp = 8'h00;
+    duty = 8'h00;
     we_edge = 0;
     tr_cnt = 0;
     tr_cnt_in = 0;
-    amp = 0;
-    amp_buf = 0;
+    duty = 0;
+    duty_buf = 0;
 
     focus_x = 0;
     focus_y = 0;
@@ -136,7 +136,7 @@ always_ff @(posedge SYS_CLK) begin
             focus_x <= data_out[23:0];
             focus_y <= data_out[47:24];
             focus_z <= data_out[71:48];
-            amp_buf <= data_out[79:72];
+            duty_buf <= data_out[79:72];
 
             fc_trig <= 1'b1;
             trans_x <= 0;
@@ -160,7 +160,7 @@ end
 always_ff @(posedge SYS_CLK) begin
     if(idx_change) begin
         phase <= phase_buf;
-        amp <= amp_buf;
+        duty <= duty_buf;
         tr_cnt_in <= 0;
     end
     else if(phase_out_valid) begin
@@ -173,7 +173,7 @@ always_ff @(posedge CPU_BUS.BUS_CLK) begin
     we_edge <= {we_edge[1:0], (CPU_BUS.WE & addr_in_offset_en)};
     if(we_edge == 3'b011) begin
         case(CPU_BUS.BRAM_ADDR)
-            `LM_BRAM_ADDR_OFFSET_ADDR:
+            `STM_BRAM_ADDR_OFFSET_ADDR:
                 addr_in_offset <= CPU_BUS.DATA_IN[4:0];
         endcase
     end

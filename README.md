@@ -32,11 +32,11 @@ The code is written in SystemVerilog with Vivado 2020.2.
 | BRAM_SELECT | BRAM_ADDR (8bit) | DATA (16 bit)                    | R/W |
 |-------------|------------------|----------------------------------|-----|
 | 0x0         | 0x00             | Control flags and Clock property | R/W |
-| 　          | 0x01             | LM Cycle                         | R   |
-| 　          | 0x02             | LM Division                      | R   |
-| 　          | 0x03             | LM Clock initialize lap          | W   |
-| 　          | 0x04             | LM Calibration shift             | R   |
-| 　          | 0x05             | LM bram addr offset              | -   |
+| 　          | 0x01             | STM Cycle                         | R   |
+| 　          | 0x02             | STM Division                      | R   |
+| 　          | 0x03             | STM Clock initialize lap          | W   |
+| 　          | 0x04             | STM Calibration shift             | R   |
+| 　          | 0x05             | STM bram addr offset              | -   |
 | 　          | 0x06             | Unused                           | 　  |
 | 　          | ︙               | ︙                               | 　  |
 | 　          | 0xFE             | Unused                           | 　  |
@@ -58,21 +58,21 @@ The code is written in SystemVerilog with Vivado 2020.2.
 
 | BRAM_SELECT | BRAM_ADDR (11bit) | DATA (16bit)        | R/W |
 |-------------|-------------------|---------------------|-----|
-| 0x2         | 0x00              | amp[0]/phase[0]     | R   |
+| 0x2         | 0x00              | duty[0]/phase[0]     | R   |
 | 　          | ︙                | ︙                  | ︙  |
-| 　          | 0xF8              | amp[248]/phase[248] | R   |
+| 　          | 0xF8              | duty[248]/phase[248] | R   |
 | 　          | 0xF9              | Unused              | 　  |
 | 　          | ︙                | ︙                  | 　  |
 | 　          | 0xFF              | Unused              | 　  |
 
-### LM operation
+### STM operation
 
 | BRAM_SELECT | BRAM_ADDR (16bit) | DATA (128 bit)                                                                       | R/W |
 |-------------|-------------------|--------------------------------------------------------------------------------------|-----|
-| 0x3         | 0x0000            | 79:0 = {lm_amp[0], lm_z[0],   lm_y[0], lm_x[0]}      127:80 = Unused                 | R   |
-| 　          | 0x0001            | 79:0 = {lm_amp[1], lm_z[1],   lm_y[1], lm_x[1]}      127:80 = Unused                 | R   |
+| 0x3         | 0x0000            | 79:0 = {stm_duty[0], stm_z[0],   stm_y[0], stm_x[0]}      127:80 = Unused                 | R   |
+| 　          | 0x0001            | 79:0 = {stm_duty[1], stm_z[1],   stm_y[1], stm_x[1]}      127:80 = Unused                 | R   |
 | 　          | ︙                | ︙                                                                                   | ︙  |
-| 　          | 0x9C3F            | 79:0 = {lm_amp[39999],   lm_z[39999], lm_y[39999], lm_x[39999]}      127:80 = Unused | R   |
+| 　          | 0x9C3F            | 79:0 = {stm_duty[39999],   stm_z[39999], stm_y[39999], stm_x[39999]}      127:80 = Unused | R   |
 
 # Author
 

@@ -4,7 +4,7 @@
  * Created Date: 26/06/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 07/12/2020
+ * Last Modified: 16/12/2020
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -22,7 +22,7 @@ module ref_clk_synchronizer
            input var [7:0] REF_CLK_CYCLE_SHIFT,
            output var REF_CLK_INIT_DONE_OUT,
            output var [`REF_CLK_CYCLE_CNT_WIDTH-1:0] REF_CLK_CNT_OUT,
-           output var [`LM_LAP_CYCLE_CNT_WIDTH-1:0] LAP_CNT_OUT
+           output var [`STM_LAP_CYCLE_CNT_WIDTH-1:0] LAP_CNT_OUT
        );
 
 localparam int REF_CLK_DIVIDER_CNT = (`SYS_CLK_FREQ / `REF_CLK_FREQ);
@@ -32,7 +32,7 @@ logic [`REF_CLK_CYCLE_CNT_WIDTH-1:0] ref_clk_cnt = 0;
 logic [`REF_CLK_CYCLE_CNT_WIDTH-1:0] ref_clk_cnt_sync = 0;
 logic [REF_CLK_DIVIDER_CNT_WIDTH-1:0] ref_clk_divider = 0;
 
-logic [`LM_LAP_CYCLE_CNT_WIDTH-1:0] lap = 0;
+logic [`STM_LAP_CYCLE_CNT_WIDTH-1:0] lap = 0;
 logic ref_clk_init_flag = 0;
 logic ref_clk_init_done = 0;
 
@@ -74,7 +74,7 @@ always_ff @(posedge SYS_CLK) begin
                 else begin
                     ref_clk_cnt <= ref_clk_cnt_sync + `SYNC_CYCLE_CNT < ref_clk_cycle ? (ref_clk_cnt_sync + `SYNC_CYCLE_CNT) : 0;
                     ref_clk_cnt_sync <= ref_clk_cnt_sync + `SYNC_CYCLE_CNT < ref_clk_cycle ? (ref_clk_cnt_sync + `SYNC_CYCLE_CNT) : 0;
-                    lap <= (lap == `LM_LAP_CYCLE_CNT - 1) ? 0 : lap + 1;
+                    lap <= (lap == `STM_LAP_CYCLE_CNT - 1) ? 0 : lap + 1;
                 end
                 ref_clk_divider <= 0;
             end

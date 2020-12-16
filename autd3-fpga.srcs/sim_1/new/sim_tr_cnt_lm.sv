@@ -5,7 +5,7 @@
 //
 // Create Date: 07/16/2020 05:20:38 PM
 // Design Name:
-// Module Name: sim_tr_cnt_lm
+// Module Name: sim_tr_cnt_stm
 // Project Name:
 // Target Devices:
 // Tool Versions:
@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module sim_tr_cnt_lm();
+module sim_tr_cnt_stm();
 
 parameter TCO = 10; // bus delay 10ns
 parameter BRAM_MOD_SELECT = 8'd250;
@@ -35,7 +35,7 @@ reg CPU_CS1_N;
 reg CPU_WE0_N;
 reg MRCC_25P6M;
 
-reg [15:0] lm_idx;
+reg [15:0] stm_idx;
 
 reg [15:0] CPU_DATA_READ;
 
@@ -52,8 +52,8 @@ transducer_controller transducer_controller(
 
                           .SYS_CLK(MRCC_25P6M),
                           .TIME(),
-                          .LM_IDX(lm_idx),
-                          .LM_CLK_DIV(16'd1),
+                          .STM_IDX(stm_idx),
+                          .STM_CLK_DIV(16'd1),
                           .MOD_IDX(),
                           .SILENT(),
                           .OP_MODE(1'b0),
@@ -76,12 +76,12 @@ task bram_write (input [1:0] select, input [13:0] addr, input [15:0] data_in);
     CPU_WE0_N <= #(TCO) 1;
 endtask
 
-task focus_write(input [15:0] idx, input signed [23:0] x, input signed [23:0] y, input signed [23:0] z, input [7:0] amp);
+task focus_write(input [15:0] idx, input signed [23:0] x, input signed [23:0] y, input signed [23:0] z, input [7:0] duty);
     bram_write(2'd3, idx * 8, x[15:0]);
     bram_write(2'd3, idx * 8 + 1, {y[7:0], x[23:16]});
     bram_write(2'd3, idx * 8 + 2, y[23:8]);
     bram_write(2'd3, idx * 8 + 3, z[15:0]);
-    bram_write(2'd3, idx * 8 + 4, {amp, z[23:16]});
+    bram_write(2'd3, idx * 8 + 4, {duty, z[23:16]});
 endtask
 
 initial begin
@@ -90,7 +90,7 @@ initial begin
     CPU_CS1_N = 0;
     CPU_WE0_N = 1;
     bus_data_reg = 16'bz;
-    lm_idx = 0;
+    stm_idx = 0;
     bram_select = 0;
     bram_addr = 0;
 
@@ -104,23 +104,23 @@ initial begin
     focus_write(1, 24'sd10, 24'sd10, 24'sd1, 8'h1b);
     focus_write(2, 24'sd10, 24'sd10, 24'sd1, 8'h1c);
     focus_write(3, 24'sd100, 24'sd10, 24'sd1, 8'h1d);
-    
+
     #(10);
-    lm_idx = 1;
+    stm_idx = 1;
     repeat (640) @(posedge MRCC_25P6M);
-    lm_idx = 2;
+    stm_idx = 2;
     repeat (640) @(posedge MRCC_25P6M);
-    lm_idx = 3;
+    stm_idx = 3;
     repeat (640) @(posedge MRCC_25P6M);
-    lm_idx = 0;
+    stm_idx = 0;
     repeat (640) @(posedge MRCC_25P6M);
-    lm_idx = 1;
+    stm_idx = 1;
     repeat (640) @(posedge MRCC_25P6M);
-    lm_idx = 2;
+    stm_idx = 2;
     repeat (640) @(posedge MRCC_25P6M);
-    lm_idx = 3;
+    stm_idx = 3;
     repeat (640) @(posedge MRCC_25P6M);
-    lm_idx = 0;
+    stm_idx = 0;
     repeat (640) @(posedge MRCC_25P6M);
 end
 
