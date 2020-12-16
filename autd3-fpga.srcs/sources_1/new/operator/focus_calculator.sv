@@ -4,7 +4,7 @@
  * Created Date: 05/07/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 07/12/2020
+ * Last Modified: 15/12/2020
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -32,7 +32,7 @@ logic signed [23:0] dx, dy, dz;
 logic [47:0] d2;
 logic tvalid_in;
 logic tvalid_out;
-logic [24:0] dout;
+logic [31:0] dout;
 logic [7:0] phase;
 logic phase_calc_done;
 

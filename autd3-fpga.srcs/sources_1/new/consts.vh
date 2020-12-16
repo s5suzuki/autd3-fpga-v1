@@ -7,7 +7,7 @@
 `define CTRL_FLAG_FORCE_FAN (8'd4)
 `define CTRL_FLAG_LM_MODE (8'd5)
 
-`define PROPS_REF_INIT_IDX (0)
+`define PROPS_REF_INIT_IDX (0) 
 `define PROPS_LM_INIT_IDX (1)
 `define PROPS_LM_CALIB_IDX (2)
 `define PROPS_RST_IDX (7)

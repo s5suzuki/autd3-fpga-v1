@@ -1,55 +1,51 @@
 /*
- * File: main.sv
+ * File: global_config.sv
  * Project: new
- * Created Date: 02/10/2019
+ * Created Date: 16/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 07/12/2020
+ * Last Modified: 16/12/2020
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
- * Copyright (c) 2019 Hapis Lab. All rights reserved.
+ * Copyright (c) 2020 Hapis Lab. All rights reserved.
  * 
  */
 
 `timescale 1ns / 1ps
-
-module main(
-           input var [16:0] CPU_ADDR,
-           inout tri [15:0] CPU_DATA,
-           output var [252:1] XDCR_OUT,
-           input var CPU_CKIO,
-           input var CPU_CS1_N,
-           input var RESET_N,
-           input var CPU_WE0_N,
-           input var CPU_WE1_N,
-           input var CPU_RD_N,
-           input var CPU_RDWR,
-           input var MRCC_25P6M,
-           input var CAT_SYNC0,
-           output var FORCE_FAN,
-           input var THERMO,
-           input var [3:0]GPIO_IN,
-           output var [3:0]GPIO_OUT
-       );
-
 `include "consts.vh"
 
-logic [2:0] sync0;
+module global_config(
+           cpu_bus_if.slave_port CPU_BUS,
+           output var [15:0] CPU_DATA_OUT,
 
-logic [1:0] bram_select = CPU_ADDR[16:15];
-logic [13:0] bram_addr = CPU_ADDR[14:1];
+           input var SYS_CLK,
+           output var SOFT_RST_OUT,
 
-logic prop_en = (bram_select == `BRAM_PROP_SELECT) & ~CPU_CS1_N;
+           output var [7:0] REF_CLK_CYCLE_SHIFT,
+           output var REF_CLK_INIT_OUT,
+           input var REF_CLK_INIT_DONE,
+           output var LM_CLK_INIT_OUT,
+           output var [15:0] LM_CLK_CYCLE,
+           output var [15:0] LM_CLK_DIV,
+           input var [10:0] LM_LAP,
+           output var LM_CLK_CALIB_OUT,
+           output var [15:0] LM_CLK_CALIB_SHIFT,
+           output var LM_CLK_CALIB_DONE,
+           output var [7:0] MOD_IDX_SHIFT,
+
+           output var SILENT_MODE,
+           output var FORCE_FAN,
+           output var OP_MODE
+       );
+
+logic prop_en = (CPU_BUS.BRAM_SELECT == `BRAM_PROP_SELECT) & CPU_BUS.EN;
+
 logic [15:0]cpu_data_out;
 
 logic bram_props_we;
 logic [7:0]bram_props_addr;
 logic [15:0]bram_props_datain;
 logic [15:0]bram_props_dataout;
-
-logic [9:0] time_cnt;
-logic [`MOD_BUF_IDX_WIDTH-1:0] mod_idx;
-logic [15:0] lm_idx;
 
 logic [7:0] ctrl_flags;
 logic [7:0] clk_props;
@@ -59,15 +55,15 @@ logic op_mode = ctrl_flags[`CTRL_FLAG_LM_MODE];
 
 logic soft_rst;
 logic ref_clk_init;
-logic ref_clk_init_done;
+logic ref_clk_init_done = REF_CLK_INIT_DONE;
 logic [15:0] lm_clk_cycle;
 logic [15:0] lm_div;
 logic [7:0] mod_idx_shift;
 logic lm_clk_init;
-logic [10:0] lm_clk_init_lap;
+logic [10:0] lm_clk_init_lap = LM_LAP;
 logic [15:0] lm_clk_calib_shift;
 logic lm_clk_calib;
-logic lm_clk_calib_done;
+logic lm_clk_calib_done = LM_CLK_CALIB_DONE;
 logic [7:0] ref_clk_cycle_shift;
 
 // CF: Control Flag
@@ -97,11 +93,36 @@ enum logic [4:0] {
          LM_CLK_CALIB
      } state_props;
 
+assign SOFT_RST_OUT = soft_rst;
+assign CPU_DATA_OUT = cpu_data_out;
+assign REF_CLK_CYCLE_SHIFT = ref_clk_cycle_shift;
+assign REF_CLK_INIT_OUT = ref_clk_init;
+assign LM_CLK_INIT_OUT = lm_clk_init;
+assign LM_CLK_CYCLE = lm_clk_cycle;
+assign LM_CLK_DIV = lm_div;
+assign LM_CLK_CALIB_OUT = lm_clk_calib;
+assign LM_CLK_CALIB_SHIFT = lm_clk_calib_shift;
+assign MOD_IDX_SHIFT = mod_idx_shift;
+assign SILENT_MODE = silent;
 assign FORCE_FAN = force_fan;
-assign CPU_DATA  = (~CPU_CS1_N && ~CPU_RD_N && CPU_RDWR) ? cpu_data_out : 16'bz;
+assign OP_MODE = op_mode;
+
+BRAM16x256 ram_props(
+               .clka(CPU_BUS.BUS_CLK),
+               .ena(prop_en),
+               .wea(CPU_BUS.WE),
+               .addra(CPU_BUS.BRAM_ADDR[7:0]),
+               .dina(CPU_BUS.DATA_IN),
+               .douta(cpu_data_out),
+
+               .clkb(SYS_CLK),
+               .web(bram_props_we),
+               .addrb(bram_props_addr),
+               .dinb(bram_props_datain),
+               .doutb(bram_props_dataout)
+           );
 
 initial begin
-    sync0 = 0;
     ctrl_flags = 0;
     clk_props = 0;
     ref_clk_init = 0;
@@ -121,68 +142,7 @@ initial begin
     lm_clk_calib = 0;
 end
 
-transducer_controller tr_cnt(
-                          .BUS_CLK(CPU_CKIO),
-                          .BRAM_SELECT(bram_select),
-                          .EN(~CPU_CS1_N),
-                          .WE(~CPU_WE0_N),
-                          .ADDR(bram_addr),
-                          .DATA_IN(CPU_DATA),
-
-                          .SYS_CLK(MRCC_25P6M),
-                          .TIME(time_cnt),
-                          .LM_IDX(lm_idx),
-                          .LM_CLK_DIV(lm_div),
-                          .MOD_IDX(mod_idx),
-                          .SILENT(silent),
-                          .OP_MODE(op_mode),
-                          .XDCR_OUT(XDCR_OUT)
-                      );
-
-synchronizer synchronizer(
-                 .SYS_CLK(MRCC_25P6M),
-                 .RST(soft_rst),
-                 .SYNC(sync0 == 3'b011),
-
-                 .REF_CLK_CYCLE_SHIFT(ref_clk_cycle_shift),
-
-                 .REF_CLK_INIT(ref_clk_init),
-                 .REF_CLK_INIT_DONE_OUT(ref_clk_init_done),
-
-                 .LM_CLK_INIT(lm_clk_init),
-                 .LM_CLK_CYCLE(lm_clk_cycle),
-                 .LAP_OUT(lm_clk_init_lap),
-                 .LM_CLK_CALIB(lm_clk_calib),
-                 .LM_CLK_CALIB_SHIFT(lm_clk_calib_shift),
-                 .LM_CLK_CALIB_DONE_OUT(lm_clk_calib_done),
-
-                 .MOD_IDX_SHIFT(mod_idx_shift),
-
-                 .TIME_CNT_OUT(time_cnt),
-                 .MOD_IDX_OUT(mod_idx),
-                 .LM_IDX_OUT(lm_idx)
-             );
-
-BRAM16x256 ram_props(
-               .clka(CPU_CKIO),
-               .ena(prop_en),
-               .wea(~CPU_WE0_N),
-               .addra(bram_addr),
-               .dina(CPU_DATA),
-               .douta(cpu_data_out),
-
-               .clkb(MRCC_25P6M),
-               .web(bram_props_we),
-               .addrb(bram_props_addr),
-               .dinb(bram_props_datain),
-               .doutb(bram_props_dataout)
-           );
-
-always_ff @(posedge MRCC_25P6M) begin
-    sync0 <= {sync0[1:0], CAT_SYNC0};
-end
-
-always_ff @(posedge MRCC_25P6M) begin
+always_ff @(posedge SYS_CLK) begin
     case(state_props)
         READ_CF_AND_CP: begin
             bram_props_we <= 0;
