@@ -4,7 +4,7 @@
  * Created Date: 15/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 16/12/2020
+ * Last Modified: 17/12/2020
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -12,13 +12,14 @@
  */
 
 `timescale 1ns / 1ps
-`include "../consts.vh"
 
-module transducers_array(
+module transducers_array#(
+           parameter TRANS_NUM = 249
+       )(
            input var [9:0] TIME,
-           input var [7:0] DUTY[0:`TRANS_NUM-1],
-           input var [7:0] PHASE[0:`TRANS_NUM-1],
-           input var [7:0] DELAY[0:`TRANS_NUM-1],
+           input var [7:0] DUTY[0:TRANS_NUM-1],
+           input var [7:0] PHASE[0:TRANS_NUM-1],
+           input var [7:0] DELAY[0:TRANS_NUM-1],
            input var [7:0] MOD,
            input var SILENT,
            output var [252:1] XDCR_OUT
@@ -28,7 +29,7 @@ module transducers_array(
 
 generate begin:TRANSDUCERS_GEN
         genvar ii;
-        for(ii = 0; ii < `TRANS_NUM; ii++) begin
+        for(ii = 0; ii < TRANS_NUM; ii++) begin
             logic [7:0] duty_modulated = modulate_duty(DUTY[ii], MOD);
             transducer tr(
                            .TIME(TIME),

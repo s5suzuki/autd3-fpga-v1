@@ -4,7 +4,7 @@
  * Created Date: 05/07/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 15/12/2020
+ * Last Modified: 17/12/2020
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -28,19 +28,22 @@ module focus_calculator(
 localparam SQRT_LATENCY = 25 + 1;
 localparam SQRT_LATENCY_WIDTH = $clog2(SQRT_LATENCY);
 
-logic signed [23:0] dx, dy, dz;
-logic [47:0] d2;
-logic tvalid_in;
+logic signed [23:0] dx = 0;
+logic signed [23:0] dy = 0;
+logic signed [23:0] dz = 0;
+logic [47:0] d2 = 0;
+logic tvalid_in = 0;
 logic tvalid_out;
 logic [31:0] dout;
-logic [7:0] phase;
-logic phase_calc_done;
+logic [7:0] phase = 0;
+logic phase_calc_done = 0;
 
-logic [2:0] calc_mode_edge;
-logic [2:0] calc_mode;
-logic [SQRT_LATENCY_WIDTH-1:0] wait_cnt;
-logic [7:0] input_num, output_num;
-logic run;
+logic [2:0] calc_mode_edge = 0;
+logic [2:0] calc_mode = 0;
+logic [SQRT_LATENCY_WIDTH-1:0] wait_cnt = 0;
+logic [7:0] input_num = 0;
+logic [7:0] output_num = 0;
+logic run = 0;
 
 sqrt_48 sqrt_48(
             .aclk(SYS_CLK),
@@ -51,22 +54,6 @@ sqrt_48 sqrt_48(
 
 assign PHASE = phase;
 assign PHASE_CALC_DONE = phase_calc_done;
-
-initial begin
-    dx = 0;
-    dy = 0;
-    dz = 0;
-    d2 = 0;
-    tvalid_in = 0;
-    phase = 0;
-    phase_calc_done = 0;
-    calc_mode_edge = 0;
-    calc_mode = 0;
-    wait_cnt = 0;
-    input_num = 0;
-    output_num = 0;
-    run = 0;
-end
 
 always_ff @(posedge SYS_CLK) begin
     calc_mode_edge <= {calc_mode_edge[1:0], DVALID_IN};
