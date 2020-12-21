@@ -23,45 +23,55 @@ module sim_mod_cnt();
 
 parameter TCO = 10; // bus delay 10ns
 
-reg[15:0]bram_addr;
+logic[15:0]bram_addr;
 
-wire [16:0] CPU_ADDR = {bram_addr, 1'b1};
-wire [15:0] CPU_DATA;
-reg CPU_CKIO;
-reg CPU_CS1_N;
-reg CPU_WE0_N;
-reg MRCC_25P6M;
+logic [16:0] CPU_ADDR;
+assign CPU_ADDR = {bram_addr, 1'b1};
+logic [15:0] CPU_DATA;
+logic CPU_CKIO;
+logic CPU_CS1_N;
+logic CPU_WE0_N;
+logic MRCC_25P6M;
 
-reg [20:0] ref_clk_cnt, ref_clk_cnt_cycle;
-reg [9:0] ref_clk_div;
+logic [14:0] mod_idx;
+logic [7:0] mod;
+logic [31:0] mod_update_cnt;
 
-wire [14:0] mod_idx;
-wire [7:0] mod;
-reg [7:0] mod_idx_shift;
+logic [15:0] CPU_DATA_READ;
 
-reg [15:0] CPU_DATA_READ;
-
-reg [15:0] bus_data_reg = 16'bz;
+logic [15:0] bus_data_reg = 16'bz;
 assign CPU_DATA = bus_data_reg;
 
-mod_controller mod_controller(
-                   .BUS_CLK(CPU_CKIO),
-                   .BRAM_SELECT(bram_addr[16:15]),
-                   .EN(~CPU_CS1_N),
-                   .WE(~CPU_WE0_N),
-                   .ADDR(bram_addr[14:1]),
-                   .DATA_IN(CPU_DATA),
+cpu_bus_if cpu_bus();
+assign cpu_bus.BUS_CLK = CPU_CKIO;
+assign cpu_bus.EN = ~CPU_CS1_N;
+assign cpu_bus.WE = ~CPU_WE0_N;
+assign cpu_bus.BRAM_SELECT = CPU_ADDR[16:15];
+assign cpu_bus.BRAM_ADDR = CPU_ADDR[14:1];
+assign cpu_bus.DATA_IN = CPU_DATA;
+assign cpu_data_out = cpu_bus.DATA_OUT;
 
-                   .SYS_CLK(MRCC_25P6M),
-                   .MOD_IDX(mod_idx),
-                   .MOD_OUT(mod)
-               );
+config_bus_if config_bus();
+mod_bus_if mod_bus();
+normal_op_bus_if normal_op_bus();
+stm_op_bus_if stm_op_bus();
 
-mod_synchronizer mod_synchronizer(
-                     .REF_CLK_CNT(ref_clk_cnt),
-                     .MOD_IDX_SHIFT(mod_idx_shift),
-                     .MOD_IDX_OUT(mod_idx)
-                 );
+bram_controller bram_controller(
+                    .CPU_BUS(cpu_bus.slave_port),
+
+                    .SYS_CLK(MRCC_25P6M),
+                    .CONFIG_BUS(config_bus.slave_port),
+                    .MOD_BUS(mod_bus.slave_port),
+                    .NORMAL_OP_BUS(normal_op_bus.slave_port),
+                    .STM_OP_BUS(stm_op_bus.slave_port)
+                );
+
+mod_controller#(.MOD_BUF_SIZE(32000))
+              mod_controller(
+                  .MOD_BUS(mod_bus.master_port),
+                  .MOD_IDX(mod_idx),
+                  .MOD_OUT(mod)
+              );
 
 task bram_write (input [13:0] addr, input [15:0] data_in);
     repeat (20) @(posedge CPU_CKIO);
@@ -78,15 +88,14 @@ task bram_write (input [13:0] addr, input [15:0] data_in);
     CPU_WE0_N <= #(TCO) 1;
 endtask
 
-reg [7:0] tmp = 0;
+logic [7:0] tmp = 0;
 task mod_init;
-    integer i;
     begin
-        for (i = 0; i < 250; i=i+1) begin
+        for (integer i = 0; i < 250; i=i+1) begin
             tmp = 2*i;
             bram_write(i, {tmp+1, tmp});
         end
-        for (i = 0; i < 250; i=i+1) begin
+        for (integer i = 0; i < 250; i=i+1) begin
             tmp = 2*i;
             bram_write(i, {tmp+1, tmp});
         end
@@ -94,10 +103,6 @@ task mod_init;
 endtask
 
 initial begin
-    ref_clk_cnt = 0;
-    ref_clk_div = 0;
-    mod_idx_shift = 1;
-    ref_clk_cnt_cycle = 20'd39999;
     MRCC_25P6M = 1;
     CPU_CKIO = 1;
     CPU_CS1_N = 0;
@@ -105,6 +110,8 @@ initial begin
     CPU_DATA_READ = 0;
     bus_data_reg = 16'bz;
     bram_addr = #(TCO) 16'd0;
+    mod_idx = 0;
+    mod_update_cnt = 0;
 
     #(1000);
     mod_init();
@@ -122,12 +129,12 @@ always
     #6.65 CPU_CKIO = ~CPU_CKIO; // bus clock 75MHz
 
 always @(posedge MRCC_25P6M) begin
-    if (ref_clk_div == 10'd639) begin
-        ref_clk_div <= 0;
-        ref_clk_cnt <= (ref_clk_cnt == ref_clk_cnt_cycle) ? 0 : ref_clk_cnt + 1;
+    if (mod_update_cnt == 32'd6399) begin// 4kHz
+        mod_update_cnt = 0;
+        mod_idx = (mod_idx == 15'd3999) ? 0 : mod_idx + 1;
     end
     else begin
-        ref_clk_div <= ref_clk_div + 1;
+        mod_update_cnt = mod_update_cnt + 1;
     end
 end
 
