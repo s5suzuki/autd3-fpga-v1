@@ -38,7 +38,7 @@ transducers_array#(.TRANS_NUM(2))
                      .PHASE,
                      .DELAY,
                      .MOD,
-                     .SILENT(1'b0),
+                     .SILENT(1'b1),
                      .XDCR_OUT
                  );
 

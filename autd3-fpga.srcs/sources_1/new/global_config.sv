@@ -4,7 +4,7 @@
  * Created Date: 16/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 17/12/2020
+ * Last Modified: 21/12/2020
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -35,9 +35,9 @@ module global_config(
            output var OP_MODE
        );
 
-localparam [7:0] CTRL_FLAG_SILENT     = 8'd3;
-localparam [7:0] CTRL_FLAG_FORCE_FAN  = 8'd4;
-localparam [7:0] CTRL_FLAG_STM_MODE   = 8'd5;
+localparam CTRL_FLAG_SILENT    = 3;
+localparam CTRL_FLAG_FORCE_FAN = 4;
+localparam CTRL_FLAG_STM_MODE  = 5;
 
 localparam [13:0] BRAM_CF_AND_CP_IDX       = 14'd0;
 localparam [13:0] BRAM_STM_CYCLE           = 14'd1;
@@ -57,11 +57,11 @@ logic [7:0]addr = 0;
 logic [15:0]data_in = 0;
 logic [15:0]data_out;
 
-logic [7:0] ctrl_flags = 0;
-logic [7:0] clk_props = 0;
-logic silent = ctrl_flags[CTRL_FLAG_SILENT];
-logic force_fan = ctrl_flags[CTRL_FLAG_FORCE_FAN];
-logic op_mode = ctrl_flags[CTRL_FLAG_STM_MODE];
+(*mark_debug="true"*) logic [7:0] ctrl_flags = 0;
+(*mark_debug="true"*) logic [7:0] clk_props = 0;
+(*mark_debug="true"*) logic silent;
+logic force_fan;
+(*mark_debug="true"*) logic op_mode;
 
 logic soft_rst = 0;
 logic ref_clk_init = 0;
@@ -101,12 +101,16 @@ enum logic [4:0] {
          STM_CLK_LOAD_SHIFT_WAIT0,
          STM_CLK_LOAD_SHIFT_WAIT1,
          STM_CLK_CALIB
-     } state_props;
+     } state_props = READ_CF_AND_CP;
 
 assign CONFIG_BUS.WE = we;
 assign CONFIG_BUS.ADDR = addr;
 assign CONFIG_BUS.DATA_IN = data_in;
 assign data_out = CONFIG_BUS.DATA_OUT;
+
+assign silent = ctrl_flags[CTRL_FLAG_SILENT];
+assign force_fan = ctrl_flags[CTRL_FLAG_FORCE_FAN];
+assign op_mode = ctrl_flags[CTRL_FLAG_STM_MODE];
 
 assign SOFT_RST_OUT = soft_rst;
 assign REF_CLK_CYCLE_SHIFT = ref_clk_cycle_shift;
