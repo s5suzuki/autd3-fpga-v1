@@ -4,7 +4,7 @@
  * Created Date: 15/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 17/12/2020
+ * Last Modified: 20/12/2020
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -30,7 +30,8 @@ module transducers_array#(
 generate begin:TRANSDUCERS_GEN
         genvar ii;
         for(ii = 0; ii < TRANS_NUM; ii++) begin
-            logic [7:0] duty_modulated = modulate_duty(DUTY[ii], MOD);
+            logic [7:0] duty_modulated;
+            assign duty_modulated = modulate_duty(DUTY[ii], MOD);
             transducer tr(
                            .TIME(TIME),
                            .D(duty_modulated),
