@@ -4,7 +4,7 @@
  * Created Date: 17/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 17/12/2020
+ * Last Modified: 23/12/2020
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -34,15 +34,13 @@ logic config_en, mod_en, normal_op_en, stm_op_en;
 
 logic [4:0] stm_addr_in_offset = 0;
 logic [2:0] stm_we_edge = 0;
-logic stm_addr_in_offset_en;
 logic [18:0] stm_addr_in;
 
 assign config_en = (CPU_BUS.BRAM_SELECT == BRAM_CONFIG_SELECT) & CPU_BUS.EN;
 assign mod_en = (CPU_BUS.BRAM_SELECT == BRAM_MOD_SELECT) & CPU_BUS.EN;
 assign normal_op_en = (CPU_BUS.BRAM_SELECT == BRAM_NORMAL_OP_SELECT) & CPU_BUS.EN;
-assign stm_op_en = (CPU_BUS.BRAM_SELECT == BRAM_NORMAL_OP_SELECT) & CPU_BUS.EN;
+assign stm_op_en = (CPU_BUS.BRAM_SELECT == BRAM_STM_SELECT) & CPU_BUS.EN;
 
-assign stm_addr_in_offset_en = (CPU_BUS.BRAM_SELECT == BRAM_CONFIG_SELECT) & CPU_BUS.EN;
 assign stm_addr_in = {stm_addr_in_offset, CPU_BUS.BRAM_ADDR};
 
 BRAM16x256 ram_props(
@@ -107,7 +105,7 @@ BRAM256x14000 stm_ram(
               );
 
 always_ff @(posedge CPU_BUS.BUS_CLK) begin
-    stm_we_edge <= {stm_we_edge[1:0], (CPU_BUS.WE & stm_addr_in_offset_en)};
+    stm_we_edge <= {stm_we_edge[1:0], (CPU_BUS.WE & config_en)};
     if(stm_we_edge == 3'b011) begin
         case(CPU_BUS.BRAM_ADDR)
             STM_BRAM_ADDR_OFFSET_ADDR:
