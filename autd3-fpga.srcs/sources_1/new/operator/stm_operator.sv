@@ -4,7 +4,7 @@
  * Created Date: 15/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 17/12/2020
+ * Last Modified: 23/12/2020
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -30,7 +30,7 @@ module stm_operator#(
 localparam TRANS_NUM_X = 18;
 localparam TRANS_NUM_Y = 14;
 
-reg fc_trig = 0;
+logic fc_trig = 0;
 logic signed [23:0] focus_x = 0;
 logic signed [23:0] focus_y = 0;
 logic signed [23:0] focus_z = 0;
@@ -42,7 +42,7 @@ logic phase_out_valid;
 logic [15:0] bram_idx;
 logic [15:0] bram_idx_old = 0;
 logic [79:0] data_out;
-logic idx_change;
+logic idx_change = 0;
 
 logic [7:0] duty = 0;
 logic [7:0] duty_buf = 0;

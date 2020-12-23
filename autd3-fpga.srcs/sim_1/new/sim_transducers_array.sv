@@ -48,9 +48,9 @@ assign tr2 = XDCR_OUT[2];
 initial begin
     MRCC_25P6M = 0;
     time_cnt = 0;
-    DUTY = {8'hFF, 8'h80};
-    PHASE = {8'h00, 8'h00};
-    DELAY = {8'h00, 8'h0F};
+    DUTY = {8'hFF, 8'hFF};
+    PHASE = {8'h34, 8'hBC};
+    DELAY = {8'h00, 8'h00};
     MOD = 8'hFF;
 end
 

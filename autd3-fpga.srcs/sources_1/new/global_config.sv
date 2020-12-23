@@ -4,7 +4,7 @@
  * Created Date: 16/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 21/12/2020
+ * Last Modified: 23/12/2020
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -57,11 +57,11 @@ logic [7:0]addr = 0;
 logic [15:0]data_in = 0;
 logic [15:0]data_out;
 
-(*mark_debug="true"*) logic [7:0] ctrl_flags = 0;
-(*mark_debug="true"*) logic [7:0] clk_props = 0;
-(*mark_debug="true"*) logic silent;
+logic [7:0] ctrl_flags = 0;
+logic [7:0] clk_props = 0;
+logic silent;
 logic force_fan;
-(*mark_debug="true"*) logic op_mode;
+logic op_mode;
 
 logic soft_rst = 0;
 logic ref_clk_init = 0;

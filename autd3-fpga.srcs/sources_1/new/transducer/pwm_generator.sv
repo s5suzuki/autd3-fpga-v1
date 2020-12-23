@@ -4,7 +4,7 @@
  * Created Date: 15/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 16/12/2020
+ * Last Modified: 23/12/2020
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -27,8 +27,8 @@ logic[9:0] time_t;
 logic[7:0] d;
 logic[7:0] s;
 
-logic[9:0] d_pwm = 10'd0;
-logic[9:0] s_pwm = 10'd0;
+logic[9:0] d_pwm;
+logic[9:0] s_pwm;
 
 assign time_t = TIME;
 assign d = D;
@@ -46,10 +46,10 @@ function automatic pwm;
     input [9:0] s;
     begin
         if (d + s < 10'd640) begin
-            pwm = (s <= timet && timet < d + s);
+            pwm = (s <= timet) & (timet < d + s);
         end
         else begin
-            pwm = (timet < d + s - 10'd640 || s <= timet);
+            pwm = (timet < (d + s - 10'd640)) | (s <= timet);
         end
     end
 endfunction
