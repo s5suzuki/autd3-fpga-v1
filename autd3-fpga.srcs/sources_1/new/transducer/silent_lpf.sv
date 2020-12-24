@@ -4,7 +4,7 @@
  * Created Date: 15/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 16/12/2020
+ * Last Modified: 24/12/2020
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -14,6 +14,7 @@
 `timescale 1ns / 1ps
 module silent_lpf(
            input var CLK,
+           input var UPDATE,
            input var [7:0] D,
            input var [7:0] PHASE,
            output var [7:0] D_S,
@@ -22,6 +23,8 @@ module silent_lpf(
 
 logic[7:0] fd_async = 0;
 logic[7:0] fs_async = 0;
+logic[7:0] fd_async_buf = 0;
+logic[7:0] fs_async_buf = 0;
 
 logic[7:0] datain = 0;
 logic chin = 1;
@@ -50,11 +53,16 @@ end
 
 always_ff @(negedge enout) begin
     if (chout == 1'd0) begin
-        fd_async <= clamp(dataout);
+        fd_async_buf <= clamp(dataout);
     end
     else begin
-        fs_async <= dataout[7:0];
+        fs_async_buf <= dataout[7:0];
     end
+end
+
+always_ff @(negedge UPDATE) begin
+    fd_async <= fd_async_buf;
+    fs_async <= fs_async_buf;
 end
 
 function automatic [7:0] clamp;

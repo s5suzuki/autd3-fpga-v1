@@ -52,6 +52,9 @@ initial begin
     PHASE = {8'h34, 8'hBC};
     DELAY = {8'h00, 8'h00};
     MOD = 8'hFF;
+
+    #100;
+    DUTY = {8'h8F, 8'h7F};
 end
 
 // main clock 25.6MHz

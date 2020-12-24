@@ -4,7 +4,7 @@
  * Created Date: 03/10/2019
  * Author: Shun Suzuki
  * -----
- * Last Modified: 17/12/2020
+ * Last Modified: 24/12/2020
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2019 Hapis Lab. All rights reserved.
@@ -33,6 +33,7 @@ assign update = (TIME == 10'd639);
 
 silent_lpf silent_lpf(
                .CLK(TIME[0]),
+               .UPDATE(update),
                .D(D),
                .PHASE(PHASE),
                .D_S(d_s),
