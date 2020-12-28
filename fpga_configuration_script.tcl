@@ -1,6 +1,6 @@
 set project_directory [file dirname [info script]]
-set bit_file_path [file join $project_directory "autd3-fpga.runs/impl_1/main.bit"]
-set mcs_file_path [file join $project_directory "main.mcs"]
+set bit_file_path [file join $project_directory "autd3-fpga.runs/impl_1/top.bit"]
+set mcs_file_path [file join $project_directory "top.mcs"]
 write_cfgmem -format mcs -size 16 -interface SPIx4 -loadbit "up 0x00000000 $bit_file_path" -force -file "$mcs_file_path"
 
 open_hw_manager

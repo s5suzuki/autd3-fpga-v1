@@ -14,6 +14,5 @@
 !*.wcfg
 
 !README.md
-!/init.coe
 !/generate_bram_init_coe.ps1
 !/fpga_configuration_script.tcl

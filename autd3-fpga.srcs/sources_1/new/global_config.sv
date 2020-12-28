@@ -4,19 +4,16 @@
  * Created Date: 16/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 16/12/2020
+ * Last Modified: 23/12/2020
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
- * 
+ *
  */
 
 `timescale 1ns / 1ps
-`include "consts.vh"
-
 module global_config(
-           cpu_bus_if.slave_port CPU_BUS,
-           output var [15:0] CPU_DATA_OUT,
+           config_bus_if.master_port CONFIG_BUS,
 
            input var SYS_CLK,
            output var SOFT_RST_OUT,
@@ -38,33 +35,46 @@ module global_config(
            output var OP_MODE
        );
 
-logic prop_en = (CPU_BUS.BRAM_SELECT == `BRAM_PROP_SELECT) & CPU_BUS.EN;
+localparam CTRL_FLAG_SILENT    = 3;
+localparam CTRL_FLAG_FORCE_FAN = 4;
+localparam CTRL_FLAG_STM_MODE  = 5;
 
-logic [15:0]cpu_data_out;
+localparam [13:0] BRAM_CF_AND_CP_IDX       = 14'd0;
+localparam [13:0] BRAM_STM_CYCLE           = 14'd1;
+localparam [13:0] BRAM_STM_DIV             = 14'd2;
+localparam [13:0] BRAM_STM_INIT_LAP        = 14'd3;
+localparam [13:0] BRAM_STM_CALIB_SHIFT     = 14'd4;
+localparam [13:0] BRAM_MOD_IDX_SHIFT       = 14'd6;
+localparam [13:0] BRAM_REF_CLK_CYCLE_SHIFT = 14'd7;
 
-logic bram_props_we;
-logic [7:0]bram_props_addr;
-logic [15:0]bram_props_datain;
-logic [15:0]bram_props_dataout;
+localparam PROPS_REF_INIT_IDX  = 0;
+localparam PROPS_STM_INIT_IDX  = 1;
+localparam PROPS_STM_CALIB_IDX = 2;
+localparam PROPS_RST_IDX       = 7;
 
-logic [7:0] ctrl_flags;
-logic [7:0] clk_props;
-logic silent = ctrl_flags[`CTRL_FLAG_SILENT];
-logic force_fan = ctrl_flags[`CTRL_FLAG_FORCE_FAN];
-logic op_mode = ctrl_flags[`CTRL_FLAG_STM_MODE];
+logic we = 0;
+logic [7:0]addr = 0;
+logic [15:0]data_in = 0;
+logic [15:0]data_out;
 
-logic soft_rst;
-logic ref_clk_init;
-logic ref_clk_init_done = REF_CLK_INIT_DONE;
-logic [15:0] stm_clk_cycle;
-logic [15:0] stm_div;
-logic [7:0] mod_idx_shift;
-logic stm_clk_init;
-logic [10:0] stm_clk_init_lap = STM_LAP;
-logic [15:0] stm_clk_calib_shift;
-logic stm_clk_calib;
-logic stm_clk_calib_done = STM_CLK_CALIB_DONE;
-logic [7:0] ref_clk_cycle_shift;
+logic [7:0] ctrl_flags = 0;
+logic [7:0] clk_props = 0;
+logic silent;
+logic force_fan;
+logic op_mode;
+
+logic soft_rst = 0;
+logic ref_clk_init = 0;
+logic ref_clk_init_done;
+logic [15:0] stm_clk_cycle = 0;
+logic [15:0] stm_div = 0;
+logic [7:0] mod_idx_shift = 0;
+logic stm_clk_init = 0;
+logic [10:0] stm_clk_init_lap;
+logic [15:0] stm_clk_calib_shift = 0;
+logic stm_clk_calib = 0;
+logic stm_clk_calib_done;
+logic [7:0] ref_clk_cycle_shift = 0;
 
 // CF: Control Flag
 // CP: Clock Properties
@@ -91,10 +101,18 @@ enum logic [4:0] {
          STM_CLK_LOAD_SHIFT_WAIT0,
          STM_CLK_LOAD_SHIFT_WAIT1,
          STM_CLK_CALIB
-     } state_props;
+     } state_props = READ_CF_AND_CP;
+
+assign CONFIG_BUS.WE = we;
+assign CONFIG_BUS.ADDR = addr;
+assign CONFIG_BUS.DATA_IN = data_in;
+assign data_out = CONFIG_BUS.DATA_OUT;
+
+assign silent = ctrl_flags[CTRL_FLAG_SILENT];
+assign force_fan = ctrl_flags[CTRL_FLAG_FORCE_FAN];
+assign op_mode = ctrl_flags[CTRL_FLAG_STM_MODE];
 
 assign SOFT_RST_OUT = soft_rst;
-assign CPU_DATA_OUT = cpu_data_out;
 assign REF_CLK_CYCLE_SHIFT = ref_clk_cycle_shift;
 assign REF_CLK_INIT_OUT = ref_clk_init;
 assign STM_CLK_INIT_OUT = stm_clk_init;
@@ -107,85 +125,54 @@ assign SILENT_MODE = silent;
 assign FORCE_FAN = force_fan;
 assign OP_MODE = op_mode;
 
-BRAM16x256 ram_props(
-               .clka(CPU_BUS.BUS_CLK),
-               .ena(prop_en),
-               .wea(CPU_BUS.WE),
-               .addra(CPU_BUS.BRAM_ADDR[7:0]),
-               .dina(CPU_BUS.DATA_IN),
-               .douta(cpu_data_out),
-
-               .clkb(SYS_CLK),
-               .web(bram_props_we),
-               .addrb(bram_props_addr),
-               .dinb(bram_props_datain),
-               .doutb(bram_props_dataout)
-           );
-
-initial begin
-    ctrl_flags = 0;
-    clk_props = 0;
-    ref_clk_init = 0;
-    soft_rst = 0;
-
-    mod_idx_shift = 0;
-    ref_clk_cycle_shift = 0;
-
-    bram_props_we = 0;
-    bram_props_addr = 0;
-    bram_props_datain = 0;
-
-    stm_clk_cycle = 0;
-    stm_div = 0;
-    stm_clk_init = 0;
-    stm_clk_calib_shift = 0;
-    stm_clk_calib = 0;
-end
+assign ref_clk_init_done = REF_CLK_INIT_DONE;
+assign stm_clk_calib_done = STM_CLK_CALIB_DONE;
+assign stm_clk_init_lap = STM_LAP;
 
 always_ff @(posedge SYS_CLK) begin
     case(state_props)
         READ_CF_AND_CP: begin
-            bram_props_we <= 0;
+            we <= 0;
 
-            clk_props <= bram_props_dataout[15:8];
-            ctrl_flags <= bram_props_dataout[7:0];
+            clk_props <= data_out[15:8];
+            ctrl_flags <= data_out[7:0];
 
-            if(clk_props[`PROPS_RST_IDX]) begin
+            if(clk_props[PROPS_RST_IDX]) begin
                 soft_rst <= 1;
                 state_props <= SOFT_RST;
             end
-            else if(clk_props[`PROPS_REF_INIT_IDX]) begin
-                bram_props_addr <= `BRAM_REF_CLK_CYCLE_SHIFT;
+            else if(clk_props[PROPS_REF_INIT_IDX]) begin
+                addr <= BRAM_REF_CLK_CYCLE_SHIFT;
                 state_props <= REQ_REF_CLK_SHIFT_READ;
             end
-            else if(clk_props[`PROPS_STM_INIT_IDX]) begin
+            else if(clk_props[PROPS_STM_INIT_IDX]) begin
                 stm_clk_init <= 1;
                 state_props <= STM_CLK_INIT;
             end
-            else if(clk_props[`PROPS_STM_CALIB_IDX]) begin
-                bram_props_addr <= `BRAM_STM_CALIB_SHIFT;
+            else if(clk_props[PROPS_STM_CALIB_IDX]) begin
+                addr <= BRAM_STM_CALIB_SHIFT;
                 state_props <= STM_CLK_LOAD_SHIFT_WAIT0;
             end
             else begin
-                bram_props_addr <= `BRAM_MOD_IDX_SHIFT;
+                addr <= BRAM_MOD_IDX_SHIFT;
                 state_props <= READ_STM_CLK_CYCLE;
             end
         end
         READ_STM_CLK_CYCLE: begin
-            bram_props_addr <= `BRAM_CF_AND_CP_IDX;
-            stm_clk_cycle <= bram_props_dataout;
+            addr <= BRAM_CF_AND_CP_IDX;
+            stm_clk_cycle <= data_out;
 
             state_props <= READ_STM_CLK_DIV;
         end
         READ_STM_CLK_DIV: begin
-            bram_props_addr <= `BRAM_STM_CYCLE;
-            stm_div <= bram_props_dataout;
+            addr <= BRAM_STM_CYCLE;
+            stm_div <= data_out;
 
             state_props <= READ_MOD_IDX_SHIFT;
         end
         READ_MOD_IDX_SHIFT: begin
-            bram_props_addr <= `BRAM_STM_DIV;
-            mod_idx_shift <= bram_props_dataout[7:0];
+            addr <= BRAM_STM_DIV;
+            mod_idx_shift <= data_out[7:0];
 
             state_props <= READ_CF_AND_CP;
         end
@@ -196,23 +183,23 @@ always_ff @(posedge SYS_CLK) begin
         end
 
         REQ_CP_CLEAR: begin
-            bram_props_we <= 1;
-            bram_props_addr <= `BRAM_CF_AND_CP_IDX;
-            bram_props_datain <= {8'h00, ctrl_flags};
+            we <= 1;
+            addr <= BRAM_CF_AND_CP_IDX;
+            data_in <= {8'h00, ctrl_flags};
             state_props <= REQ_CP_CLEAR_WAIT0;
         end
         REQ_CP_CLEAR_WAIT0: begin
-            bram_props_we <= 0;
+            we <= 0;
             state_props <= REQ_CP_CLEAR_WAIT1;
         end
         REQ_CP_CLEAR_WAIT1: begin
-            bram_props_addr <= `BRAM_STM_CYCLE;
+            addr <= BRAM_STM_CYCLE;
             state_props <= CP_CLEAR;
         end
         CP_CLEAR: begin
-            bram_props_addr <= `BRAM_STM_DIV;
-            clk_props <= bram_props_dataout[15:8];
-            ctrl_flags <= bram_props_dataout[7:0];
+            addr <= BRAM_STM_DIV;
+            clk_props <= data_out[15:8];
+            ctrl_flags <= data_out[7:0];
             state_props <= READ_CF_AND_CP;
         end
 
@@ -224,7 +211,7 @@ always_ff @(posedge SYS_CLK) begin
         end
         REQ_REF_CLK_SHIFT_READ_WAIT1: begin
             ref_clk_init <= 1;
-            ref_clk_cycle_shift <= bram_props_dataout[7:0];
+            ref_clk_cycle_shift <= data_out[7:0];
             state_props <= REF_CLK_INIT;
         end
         REF_CLK_INIT: begin
@@ -237,9 +224,9 @@ always_ff @(posedge SYS_CLK) begin
         STM_CLK_INIT: begin
             stm_clk_init <= 0;
             if (stm_clk_init_lap[10]) begin
-                bram_props_we <= 1;
-                bram_props_addr <= `BRAM_STM_INIT_LAP;
-                bram_props_datain <= stm_clk_init_lap[10:0];
+                we <= 1;
+                addr <= BRAM_STM_INIT_LAP;
+                data_in <= stm_clk_init_lap[10:0];
                 state_props <= REQ_CP_CLEAR;
             end
         end
@@ -251,7 +238,7 @@ always_ff @(posedge SYS_CLK) begin
             state_props <= STM_CLK_LOAD_SHIFT;
         end
         STM_CLK_LOAD_SHIFT: begin
-            stm_clk_calib_shift <= bram_props_dataout;
+            stm_clk_calib_shift <= data_out;
             stm_clk_calib <= 1;
             state_props <= STM_CLK_CALIB;
         end
