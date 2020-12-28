@@ -3,9 +3,9 @@
 // Company:
 // Engineer:
 //
-// Create Date: 06/26/2020 03:15:11 PM
+// Create Date: 12/21/2020 02:41:59 PM
 // Design Name:
-// Module Name: sim_mod_cnt
+// Module Name: sim_global_config
 // Project Name:
 // Target Devices:
 // Tool Versions:
@@ -19,12 +19,31 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-module sim_mod_cnt();
 
+module sim_global_config();
+
+logic MRCC_25P6M;
+
+logic [7:0] ref_clk_cycle_shift;
+logic ref_clk_init;
+logic ref_clk_init_done;
+logic stm_clk_init;
+logic [15:0] stm_clk_cycle;
+logic [15:0] stm_div;
+logic [10:0] stm_clk_init_lap;
+logic stm_clk_calib;
+logic [15:0] stm_clk_calib_shift;
+logic stm_clk_calib_done;
+logic [7:0] mod_idx_shift;
+
+logic soft_rst;
+logic force_fan;
+logic silent;
+logic op_mode;
+
+// CPU
 parameter TCO = 10; // bus delay 10ns
-
 logic[15:0]bram_addr;
-
 logic [16:0] CPU_ADDR;
 assign CPU_ADDR = {bram_addr, 1'b1};
 logic [15:0] CPU_DATA;
@@ -32,13 +51,7 @@ logic CPU_CKIO;
 logic CPU_CS1_N;
 logic CPU_WE0_N;
 logic MRCC_25P6M;
-
-logic [14:0] mod_idx;
-logic [7:0] mod;
-logic [31:0] mod_update_cnt;
-
 logic [15:0] CPU_DATA_READ;
-
 logic [15:0] bus_data_reg = 16'bz;
 assign CPU_DATA = bus_data_reg;
 
@@ -66,16 +79,32 @@ bram_controller bram_controller(
                     .STM_OP_BUS(stm_op_bus.slave_port)
                 );
 
-mod_controller#(.MOD_BUF_SIZE(32000))
-              mod_controller(
-                  .MOD_BUS(mod_bus.master_port),
-                  .MOD_IDX(mod_idx),
-                  .MOD_OUT(mod)
+global_config global_config(
+                  .CONFIG_BUS(config_bus.master_port),
+
+                  .SYS_CLK(MRCC_25P6M),
+                  .SOFT_RST_OUT(soft_rst),
+
+                  .REF_CLK_CYCLE_SHIFT(ref_clk_cycle_shift),
+                  .REF_CLK_INIT_OUT(ref_clk_init),
+                  .REF_CLK_INIT_DONE(ref_clk_init_done),
+                  .STM_CLK_INIT_OUT(stm_clk_init),
+                  .STM_CLK_CYCLE(stm_clk_cycle),
+                  .STM_CLK_DIV(stm_div),
+                  .STM_LAP(stm_clk_init_lap),
+                  .STM_CLK_CALIB_OUT(stm_clk_calib),
+                  .STM_CLK_CALIB_SHIFT(stm_clk_calib_shift),
+                  .STM_CLK_CALIB_DONE(stm_clk_calib_done),
+                  .MOD_IDX_SHIFT(mod_idx_shift),
+
+                  .SILENT_MODE(silent),
+                  .FORCE_FAN(force_fan),
+                  .OP_MODE(op_mode)
               );
 
 task bram_write (input [13:0] addr, input [15:0] data_in);
     repeat (20) @(posedge CPU_CKIO);
-    bram_addr <= #(TCO) {2'b01, addr};
+    bram_addr <= #(TCO) {2'b00, addr};
     CPU_CS1_N <= #(TCO) 0;
     bus_data_reg <= #(TCO) data_in;
     @(posedge CPU_CKIO);
@@ -88,19 +117,6 @@ task bram_write (input [13:0] addr, input [15:0] data_in);
     CPU_WE0_N <= #(TCO) 1;
 endtask
 
-logic [7:0] tmp = 0;
-task mod_init;
-    begin
-        for (integer i = 0; i < 250; i=i+1) begin
-            tmp = 2*i;
-            bram_write(i, {tmp+1, tmp});
-        end
-        for (integer i = 0; i < 250; i=i+1) begin
-            tmp = 2*i;
-            bram_write(i, {tmp+1, tmp});
-        end
-    end
-endtask
 
 initial begin
     MRCC_25P6M = 1;
@@ -110,11 +126,8 @@ initial begin
     CPU_DATA_READ = 0;
     bus_data_reg = 16'bz;
     bram_addr = #(TCO) 16'd0;
-    mod_idx = 0;
-    mod_update_cnt = 0;
 
     #(1000);
-    mod_init();
 end
 
 // main clock 25.6MHz
@@ -123,19 +136,6 @@ always begin
     #19.531 MRCC_25P6M = !MRCC_25P6M;
     #19.531 MRCC_25P6M = !MRCC_25P6M;
     #19.532 MRCC_25P6M = !MRCC_25P6M;
-end
-
-always
-    #6.65 CPU_CKIO = ~CPU_CKIO; // bus clock 75MHz
-
-always @(posedge MRCC_25P6M) begin
-    if (mod_update_cnt == 32'd6399) begin// 4kHz
-        mod_update_cnt = 0;
-        mod_idx = (mod_idx == 15'd3999) ? 0 : mod_idx + 1;
-    end
-    else begin
-        mod_update_cnt = mod_update_cnt + 1;
-    end
 end
 
 endmodule
