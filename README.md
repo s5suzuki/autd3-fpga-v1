@@ -1,6 +1,6 @@
 # README
 
-Version: 0.7
+Version: 0.8
 
 This repository contains the FPGA design of [AUTD3](https://hapislab.org/airborne-ultrasound-tactile-display?lang=en).
 
@@ -58,12 +58,18 @@ The code is written in SystemVerilog with Vivado 2020.2.
 
 | BRAM_SELECT | BRAM_ADDR (11bit) | DATA (16bit)        | R/W |
 |-------------|-------------------|---------------------|-----|
-| 0x2         | 0x00              | duty[0]/phase[0]     | R   |
+| 0x2         | 0x000              | duty[0]/phase[0]     | R   |
 | 　          | ︙                | ︙                  | ︙  |
-| 　          | 0xF8              | duty[248]/phase[248] | R   |
-| 　          | 0xF9              | Unused              | 　  |
+| 　          | 0x0F8              | duty[248]/phase[248] | R   |
+| 　          | 0x0F9              | Unused              | 　  |
 | 　          | ︙                | ︙                  | 　  |
-| 　          | 0xFF              | Unused              | 　  |
+| 　          | 0x0FF              | Unused              | 　  |
+|             | 0x100              | delay[0]            | R   |
+| 　          | ︙                | ︙                  | ︙  |
+| 　          | 0x1F8              | delay[248] | R   |
+| 　          | 0x1F9              | Unused              | 　  |
+| 　          | ︙                | ︙                  | 　  |
+| 　          | 0x1FF              | Unused              | 　  |
 
 ### STM operation
 
