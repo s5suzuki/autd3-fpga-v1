@@ -4,7 +4,7 @@
  * Created Date: 17/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 02/03/2021
+ * Last Modified: 03/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -100,7 +100,7 @@ BRAM256x14000 stm_ram(
                   .clkb(SYS_CLK),
                   .web(1'b0),
                   .addrb(STM_OP_BUS.ADDR),
-                  .dinb(256'd0),
+                  .dinb(128'd0),
                   .doutb({_unused, STM_OP_BUS.DATA})
               );
 
