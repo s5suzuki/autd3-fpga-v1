@@ -4,7 +4,7 @@
  * Created Date: 05/07/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 02/03/2021
+ * Last Modified: 03/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -25,13 +25,14 @@ module focus_calculator(
            output var PHASE_CALC_DONE
        );
 
-localparam SQRT_LATENCY = 25 + 1;
+localparam SQRT_LATENCY = 25 + 1 + 4;
 localparam SQRT_LATENCY_WIDTH = $clog2(SQRT_LATENCY);
 
 logic signed [23:0] dx = 0;
 logic signed [23:0] dy = 0;
 logic signed [23:0] dz = 0;
 logic [47:0] d2 = 0;
+logic [47:0] dx2, dy2, dz2;
 logic tvalid_in = 0;
 logic tvalid_out;
 logic [31:0] dout;
@@ -51,6 +52,25 @@ sqrt_48 sqrt_48(
             .s_axis_cartesian_tdata(d2),
             .m_axis_dout_tvalid(tvalid_out),
             .m_axis_dout_tdata(dout));
+
+mult_24 mult_24x(
+            .CLK(SYS_CLK),
+            .A(dx),
+            .B(dx),
+            .P(dx2)
+        );
+mult_24 mult_24y(
+            .CLK(SYS_CLK),
+            .A(dy),
+            .B(dy),
+            .P(dy2)
+        );
+mult_24 mult_24z(
+            .CLK(SYS_CLK),
+            .A(dz),
+            .B(dz),
+            .P(dz2)
+        );
 
 assign PHASE = phase[7:0];
 assign PHASE_CALC_DONE = phase_calc_done;
@@ -86,7 +106,7 @@ always_ff @(posedge SYS_CLK) begin
         end
 
         // STAGE_1
-        d2 <= dx*dx + dy*dy + dz*dz;
+        d2 <= dx2 + dy2 + dz2;
 
         // STAGE_2
         phase <= 9'h100 - dout[8:0];

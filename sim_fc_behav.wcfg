@@ -11,13 +11,13 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="1290437fs"></ZoomStartTime>
-      <ZoomEndTime time="4118438fs"></ZoomEndTime>
-      <Cursor1Time time="2182437fs"></Cursor1Time>
+      <ZoomStartTime time="1579562fs"></ZoomStartTime>
+      <ZoomEndTime time="5461563fs"></ZoomEndTime>
+      <Cursor1Time time="2226562fs"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="172"></NameColumnWidth>
-      <ValueColumnWidth column_width="82"></ValueColumnWidth>
+      <NameColumnWidth column_width="232"></NameColumnWidth>
+      <ValueColumnWidth column_width="169"></ValueColumnWidth>
    </column_width_setting>
    <WVObjectSize size="36" />
    <wvobject fp_name="/sim_fc/MRCC_25P6M" type="logic">
@@ -27,6 +27,7 @@
    <wvobject fp_name="/sim_fc/phase" type="array">
       <obj_property name="ElementShortName">phase[7:0]</obj_property>
       <obj_property name="ObjectShortName">phase[7:0]</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/sim_fc/phase_calc_done" type="logic">
       <obj_property name="ElementShortName">phase_calc_done</obj_property>
@@ -91,7 +92,6 @@
    <wvobject fp_name="/sim_fc/focus_calculator/PHASE" type="array">
       <obj_property name="ElementShortName">PHASE[7:0]</obj_property>
       <obj_property name="ObjectShortName">PHASE[7:0]</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/sim_fc/focus_calculator/PHASE_CALC_DONE" type="logic">
       <obj_property name="ElementShortName">PHASE_CALC_DONE</obj_property>
@@ -112,7 +112,6 @@
    <wvobject fp_name="/sim_fc/focus_calculator/d2" type="array">
       <obj_property name="ElementShortName">d2[47:0]</obj_property>
       <obj_property name="ObjectShortName">d2[47:0]</obj_property>
-      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/sim_fc/focus_calculator/tvalid_in" type="logic">
       <obj_property name="ElementShortName">tvalid_in</obj_property>
@@ -125,7 +124,6 @@
    <wvobject fp_name="/sim_fc/focus_calculator/dout" type="array">
       <obj_property name="ElementShortName">dout[31:0]</obj_property>
       <obj_property name="ObjectShortName">dout[31:0]</obj_property>
-      <obj_property name="Radix">HEXRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/sim_fc/focus_calculator/phase" type="array">
       <obj_property name="ElementShortName">phase[8:0]</obj_property>
@@ -150,12 +148,10 @@
    <wvobject fp_name="/sim_fc/focus_calculator/input_num" type="array">
       <obj_property name="ElementShortName">input_num[7:0]</obj_property>
       <obj_property name="ObjectShortName">input_num[7:0]</obj_property>
-      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/sim_fc/focus_calculator/output_num" type="array">
       <obj_property name="ElementShortName">output_num[7:0]</obj_property>
       <obj_property name="ObjectShortName">output_num[7:0]</obj_property>
-      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/sim_fc/focus_calculator/run" type="logic">
       <obj_property name="ElementShortName">run</obj_property>
@@ -164,6 +160,7 @@
    <wvobject fp_name="/sim_fc/focus_calculator/SQRT_LATENCY" type="array">
       <obj_property name="ElementShortName">SQRT_LATENCY[31:0]</obj_property>
       <obj_property name="ObjectShortName">SQRT_LATENCY[31:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/sim_fc/focus_calculator/SQRT_LATENCY_WIDTH" type="array">
       <obj_property name="ElementShortName">SQRT_LATENCY_WIDTH[31:0]</obj_property>
