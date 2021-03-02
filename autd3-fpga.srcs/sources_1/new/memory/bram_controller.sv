@@ -4,7 +4,7 @@
  * Created Date: 17/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 23/12/2020
+ * Last Modified: 02/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -84,7 +84,7 @@ BRAM16x512 normal_op_ram(
                .clkb(SYS_CLK),
                .web(1'b0),
                .addrb(NORMAL_OP_BUS.ADDR),
-               .dinb(8'h00),
+               .dinb(16'h0000),
                .doutb(NORMAL_OP_BUS.DATA)
            );
 

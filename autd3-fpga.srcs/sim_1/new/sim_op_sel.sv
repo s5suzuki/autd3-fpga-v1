@@ -22,7 +22,7 @@
 
 module sim_op_sel();
 
-localparam TRANS_NUM = 2;
+localparam TRANS_NUM = 249;
 
 logic MRCC_25P6M;
 logic op_mode;
@@ -126,10 +126,10 @@ initial begin
 
     #(1000);
 
-    focus_write(0, 24'sd0, 24'sd0, 24'sd0, 8'haa);
-    focus_write(1, 24'sd10, 24'sd10, 24'sd0, 8'hbb);
-    focus_write(2, 24'sd10, 24'sd10, 24'sd10, 8'hcc);
-    focus_write(3, 24'sd100, 24'sd10, 24'sd10, 8'hdd);
+    focus_write(0, 24'sd0, 24'sd0, 24'sd256, 8'haa);
+    focus_write(1, 24'sd605, 24'sd0, 24'sd256, 8'hbb);
+    focus_write(2, 24'sd0, 24'sd605, 24'sd256, 8'hcc);
+    focus_write(3, 24'sd605, 24'sd605, 24'sd256, 8'hdd);
 
     #(10);
     stm_idx = 1;

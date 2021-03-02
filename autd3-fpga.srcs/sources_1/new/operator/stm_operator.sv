@@ -4,7 +4,7 @@
  * Created Date: 15/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 23/12/2020
+ * Last Modified: 02/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -120,9 +120,9 @@ always_ff @(posedge SYS_CLK) begin
             state_calc <= FC_DATA_IN_STREAM;
         end
         FC_DATA_IN_STREAM: begin
-            // *306.59375 ~ (TRANS_SIZE) / (WAVE_LENGTH/256)
-            trans_x <= ({1'b0, tr_cnt_x, 8'b00000000} + {4'b0, tr_cnt_x, 5'b00000} + {5'b0, tr_cnt_x, 4'b0000} + {8'b0, tr_cnt_x, 1'b0}) + (({1'b0, tr_cnt_x, 4'b0000}+{4'b000, tr_cnt_x, 1'b0}+{5'b0000, tr_cnt_x}) >> 5);
-            trans_y <= ({1'b0, tr_cnt_y, 8'b00000000} + {4'b0, tr_cnt_y, 5'b00000} + {5'b0, tr_cnt_y, 4'b0000} + {8'b0, tr_cnt_y, 1'b0}) + (({1'b0, tr_cnt_y, 4'b0000}+{4'b000, tr_cnt_y, 1'b0}+{5'b0000, tr_cnt_y}) >> 5);
+            // *302.5 ~ (TRANS_SIZE) / (WAVE_LENGTH/256)
+            trans_x <= ({1'b0, tr_cnt_x, 8'b00000000} + {4'b0, tr_cnt_x, 5'b00000} + {6'b0, tr_cnt_x, 3'b0000} + {7'b0, tr_cnt_x, 2'b0} + {8'b0, tr_cnt_x, 1'b0}) + (tr_cnt_x >> 1);
+            trans_y <= ({1'b0, tr_cnt_y, 8'b00000000} + {4'b0, tr_cnt_y, 5'b00000} + {6'b0, tr_cnt_y, 3'b0000} + {7'b0, tr_cnt_y, 2'b0} + {8'b0, tr_cnt_y, 1'b0}) + (tr_cnt_y >> 1);
             tr_cnt <= tr_cnt + 1;
 
             state_calc <= (tr_cnt == TRANS_NUM) ? WAIT : FC_DATA_IN_STREAM;

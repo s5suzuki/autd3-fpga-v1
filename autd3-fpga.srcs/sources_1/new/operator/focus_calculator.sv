@@ -4,7 +4,7 @@
  * Created Date: 05/07/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 17/12/2020
+ * Last Modified: 02/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -35,7 +35,7 @@ logic [47:0] d2 = 0;
 logic tvalid_in = 0;
 logic tvalid_out;
 logic [31:0] dout;
-logic [7:0] phase = 0;
+logic [8:0] phase = 0;
 logic phase_calc_done = 0;
 
 logic [2:0] calc_mode_edge = 0;
@@ -52,7 +52,7 @@ sqrt_48 sqrt_48(
             .m_axis_dout_tvalid(tvalid_out),
             .m_axis_dout_tdata(dout));
 
-assign PHASE = phase;
+assign PHASE = phase[7:0];
 assign PHASE_CALC_DONE = phase_calc_done;
 
 always_ff @(posedge SYS_CLK) begin
@@ -89,7 +89,7 @@ always_ff @(posedge SYS_CLK) begin
         d2 <= dx*dx + dy*dy + dz*dz;
 
         // STAGE_2
-        phase <= 8'hFF - dout[7:0];
+        phase <= 9'h100 - dout[8:0];
         if(wait_cnt == SQRT_LATENCY - 1) begin
             if(output_num == input_num) begin
                 phase_calc_done <= 0;
