@@ -4,7 +4,7 @@
  * Created Date: 03/10/2019
  * Author: Shun Suzuki
  * -----
- * Last Modified: 24/12/2020
+ * Last Modified: 03/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2019 Hapis Lab. All rights reserved.
@@ -13,6 +13,8 @@
 
 `timescale 1ns / 1ps
 module transducer(
+           input var CLK,
+           input var CLK_LPF,
            input var [9:0] TIME,
            input var [7:0] D,
            input var [7:0] PHASE,
@@ -32,7 +34,8 @@ assign phase = SILENT ? phase_s : PHASE;
 assign update = (TIME == 10'd639);
 
 silent_lpf silent_lpf(
-               .CLK(TIME[0]),
+               .CLK(CLK),
+               .CLK_LPF(CLK_LPF),
                .UPDATE(update),
                .D(D),
                .PHASE(PHASE),
@@ -43,7 +46,8 @@ silent_lpf silent_lpf(
 delayed_fifo#(.WIDTH(8),
               .DEPTH_RADIX(8))
             delayed_fifo_duty(
-                .CLK(update),
+                .CLK(CLK),
+                .UPDATE(update),
                 .DELAY(DELAY),
                 .DATA_IN(d),
                 .DATA_OUT(dd)
@@ -52,7 +56,8 @@ delayed_fifo#(.WIDTH(8),
 delayed_fifo#(.WIDTH(8),
               .DEPTH_RADIX(8))
             delayed_fifo_phase(
-                .CLK(update),
+                .CLK(CLK),
+                .UPDATE(update),
                 .DELAY(DELAY),
                 .DATA_IN(phase),
                 .DATA_OUT(phased)

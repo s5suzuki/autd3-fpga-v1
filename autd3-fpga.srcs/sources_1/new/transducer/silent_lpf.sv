@@ -4,7 +4,7 @@
  * Created Date: 15/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 24/12/2020
+ * Last Modified: 03/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -14,6 +14,7 @@
 `timescale 1ns / 1ps
 module silent_lpf(
            input var CLK,
+           input var CLK_LPF,
            input var UPDATE,
            input var [7:0] D,
            input var [7:0] PHASE,
@@ -35,7 +36,7 @@ assign D_S = fd_async;
 assign PHASE_S = fs_async;
 
 lpf_40k_500 LPF(
-                .aclk(CLK),
+                .aclk(CLK_LPF),
                 .s_axis_data_tvalid(1'd1),
                 .s_axis_data_tready(enin),
                 .s_axis_data_tuser(chin),
@@ -60,9 +61,11 @@ always_ff @(negedge enout) begin
     end
 end
 
-always_ff @(negedge UPDATE) begin
-    fd_async <= fd_async_buf;
-    fs_async <= fs_async_buf;
+always_ff @(posedge CLK) begin
+    if(UPDATE) begin
+        fd_async <= fd_async_buf;
+        fs_async <= fs_async_buf;
+    end
 end
 
 function automatic [7:0] clamp;

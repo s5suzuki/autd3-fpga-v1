@@ -4,7 +4,7 @@
  * Created Date: 02/10/2019
  * Author: Shun Suzuki
  * -----
- * Last Modified: 02/03/2021
+ * Last Modified: 03/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2019 Hapis Lab. All rights reserved.
@@ -188,8 +188,15 @@ mod_controller#(.MOD_BUF_SIZE(MOD_BUF_SIZE))
                   .MOD_OUT(mod)
               );
 
+logic aclk;
+clk_lpf clk_lpf(
+            .clk_in1(MRCC_25P6M),
+            .clk_out1(aclk)
+        );
 transducers_array#(.TRANS_NUM(TRANS_NUM))
                  transducers_array(
+                     .CLK(MRCC_25P6M),
+                     .CLK_LPF(aclk),
                      .TIME(time_cnt),
                      .DUTY(duty),
                      .PHASE(phase),
