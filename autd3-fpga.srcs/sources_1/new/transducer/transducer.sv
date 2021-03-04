@@ -4,7 +4,7 @@
  * Created Date: 03/10/2019
  * Author: Shun Suzuki
  * -----
- * Last Modified: 03/03/2021
+ * Last Modified: 04/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2019 Hapis Lab. All rights reserved.
@@ -25,8 +25,8 @@ module transducer(
 
 logic[7:0] d_s, phase_s;
 
-logic[7:0] d, dd;
-logic[7:0] phase, phased;
+logic[7:0] d, phase;
+logic[15:0] delayed;
 
 assign d = SILENT ? d_s : D;
 assign phase = SILENT ? phase_s : PHASE;
@@ -49,24 +49,14 @@ delayed_fifo#(.WIDTH(8),
                 .CLK(CLK),
                 .UPDATE(update),
                 .DELAY(DELAY),
-                .DATA_IN(d),
-                .DATA_OUT(dd)
-            );
-
-delayed_fifo#(.WIDTH(8),
-              .DEPTH_RADIX(8))
-            delayed_fifo_phase(
-                .CLK(CLK),
-                .UPDATE(update),
-                .DELAY(DELAY),
-                .DATA_IN(phase),
-                .DATA_OUT(phased)
+                .DATA_IN({phase, d}),
+                .DATA_OUT(delayed)
             );
 
 pwm_generator pwm_generator(
                   .TIME(TIME),
-                  .D(dd),
-                  .PHASE(phased),
+                  .D(delayed[7:0]),
+                  .PHASE(delayed[15:8]),
                   .PWM_OUT(PWM_OUT)
               );
 

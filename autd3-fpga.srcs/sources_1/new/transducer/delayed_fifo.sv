@@ -4,7 +4,7 @@
  * Created Date: 16/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 03/03/2021
+ * Last Modified: 04/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -15,21 +15,21 @@
 
 module delayed_fifo#(
            parameter WIDTH = 8,
-           parameter DEPTH_RADIX = 8
+           parameter DEPTH_RADIX = 7
        )(
            input var CLK,
            input var UPDATE,
            input var [7:0] DELAY,
-           input var [WIDTH-1:0] DATA_IN,
-           output var [WIDTH-1:0] DATA_OUT
+           input var [2*WIDTH-1:0] DATA_IN,
+           output var [2*WIDTH-1:0] DATA_OUT
        );
 
 localparam DEPTH = 1 << DEPTH_RADIX;
 
-logic [WIDTH-1:0] mem[0:DEPTH-1] = '{DEPTH{0}};
-logic [DEPTH_RADIX-1:0] ptr = 0;
-logic [WIDTH-1:0] data_out = 0;
-logic [7:0] delay = 0;
+logic [2*WIDTH-1:0] mem[0:DEPTH-1] = '{DEPTH{0}};
+logic [DEPTH_RADIX:0] ptr = 0;
+logic [2*WIDTH-1:0] data_out = 0;
+logic [DEPTH_RADIX:0] delay = 0;
 
 assign DATA_OUT = (DELAY == 8'd0) ? DATA_IN : data_out;
 

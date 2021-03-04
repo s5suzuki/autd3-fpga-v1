@@ -4,7 +4,7 @@
  * Created Date: 15/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 03/03/2021
+ * Last Modified: 04/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -31,6 +31,7 @@ logic[7:0] datain = 0;
 logic chin = 1;
 logic signed [15:0] dataout;
 logic chout, enout, enin;
+logic enout_rst, enin_rst;
 
 assign D_S = fd_async;
 assign PHASE_S = fs_async;
@@ -47,17 +48,38 @@ lpf_40k_500 LPF(
                 .event_s_data_chanid_incorrect()
             );
 
-always_ff @(posedge enin) begin
-    chin <= ~chin;
-    datain <= (chin == 1'b0) ? PHASE : D;
+always_ff @(posedge CLK) begin
+    if (enin & ~enin_rst) begin
+        chin <= ~chin;
+        datain <= (chin == 1'b0) ? PHASE : D;
+    end
 end
 
-always_ff @(negedge enout) begin
-    if (chout == 1'd0) begin
-        fd_async_buf <= clamp(dataout);
+always_ff @(posedge CLK) begin
+    if (enin) begin
+        enin_rst <= 1'b1;
     end
     else begin
-        fs_async_buf <= dataout[7:0];
+        enin_rst <= 1'b0;
+    end
+end
+always_ff @(posedge CLK) begin
+    if (enout) begin
+        enout_rst <= 1'b1;
+    end
+    else begin
+        enout_rst <= 1'b0;
+    end
+end
+
+always_ff @(negedge CLK) begin
+    if (enout & ~enout_rst) begin
+        if (chout == 1'd0) begin
+            fd_async_buf <= clamp(dataout);
+        end
+        else begin
+            fs_async_buf <= dataout[7:0];
+        end
     end
 end
 
