@@ -4,7 +4,7 @@
  * Created Date: 02/10/2019
  * Author: Shun Suzuki
  * -----
- * Last Modified: 04/03/2021
+ * Last Modified: 05/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2019 Hapis Lab. All rights reserved.
@@ -73,7 +73,6 @@ logic [15:0] stm_idx;
 
 logic [7:0] duty[0:TRANS_NUM-1];
 logic [7:0] phase[0:TRANS_NUM-1];
-logic [7:0] delay[0:TRANS_NUM-1];
 
 logic [7:0] mod;
 
@@ -177,8 +176,7 @@ operator_selector#(.TRANS_NUM(TRANS_NUM))
                      .STM_CLK_DIV(stm_div),
 
                      .DUTY(duty),
-                     .PHASE(phase),
-                     .DELAY(delay)
+                     .PHASE(phase)
                  );
 
 mod_controller#(.MOD_BUF_SIZE(MOD_BUF_SIZE))
@@ -200,7 +198,6 @@ transducers_array#(.TRANS_NUM(TRANS_NUM))
                      .TIME(time_cnt),
                      .DUTY(duty),
                      .PHASE(phase),
-                     .DELAY(delay),
                      .MOD(mod),
                      .SILENT(silent),
                      .XDCR_OUT(XDCR_OUT)

@@ -28,7 +28,6 @@ logic MRCC_12P8M;
 logic [9:0] time_cnt;
 logic [7:0] DUTY [0:1];
 logic [7:0] PHASE [0:1];
-logic [7:0] DELAY [0:1];
 logic [7:0] MOD;
 logic [252:1] XDCR_OUT;
 
@@ -39,7 +38,6 @@ transducers_array#(.TRANS_NUM(2))
                      .TIME(time_cnt),
                      .DUTY,
                      .PHASE,
-                     .DELAY,
                      .MOD,
                      .SILENT(1'b0),
                      .XDCR_OUT
@@ -54,11 +52,9 @@ initial begin
     time_cnt = 0;
     DUTY = {8'hFF, 8'hFF};
     PHASE = {8'h34, 8'h34};
-    DELAY = {8'h00, 8'h00};
     MOD = 8'hFF;
 
     #1000000;
-    DELAY = {8'h00, 8'h0a};
     DUTY = {8'h32, 8'h32};
     PHASE = {8'h0, 8'h34};
 end

@@ -31,7 +31,6 @@ logic [15:0] stm_idx, stm_div;
 
 logic [7:0] duty[0:TRANS_NUM-1];
 logic [7:0] phase[0:TRANS_NUM-1];
-logic [7:0] delay[0:TRANS_NUM-1];
 
 // CPU
 parameter TCO = 10; // bus delay 10ns
@@ -83,8 +82,7 @@ operator_selector#(.TRANS_NUM(TRANS_NUM))
                      .STM_CLK_DIV(stm_div),
 
                      .DUTY(duty),
-                     .PHASE(phase),
-                     .DELAY(delay)
+                     .PHASE(phase)
                  );
 
 task bram_write (input [1:0] select, input [13:0] addr, input [15:0] data_in);

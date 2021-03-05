@@ -4,7 +4,7 @@
  * Created Date: 15/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 17/12/2020
+ * Last Modified: 05/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -27,8 +27,7 @@ module operator_selector#(
            input var [15:0] STM_CLK_DIV,
 
            output var [7:0] DUTY[0:TRANS_NUM-1],
-           output var [7:0] PHASE[0:TRANS_NUM-1],
-           output var [7:0] DELAY[0:TRANS_NUM-1]
+           output var [7:0] PHASE[0:TRANS_NUM-1]
        );
 
 logic [7:0] normal_duty[0:TRANS_NUM-1];
@@ -47,8 +46,7 @@ normal_operator#(.TRANS_NUM(TRANS_NUM))
                    .SYS_CLK(SYS_CLK),
                    .TIME(TIME),
                    .DUTY(normal_duty),
-                   .PHASE(normal_phase),
-                   .DELAY_OUT(DELAY)
+                   .PHASE(normal_phase)
                );
 
 stm_operator#(.TRANS_NUM(TRANS_NUM))

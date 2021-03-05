@@ -4,7 +4,7 @@
  * Created Date: 15/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 03/03/2021
+ * Last Modified: 05/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -21,7 +21,6 @@ module transducers_array#(
            input var [9:0] TIME,
            input var [7:0] DUTY[0:TRANS_NUM-1],
            input var [7:0] PHASE[0:TRANS_NUM-1],
-           input var [7:0] DELAY[0:TRANS_NUM-1],
            input var [7:0] MOD,
            input var SILENT,
            output var [252:1] XDCR_OUT
@@ -40,7 +39,6 @@ generate begin:TRANSDUCERS_GEN
                            .TIME(TIME),
                            .D(duty_modulated),
                            .PHASE(PHASE[ii]),
-                           .DELAY(DELAY[ii]),
                            .SILENT(SILENT),
                            .PWM_OUT(XDCR_OUT[cvt_uid(ii) + 1])
                        );
