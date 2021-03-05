@@ -4,7 +4,7 @@
  * Created Date: 15/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 04/03/2021
+ * Last Modified: 06/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -15,6 +15,7 @@
 module silent_lpf(
            input var CLK,
            input var CLK_LPF,
+           input var RST,
            input var UPDATE,
            input var [7:0] D,
            input var [7:0] PHASE,
@@ -22,13 +23,13 @@ module silent_lpf(
            output var [7:0] PHASE_S
        );
 
-logic[7:0] fd_async = 0;
-logic[7:0] fs_async = 0;
-logic[7:0] fd_async_buf = 0;
-logic[7:0] fs_async_buf = 0;
+logic[7:0] fd_async;
+logic[7:0] fs_async;
+logic[7:0] fd_async_buf;
+logic[7:0] fs_async_buf;
 
-logic[7:0] datain = 0;
-logic chin = 1;
+logic[7:0] datain;
+logic chin;
 logic signed [15:0] dataout;
 logic chout, enout, enin;
 logic enout_rst, enin_rst;
@@ -49,14 +50,21 @@ lpf_40k_500 LPF(
             );
 
 always_ff @(posedge CLK) begin
-    if (enin & ~enin_rst) begin
+    if (RST) begin
+        chin <= 1;
+        datain <= 0;
+    end
+    else if (enin & ~enin_rst) begin
         chin <= ~chin;
         datain <= (chin == 1'b0) ? PHASE : D;
     end
 end
 
 always_ff @(posedge CLK) begin
-    if (enin) begin
+    if (RST) begin
+        enin_rst <= 1'b0;
+    end
+    else if (enin) begin
         enin_rst <= 1'b1;
     end
     else begin
@@ -64,7 +72,10 @@ always_ff @(posedge CLK) begin
     end
 end
 always_ff @(posedge CLK) begin
-    if (enout) begin
+    if (RST) begin
+        enout_rst <= 1'b0;
+    end
+    else if (enout) begin
         enout_rst <= 1'b1;
     end
     else begin
@@ -73,7 +84,11 @@ always_ff @(posedge CLK) begin
 end
 
 always_ff @(negedge CLK) begin
-    if (enout & ~enout_rst) begin
+    if (RST) begin
+        fs_async_buf <= 0;
+        fd_async_buf <= 0;
+    end
+    else if (enout & ~enout_rst) begin
         if (chout == 1'd0) begin
             fd_async_buf <= clamp(dataout);
         end
@@ -84,7 +99,11 @@ always_ff @(negedge CLK) begin
 end
 
 always_ff @(posedge CLK) begin
-    if(UPDATE) begin
+    if (RST) begin
+        fd_async <= 0;
+        fs_async <= 0;
+    end
+    else if(UPDATE) begin
         fd_async <= fd_async_buf;
         fs_async <= fs_async_buf;
     end

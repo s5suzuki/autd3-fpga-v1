@@ -4,7 +4,7 @@
  * Created Date: 26/06/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 17/12/2020
+ * Last Modified: 06/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -40,13 +40,13 @@ module ref_clk_synchronizer#(
 localparam int REF_CLK_DIVIDER_CNT = (SYS_CLK_FREQ / REF_CLK_FREQ);
 localparam int REF_CLK_DIVIDER_CNT_WIDTH = $clog2(REF_CLK_DIVIDER_CNT);
 
-logic [REF_CLK_CYCLE_CNT_WIDTH-1:0] ref_clk_cnt = 0;
-logic [REF_CLK_CYCLE_CNT_WIDTH-1:0] ref_clk_cnt_sync = 0;
-logic [REF_CLK_DIVIDER_CNT_WIDTH-1:0] ref_clk_divider = 0;
+logic [REF_CLK_CYCLE_CNT_WIDTH-1:0] ref_clk_cnt;
+logic [REF_CLK_CYCLE_CNT_WIDTH-1:0] ref_clk_cnt_sync;
+logic [REF_CLK_DIVIDER_CNT_WIDTH-1:0] ref_clk_divider;
 
-logic [STM_LAP_CYCLE_CNT_WIDTH-1:0] lap = 0;
-logic ref_clk_init_flag = 0;
-logic ref_clk_init_done = 0;
+logic [STM_LAP_CYCLE_CNT_WIDTH-1:0] lap;
+logic ref_clk_init_flag;
+logic ref_clk_init_done;
 
 logic [REF_CLK_CYCLE_CNT_WIDTH-1:0] ref_clk_cycle;
 
@@ -60,6 +60,10 @@ always_ff @(posedge SYS_CLK) begin
     if(RST) begin
         ref_clk_init_flag <= 0;
         ref_clk_init_done <= 0;
+        ref_clk_cnt <= 0;
+        ref_clk_cnt_sync <= 0;
+        lap <= 0;
+        ref_clk_divider <= 0;
     end
     else begin
         if(REF_CLK_INIT) begin

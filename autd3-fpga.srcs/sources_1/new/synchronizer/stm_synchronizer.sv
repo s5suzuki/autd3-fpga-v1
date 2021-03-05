@@ -4,7 +4,7 @@
  * Created Date: 18/06/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 17/12/2020
+ * Last Modified: 06/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -33,14 +33,13 @@ module stm_synchronizer#(
            output var [STM_CLK_MAX_WIDTH-1:0] STM_CLK_OUT
        );
 
-logic stm_clk_init_flag = 0;
-logic stm_clk_calib_flag = 0;
-logic [STM_CLK_MAX_WIDTH-1:0] stm_cnt = 0;
-logic [STM_CLK_MAX_WIDTH-1:0] stm_cnt_cycle = 0;
-logic [STM_CLK_MAX_WIDTH-1:0] stm_cnt_shift = 0;
-logic stm_shift_done = 0;
+logic stm_clk_init_flag;
+logic [STM_CLK_MAX_WIDTH-1:0] stm_cnt;
+logic [STM_CLK_MAX_WIDTH-1:0] stm_cnt_cycle;
+logic [STM_CLK_MAX_WIDTH-1:0] stm_cnt_shift;
+logic stm_shift_done;
 
-logic [10:0] stm_clk_init_lap = 0;
+logic [10:0] stm_clk_init_lap;
 
 assign STM_CLK_OUT = stm_cnt;
 assign STM_INIT_LAP_OUT = stm_clk_init_lap;
@@ -65,6 +64,7 @@ always_ff @(posedge SYS_CLK) begin
         stm_cnt <= 0;
         stm_shift_done <= 0;
         stm_clk_init_lap <= 0;
+        stm_cnt_shift <= 0;
     end
     else begin
         if(SYNC & stm_clk_init_flag) begin

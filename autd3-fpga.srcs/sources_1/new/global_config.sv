@@ -4,7 +4,7 @@
  * Created Date: 16/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 23/12/2020
+ * Last Modified: 06/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -16,6 +16,7 @@ module global_config(
            config_bus_if.master_port CONFIG_BUS,
 
            input var SYS_CLK,
+           input var RST,
            output var SOFT_RST_OUT,
 
            output var [7:0] REF_CLK_CYCLE_SHIFT,
@@ -52,29 +53,29 @@ localparam PROPS_STM_INIT_IDX  = 1;
 localparam PROPS_STM_CALIB_IDX = 2;
 localparam PROPS_RST_IDX       = 7;
 
-logic we = 0;
-logic [7:0]addr = 0;
-logic [15:0]data_in = 0;
+logic we;
+logic [7:0]addr;
+logic [15:0]data_in;
 logic [15:0]data_out;
 
-logic [7:0] ctrl_flags = 0;
-logic [7:0] clk_props = 0;
+logic [7:0] ctrl_flags;
+logic [7:0] clk_props;
 logic silent;
 logic force_fan;
 logic op_mode;
 
-logic soft_rst = 0;
-logic ref_clk_init = 0;
+logic soft_rst;
+logic ref_clk_init;
 logic ref_clk_init_done;
-logic [15:0] stm_clk_cycle = 0;
-logic [15:0] stm_div = 0;
-logic [7:0] mod_idx_shift = 0;
-logic stm_clk_init = 0;
+logic [15:0] stm_clk_cycle;
+logic [15:0] stm_div;
+logic [7:0] mod_idx_shift;
+logic stm_clk_init;
 logic [10:0] stm_clk_init_lap;
-logic [15:0] stm_clk_calib_shift = 0;
-logic stm_clk_calib = 0;
+logic [15:0] stm_clk_calib_shift;
+logic stm_clk_calib;
 logic stm_clk_calib_done;
-logic [7:0] ref_clk_cycle_shift = 0;
+logic [7:0] ref_clk_cycle_shift;
 
 // CF: Control Flag
 // CP: Clock Properties
@@ -101,7 +102,7 @@ enum logic [4:0] {
          STM_CLK_LOAD_SHIFT_WAIT0,
          STM_CLK_LOAD_SHIFT_WAIT1,
          STM_CLK_CALIB
-     } state_props = READ_CF_AND_CP;
+     } state_props;
 
 assign CONFIG_BUS.WE = we;
 assign CONFIG_BUS.ADDR = addr;
@@ -130,125 +131,158 @@ assign stm_clk_calib_done = STM_CLK_CALIB_DONE;
 assign stm_clk_init_lap = STM_LAP;
 
 always_ff @(posedge SYS_CLK) begin
-    case(state_props)
-        READ_CF_AND_CP: begin
-            we <= 0;
+    if(RST) begin
+        we <= 0;
+        clk_props <= 0;
+        ctrl_flags <= 0;
+        soft_rst <= 0;
+        state_props <= READ_CF_AND_CP;
+        addr <= 0;
+        stm_clk_init <= 0;
+        stm_clk_cycle <= 0;
+        stm_div <= 0;
+        mod_idx_shift <= 0;
+        data_in <= 0;
+        ref_clk_cycle_shift <= 0;
+        ref_clk_init <= 0;
+        stm_clk_calib <= 0;
+        stm_clk_calib_shift <= 0;
+    end
+    else begin
+        case(state_props)
+            READ_CF_AND_CP: begin
+                we <= 0;
 
-            clk_props <= data_out[15:8];
-            ctrl_flags <= data_out[7:0];
+                clk_props <= data_out[15:8];
+                ctrl_flags <= data_out[7:0];
 
-            if(clk_props[PROPS_RST_IDX]) begin
-                soft_rst <= 1;
-                state_props <= SOFT_RST;
+                if(clk_props[PROPS_RST_IDX]) begin
+                    soft_rst <= 1;
+                    we <= 0;
+                    clk_props <= 0;
+                    ctrl_flags <= 0;
+                    soft_rst <= 0;
+                    addr <= 0;
+                    stm_clk_init <= 0;
+                    stm_clk_cycle <= 0;
+                    stm_div <= 0;
+                    mod_idx_shift <= 0;
+                    data_in <= 0;
+                    ref_clk_cycle_shift <= 0;
+                    ref_clk_init <= 0;
+                    stm_clk_calib <= 0;
+                    stm_clk_calib_shift <= 0;
+                    state_props <= SOFT_RST;
+                end
+                else if(clk_props[PROPS_REF_INIT_IDX]) begin
+                    addr <= BRAM_REF_CLK_CYCLE_SHIFT;
+                    state_props <= REQ_REF_CLK_SHIFT_READ;
+                end
+                else if(clk_props[PROPS_STM_INIT_IDX]) begin
+                    stm_clk_init <= 1;
+                    state_props <= STM_CLK_INIT;
+                end
+                else if(clk_props[PROPS_STM_CALIB_IDX]) begin
+                    addr <= BRAM_STM_CALIB_SHIFT;
+                    state_props <= STM_CLK_LOAD_SHIFT_WAIT0;
+                end
+                else begin
+                    addr <= BRAM_MOD_IDX_SHIFT;
+                    state_props <= READ_STM_CLK_CYCLE;
+                end
             end
-            else if(clk_props[PROPS_REF_INIT_IDX]) begin
-                addr <= BRAM_REF_CLK_CYCLE_SHIFT;
-                state_props <= REQ_REF_CLK_SHIFT_READ;
+            READ_STM_CLK_CYCLE: begin
+                addr <= BRAM_CF_AND_CP_IDX;
+                stm_clk_cycle <= data_out;
+
+                state_props <= READ_STM_CLK_DIV;
             end
-            else if(clk_props[PROPS_STM_INIT_IDX]) begin
-                stm_clk_init <= 1;
-                state_props <= STM_CLK_INIT;
+            READ_STM_CLK_DIV: begin
+                addr <= BRAM_STM_CYCLE;
+                stm_div <= data_out;
+
+                state_props <= READ_MOD_IDX_SHIFT;
             end
-            else if(clk_props[PROPS_STM_CALIB_IDX]) begin
-                addr <= BRAM_STM_CALIB_SHIFT;
-                state_props <= STM_CLK_LOAD_SHIFT_WAIT0;
+            READ_MOD_IDX_SHIFT: begin
+                addr <= BRAM_STM_DIV;
+                mod_idx_shift <= data_out[7:0];
+
+                state_props <= READ_CF_AND_CP;
             end
-            else begin
-                addr <= BRAM_MOD_IDX_SHIFT;
-                state_props <= READ_STM_CLK_CYCLE;
-            end
-        end
-        READ_STM_CLK_CYCLE: begin
-            addr <= BRAM_CF_AND_CP_IDX;
-            stm_clk_cycle <= data_out;
 
-            state_props <= READ_STM_CLK_DIV;
-        end
-        READ_STM_CLK_DIV: begin
-            addr <= BRAM_STM_CYCLE;
-            stm_div <= data_out;
-
-            state_props <= READ_MOD_IDX_SHIFT;
-        end
-        READ_MOD_IDX_SHIFT: begin
-            addr <= BRAM_STM_DIV;
-            mod_idx_shift <= data_out[7:0];
-
-            state_props <= READ_CF_AND_CP;
-        end
-
-        SOFT_RST: begin
-            soft_rst <= 0;
-            state_props <= REQ_CP_CLEAR;
-        end
-
-        REQ_CP_CLEAR: begin
-            we <= 1;
-            addr <= BRAM_CF_AND_CP_IDX;
-            data_in <= {8'h00, ctrl_flags};
-            state_props <= REQ_CP_CLEAR_WAIT0;
-        end
-        REQ_CP_CLEAR_WAIT0: begin
-            we <= 0;
-            state_props <= REQ_CP_CLEAR_WAIT1;
-        end
-        REQ_CP_CLEAR_WAIT1: begin
-            addr <= BRAM_STM_CYCLE;
-            state_props <= CP_CLEAR;
-        end
-        CP_CLEAR: begin
-            addr <= BRAM_STM_DIV;
-            clk_props <= data_out[15:8];
-            ctrl_flags <= data_out[7:0];
-            state_props <= READ_CF_AND_CP;
-        end
-
-        REQ_REF_CLK_SHIFT_READ: begin
-            state_props <= REQ_REF_CLK_SHIFT_READ_WAIT0;
-        end
-        REQ_REF_CLK_SHIFT_READ_WAIT0: begin
-            state_props <= REQ_REF_CLK_SHIFT_READ_WAIT1;
-        end
-        REQ_REF_CLK_SHIFT_READ_WAIT1: begin
-            ref_clk_init <= 1;
-            ref_clk_cycle_shift <= data_out[7:0];
-            state_props <= REF_CLK_INIT;
-        end
-        REF_CLK_INIT: begin
-            ref_clk_init <= 0;
-            if (ref_clk_init_done) begin
+            SOFT_RST: begin
+                soft_rst <= 0;
                 state_props <= REQ_CP_CLEAR;
             end
-        end
 
-        STM_CLK_INIT: begin
-            stm_clk_init <= 0;
-            if (stm_clk_init_lap[10]) begin
+            REQ_CP_CLEAR: begin
                 we <= 1;
-                addr <= BRAM_STM_INIT_LAP;
-                data_in <= stm_clk_init_lap[10:0];
-                state_props <= REQ_CP_CLEAR;
+                addr <= BRAM_CF_AND_CP_IDX;
+                data_in <= {8'h00, ctrl_flags};
+                state_props <= REQ_CP_CLEAR_WAIT0;
             end
-        end
+            REQ_CP_CLEAR_WAIT0: begin
+                we <= 0;
+                state_props <= REQ_CP_CLEAR_WAIT1;
+            end
+            REQ_CP_CLEAR_WAIT1: begin
+                addr <= BRAM_STM_CYCLE;
+                state_props <= CP_CLEAR;
+            end
+            CP_CLEAR: begin
+                addr <= BRAM_STM_DIV;
+                clk_props <= data_out[15:8];
+                ctrl_flags <= data_out[7:0];
+                state_props <= READ_CF_AND_CP;
+            end
 
-        STM_CLK_LOAD_SHIFT_WAIT0: begin
-            state_props <= STM_CLK_LOAD_SHIFT_WAIT1;
-        end
-        STM_CLK_LOAD_SHIFT_WAIT1: begin
-            state_props <= STM_CLK_LOAD_SHIFT;
-        end
-        STM_CLK_LOAD_SHIFT: begin
-            stm_clk_calib_shift <= data_out;
-            stm_clk_calib <= 1;
-            state_props <= STM_CLK_CALIB;
-        end
-        STM_CLK_CALIB: begin
-            stm_clk_calib <= 0;
-            if (stm_clk_calib_done) begin
-                state_props <= REQ_CP_CLEAR;
+            REQ_REF_CLK_SHIFT_READ: begin
+                state_props <= REQ_REF_CLK_SHIFT_READ_WAIT0;
             end
-        end
-    endcase
+            REQ_REF_CLK_SHIFT_READ_WAIT0: begin
+                state_props <= REQ_REF_CLK_SHIFT_READ_WAIT1;
+            end
+            REQ_REF_CLK_SHIFT_READ_WAIT1: begin
+                ref_clk_init <= 1;
+                ref_clk_cycle_shift <= data_out[7:0];
+                state_props <= REF_CLK_INIT;
+            end
+            REF_CLK_INIT: begin
+                ref_clk_init <= 0;
+                if (ref_clk_init_done) begin
+                    state_props <= REQ_CP_CLEAR;
+                end
+            end
+
+            STM_CLK_INIT: begin
+                stm_clk_init <= 0;
+                if (stm_clk_init_lap[10]) begin
+                    we <= 1;
+                    addr <= BRAM_STM_INIT_LAP;
+                    data_in <= stm_clk_init_lap[10:0];
+                    state_props <= REQ_CP_CLEAR;
+                end
+            end
+
+            STM_CLK_LOAD_SHIFT_WAIT0: begin
+                state_props <= STM_CLK_LOAD_SHIFT_WAIT1;
+            end
+            STM_CLK_LOAD_SHIFT_WAIT1: begin
+                state_props <= STM_CLK_LOAD_SHIFT;
+            end
+            STM_CLK_LOAD_SHIFT: begin
+                stm_clk_calib_shift <= data_out;
+                stm_clk_calib <= 1;
+                state_props <= STM_CLK_CALIB;
+            end
+            STM_CLK_CALIB: begin
+                stm_clk_calib <= 0;
+                if (stm_clk_calib_done) begin
+                    state_props <= REQ_CP_CLEAR;
+                end
+            end
+        endcase
+    end
 end
 
 endmodule

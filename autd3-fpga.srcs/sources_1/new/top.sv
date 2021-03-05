@@ -4,7 +4,7 @@
  * Created Date: 02/10/2019
  * Author: Shun Suzuki
  * -----
- * Last Modified: 05/03/2021
+ * Last Modified: 06/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2019 Hapis Lab. All rights reserved.
@@ -45,7 +45,7 @@ localparam STM_CLK_MAX = 40000;
 localparam MOD_BUF_SIZE = 32000;
 localparam MOD_BUF_IDX_WIDTH = $clog2(MOD_BUF_SIZE);
 
-logic [2:0] sync0 = 0;
+logic [2:0] sync0;
 logic sync0_pos_edge;
 
 logic [15:0]cpu_data_out;
@@ -99,6 +99,7 @@ bram_controller bram_controller(
                     .CPU_BUS(cpu_bus.slave_port),
 
                     .SYS_CLK(MRCC_25P6M),
+                    .RST(~RESET_N | soft_rst),
                     .CONFIG_BUS(config_bus.slave_port),
                     .MOD_BUS(mod_bus.slave_port),
                     .NORMAL_OP_BUS(normal_op_bus.slave_port),
@@ -109,6 +110,7 @@ global_config global_config(
                   .CONFIG_BUS(config_bus.master_port),
 
                   .SYS_CLK(MRCC_25P6M),
+                  .RST(~RESET_N),
                   .SOFT_RST_OUT(soft_rst),
 
                   .REF_CLK_CYCLE_SHIFT(ref_clk_cycle_shift),
@@ -141,7 +143,7 @@ synchronizer#(
             )
             synchronizer(
                 .SYS_CLK(MRCC_25P6M),
-                .RST(soft_rst),
+                .RST(~RESET_N | soft_rst),
                 .SYNC(sync0_pos_edge),
 
                 .REF_CLK_CYCLE_SHIFT(ref_clk_cycle_shift),
@@ -169,6 +171,7 @@ operator_selector#(.TRANS_NUM(TRANS_NUM))
                      .STM_OP_BUS(stm_op_bus.master_port),
 
                      .SYS_CLK(MRCC_25P6M),
+                     .RST(~RESET_N | soft_rst),
                      .op_mode(op_mode),
                      .TIME(time_cnt),
 
@@ -194,6 +197,7 @@ clk_lpf clk_lpf(
 transducers_array#(.TRANS_NUM(TRANS_NUM))
                  transducers_array(
                      .CLK(MRCC_25P6M),
+                     .RST(~RESET_N | soft_rst),
                      .CLK_LPF(aclk),
                      .TIME(time_cnt),
                      .DUTY(duty),
@@ -204,7 +208,11 @@ transducers_array#(.TRANS_NUM(TRANS_NUM))
                  );
 
 always_ff @(posedge MRCC_25P6M) begin
-    sync0 <= {sync0[1:0], CAT_SYNC0};
+    if(~RESET_N) begin
+        sync0 <= 0;
+    end
+    else begin
+        sync0 <= {sync0[1:0], CAT_SYNC0};
+    end
 end
-
 endmodule

@@ -4,7 +4,7 @@
  * Created Date: 15/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 05/03/2021
+ * Last Modified: 06/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -20,6 +20,7 @@ module operator_selector#(
            stm_op_bus_if.master_port STM_OP_BUS,
 
            input var SYS_CLK,
+           input var RST,
            input var [9:0] TIME,
            input var op_mode,
 
@@ -44,6 +45,7 @@ normal_operator#(.TRANS_NUM(TRANS_NUM))
                    .NORMAL_OP_BUS(NORMAL_OP_BUS),
 
                    .SYS_CLK(SYS_CLK),
+                   .RST(RST),
                    .TIME(TIME),
                    .DUTY(normal_duty),
                    .PHASE(normal_phase)
@@ -57,6 +59,7 @@ stm_operator#(.TRANS_NUM(TRANS_NUM))
                 .STM_CLK_DIV(STM_CLK_DIV),
 
                 .SYS_CLK(SYS_CLK),
+                .RST(RST),
                 .DUTY(stm_duty),
                 .PHASE(stm_phase)
             );

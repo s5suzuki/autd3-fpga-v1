@@ -4,7 +4,7 @@
  * Created Date: 15/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 05/03/2021
+ * Last Modified: 06/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -17,6 +17,7 @@ module transducers_array#(
            parameter TRANS_NUM = 249
        )(
            input var CLK,
+           input var RST,
            input var CLK_LPF,
            input var [9:0] TIME,
            input var [7:0] DUTY[0:TRANS_NUM-1],
@@ -35,6 +36,7 @@ generate begin:TRANSDUCERS_GEN
             assign duty_modulated = modulate_duty(DUTY[ii], MOD);
             transducer tr(
                            .CLK(CLK),
+                           .RST(RST),
                            .CLK_LPF(CLK_LPF),
                            .TIME(TIME),
                            .D(duty_modulated),
