@@ -4,7 +4,7 @@
  * Created Date: 17/12/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 23/12/2020
+ * Last Modified: 06/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -17,6 +17,7 @@ module bram_controller(
            cpu_bus_if.slave_port CPU_BUS,
 
            input var SYS_CLK,
+           input var RST,
            config_bus_if.slave_port CONFIG_BUS,
            mod_bus_if.slave_port MOD_BUS,
            normal_op_bus_if.slave_port NORMAL_OP_BUS,
@@ -27,13 +28,12 @@ localparam [1:0] BRAM_CONFIG_SELECT = 2'h0;
 localparam [1:0] BRAM_MOD_SELECT = 2'h1;
 localparam [1:0] BRAM_NORMAL_OP_SELECT = 2'h2;
 localparam [1:0] BRAM_STM_SELECT = 2'h3;
-
 localparam [13:0] STM_BRAM_ADDR_OFFSET_ADDR = 14'h0005;
 
 logic config_en, mod_en, normal_op_en, stm_op_en;
 
-logic [4:0] stm_addr_in_offset = 0;
-logic [2:0] stm_we_edge = 0;
+logic [4:0] stm_addr_in_offset;
+logic [2:0] stm_we_edge;
 logic [18:0] stm_addr_in;
 
 assign config_en = (CPU_BUS.BRAM_SELECT == BRAM_CONFIG_SELECT) & CPU_BUS.EN;
@@ -84,7 +84,7 @@ BRAM16x512 normal_op_ram(
                .clkb(SYS_CLK),
                .web(1'b0),
                .addrb(NORMAL_OP_BUS.ADDR),
-               .dinb(8'h00),
+               .dinb(16'h0000),
                .doutb(NORMAL_OP_BUS.DATA)
            );
 
@@ -100,18 +100,24 @@ BRAM256x14000 stm_ram(
                   .clkb(SYS_CLK),
                   .web(1'b0),
                   .addrb(STM_OP_BUS.ADDR),
-                  .dinb(256'd0),
+                  .dinb(128'd0),
                   .doutb({_unused, STM_OP_BUS.DATA})
               );
 
 always_ff @(posedge CPU_BUS.BUS_CLK) begin
-    stm_we_edge <= {stm_we_edge[1:0], (CPU_BUS.WE & config_en)};
-    if(stm_we_edge == 3'b011) begin
-        case(CPU_BUS.BRAM_ADDR)
-            STM_BRAM_ADDR_OFFSET_ADDR:
-                stm_addr_in_offset <= CPU_BUS.DATA_IN[4:0];
-        endcase
+    if (RST) begin
+        stm_we_edge <= 0;
+        stm_addr_in_offset <= 0;
+    end
+    else begin
+        stm_we_edge <= {stm_we_edge[1:0], (CPU_BUS.WE & config_en)};
+        if(stm_we_edge == 3'b011) begin
+            case(CPU_BUS.BRAM_ADDR)
+                STM_BRAM_ADDR_OFFSET_ADDR:
+                    stm_addr_in_offset <= CPU_BUS.DATA_IN[4:0];
+            endcase
+        end
+
     end
 end
-
 endmodule

@@ -4,7 +4,7 @@
  * Created Date: 18/06/2020
  * Author: Shun Suzuki
  * -----
- * Last Modified: 17/12/2020
+ * Last Modified: 06/03/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2020 Hapis Lab. All rights reserved.
@@ -54,13 +54,13 @@ module synchronizer#(
            output var [15:0] STM_IDX_OUT
        );
 
-logic [TIME_CNT_CYCLE_WIDTH-1: 0] time_cnt = 0;
+logic [TIME_CNT_CYCLE_WIDTH-1: 0] time_cnt;
 
 logic [REF_CLK_CYCLE_CNT_WIDTH-1:0] ref_clk_cnt;
 logic [STM_LAP_CYCLE_CNT_WIDTH-1:0] lap;
 logic [STM_LAP_CYCLE_CNT_WIDTH:0] stm_clk_init_lap;
 
-logic [REF_CLK_CYCLE_CNT_WIDTH-1:0] ref_clk_cnt_watch = 0;
+logic [REF_CLK_CYCLE_CNT_WIDTH-1:0] ref_clk_cnt_watch;
 logic ref_clk_tick;
 
 assign TIME_CNT_OUT = time_cnt;
@@ -118,7 +118,7 @@ stm_synchronizer#(
                 );
 
 always_ff @(posedge SYS_CLK) begin
-    if ((time_cnt == TIME_CNT_CYCLE - 10'd1) || SYNC || RST) begin
+    if ((time_cnt == TIME_CNT_CYCLE - 10'd1) | SYNC | RST) begin
         time_cnt <= 10'd0;
     end
     else begin
@@ -127,7 +127,10 @@ always_ff @(posedge SYS_CLK) begin
 end
 
 always_ff @(posedge SYS_CLK) begin
-    if (ref_clk_cnt != ref_clk_cnt_watch) begin
+    if (RST) begin
+        ref_clk_cnt_watch <= 0;
+    end
+    else if (ref_clk_cnt != ref_clk_cnt_watch) begin
         ref_clk_cnt_watch <= ref_clk_cnt;
     end
 end

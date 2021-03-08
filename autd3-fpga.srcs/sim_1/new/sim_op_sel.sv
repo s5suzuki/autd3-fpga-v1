@@ -22,7 +22,7 @@
 
 module sim_op_sel();
 
-localparam TRANS_NUM = 2;
+localparam TRANS_NUM = 249;
 
 logic MRCC_25P6M;
 logic op_mode;
@@ -31,7 +31,6 @@ logic [15:0] stm_idx, stm_div;
 
 logic [7:0] duty[0:TRANS_NUM-1];
 logic [7:0] phase[0:TRANS_NUM-1];
-logic [7:0] delay[0:TRANS_NUM-1];
 
 // CPU
 parameter TCO = 10; // bus delay 10ns
@@ -83,8 +82,7 @@ operator_selector#(.TRANS_NUM(TRANS_NUM))
                      .STM_CLK_DIV(stm_div),
 
                      .DUTY(duty),
-                     .PHASE(phase),
-                     .DELAY(delay)
+                     .PHASE(phase)
                  );
 
 task bram_write (input [1:0] select, input [13:0] addr, input [15:0] data_in);
@@ -126,10 +124,10 @@ initial begin
 
     #(1000);
 
-    focus_write(0, 24'sd0, 24'sd0, 24'sd0, 8'haa);
-    focus_write(1, 24'sd10, 24'sd10, 24'sd0, 8'hbb);
-    focus_write(2, 24'sd10, 24'sd10, 24'sd10, 8'hcc);
-    focus_write(3, 24'sd100, 24'sd10, 24'sd10, 8'hdd);
+    focus_write(0, 24'sd0, 24'sd0, 24'sd256, 8'haa);
+    focus_write(1, 24'sd605, 24'sd0, 24'sd256, 8'hbb);
+    focus_write(2, 24'sd0, 24'sd605, 24'sd256, 8'hcc);
+    focus_write(3, 24'sd605, 24'sd605, 24'sd256, 8'hdd);
 
     #(10);
     stm_idx = 1;

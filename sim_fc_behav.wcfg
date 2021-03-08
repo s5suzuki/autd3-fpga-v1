@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="sim_fc_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="sim_fc" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="1579562fs"></ZoomStartTime>
+      <ZoomEndTime time="5461563fs"></ZoomEndTime>
+      <Cursor1Time time="2226562fs"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="232"></NameColumnWidth>
+      <ValueColumnWidth column_width="169"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="36" />
+   <wvobject fp_name="/sim_fc/MRCC_25P6M" type="logic">
+      <obj_property name="ElementShortName">MRCC_25P6M</obj_property>
+      <obj_property name="ObjectShortName">MRCC_25P6M</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/phase" type="array">
+      <obj_property name="ElementShortName">phase[7:0]</obj_property>
+      <obj_property name="ObjectShortName">phase[7:0]</obj_property>
+      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/phase_calc_done" type="logic">
+      <obj_property name="ElementShortName">phase_calc_done</obj_property>
+      <obj_property name="ObjectShortName">phase_calc_done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_x" type="array">
+      <obj_property name="ElementShortName">focus_x[23:0]</obj_property>
+      <obj_property name="ObjectShortName">focus_x[23:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_y" type="array">
+      <obj_property name="ElementShortName">focus_y[23:0]</obj_property>
+      <obj_property name="ObjectShortName">focus_y[23:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_z" type="array">
+      <obj_property name="ElementShortName">focus_z[23:0]</obj_property>
+      <obj_property name="ObjectShortName">focus_z[23:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/trans_x" type="array">
+      <obj_property name="ElementShortName">trans_x[23:0]</obj_property>
+      <obj_property name="ObjectShortName">trans_x[23:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/trans_y" type="array">
+      <obj_property name="ElementShortName">trans_y[23:0]</obj_property>
+      <obj_property name="ObjectShortName">trans_y[23:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/tvalid_in" type="logic">
+      <obj_property name="ElementShortName">tvalid_in</obj_property>
+      <obj_property name="ObjectShortName">tvalid_in</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/SYS_CLK" type="logic">
+      <obj_property name="ElementShortName">SYS_CLK</obj_property>
+      <obj_property name="ObjectShortName">SYS_CLK</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/DVALID_IN" type="logic">
+      <obj_property name="ElementShortName">DVALID_IN</obj_property>
+      <obj_property name="ObjectShortName">DVALID_IN</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/FOCUS_X" type="array">
+      <obj_property name="ElementShortName">FOCUS_X[23:0]</obj_property>
+      <obj_property name="ObjectShortName">FOCUS_X[23:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/FOCUS_Y" type="array">
+      <obj_property name="ElementShortName">FOCUS_Y[23:0]</obj_property>
+      <obj_property name="ObjectShortName">FOCUS_Y[23:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/FOCUS_Z" type="array">
+      <obj_property name="ElementShortName">FOCUS_Z[23:0]</obj_property>
+      <obj_property name="ObjectShortName">FOCUS_Z[23:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/TRANS_X" type="array">
+      <obj_property name="ElementShortName">TRANS_X[23:0]</obj_property>
+      <obj_property name="ObjectShortName">TRANS_X[23:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/TRANS_Y" type="array">
+      <obj_property name="ElementShortName">TRANS_Y[23:0]</obj_property>
+      <obj_property name="ObjectShortName">TRANS_Y[23:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/TRANS_Z" type="array">
+      <obj_property name="ElementShortName">TRANS_Z[23:0]</obj_property>
+      <obj_property name="ObjectShortName">TRANS_Z[23:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/PHASE" type="array">
+      <obj_property name="ElementShortName">PHASE[7:0]</obj_property>
+      <obj_property name="ObjectShortName">PHASE[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/PHASE_CALC_DONE" type="logic">
+      <obj_property name="ElementShortName">PHASE_CALC_DONE</obj_property>
+      <obj_property name="ObjectShortName">PHASE_CALC_DONE</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/dx" type="array">
+      <obj_property name="ElementShortName">dx[23:0]</obj_property>
+      <obj_property name="ObjectShortName">dx[23:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/dy" type="array">
+      <obj_property name="ElementShortName">dy[23:0]</obj_property>
+      <obj_property name="ObjectShortName">dy[23:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/dz" type="array">
+      <obj_property name="ElementShortName">dz[23:0]</obj_property>
+      <obj_property name="ObjectShortName">dz[23:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/d2" type="array">
+      <obj_property name="ElementShortName">d2[47:0]</obj_property>
+      <obj_property name="ObjectShortName">d2[47:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/tvalid_in" type="logic">
+      <obj_property name="ElementShortName">tvalid_in</obj_property>
+      <obj_property name="ObjectShortName">tvalid_in</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/tvalid_out" type="logic">
+      <obj_property name="ElementShortName">tvalid_out</obj_property>
+      <obj_property name="ObjectShortName">tvalid_out</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/dout" type="array">
+      <obj_property name="ElementShortName">dout[31:0]</obj_property>
+      <obj_property name="ObjectShortName">dout[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/phase" type="array">
+      <obj_property name="ElementShortName">phase[8:0]</obj_property>
+      <obj_property name="ObjectShortName">phase[8:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/phase_calc_done" type="logic">
+      <obj_property name="ElementShortName">phase_calc_done</obj_property>
+      <obj_property name="ObjectShortName">phase_calc_done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/calc_mode_edge" type="array">
+      <obj_property name="ElementShortName">calc_mode_edge[2:0]</obj_property>
+      <obj_property name="ObjectShortName">calc_mode_edge[2:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/calc_mode" type="array">
+      <obj_property name="ElementShortName">calc_mode[2:0]</obj_property>
+      <obj_property name="ObjectShortName">calc_mode[2:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/wait_cnt" type="array">
+      <obj_property name="ElementShortName">wait_cnt[4:0]</obj_property>
+      <obj_property name="ObjectShortName">wait_cnt[4:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/input_num" type="array">
+      <obj_property name="ElementShortName">input_num[7:0]</obj_property>
+      <obj_property name="ObjectShortName">input_num[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/output_num" type="array">
+      <obj_property name="ElementShortName">output_num[7:0]</obj_property>
+      <obj_property name="ObjectShortName">output_num[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/run" type="logic">
+      <obj_property name="ElementShortName">run</obj_property>
+      <obj_property name="ObjectShortName">run</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/SQRT_LATENCY" type="array">
+      <obj_property name="ElementShortName">SQRT_LATENCY[31:0]</obj_property>
+      <obj_property name="ObjectShortName">SQRT_LATENCY[31:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_fc/focus_calculator/SQRT_LATENCY_WIDTH" type="array">
+      <obj_property name="ElementShortName">SQRT_LATENCY_WIDTH[31:0]</obj_property>
+      <obj_property name="ObjectShortName">SQRT_LATENCY_WIDTH[31:0]</obj_property>
+   </wvobject>
+</wave_config>
