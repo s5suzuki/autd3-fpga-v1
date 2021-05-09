@@ -1,13 +1,13 @@
 /*
  * File: silent_lpf.sv
  * Project: transducer
- * Created Date: 15/12/2020
+ * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 06/03/2021
+ * Last Modified: 09/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
- * Copyright (c) 2020 Hapis Lab. All rights reserved.
+ * Copyright (c) 2021 Hapis Lab. All rights reserved.
  * 
  */
 
@@ -17,9 +17,9 @@ module silent_lpf(
            input var CLK_LPF,
            input var RST,
            input var UPDATE,
-           input var [7:0] D,
+           input var [7:0] DUTY,
            input var [7:0] PHASE,
-           output var [7:0] D_S,
+           output var [7:0] DUTY_S,
            output var [7:0] PHASE_S
        );
 
@@ -34,7 +34,7 @@ logic signed [15:0] dataout;
 logic chout, enout, enin;
 logic enout_rst, enin_rst;
 
-assign D_S = fd_async;
+assign DUTY_S = fd_async;
 assign PHASE_S = fs_async;
 
 lpf_40k_500 LPF(
@@ -56,7 +56,7 @@ always_ff @(posedge CLK) begin
     end
     else if (enin & ~enin_rst) begin
         chin <= ~chin;
-        datain <= (chin == 1'b0) ? PHASE : D;
+        datain <= (chin == 1'b0) ? PHASE : DUTY;
     end
 end
 
