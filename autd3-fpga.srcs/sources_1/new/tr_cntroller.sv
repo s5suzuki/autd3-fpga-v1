@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 09/05/2021
+ * Last Modified: 10/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -22,6 +22,7 @@ module tr_cntroller#(
            input var RST,
            input var CLK_LPF,
            input var [8:0] TIME,
+           input var SILENT,
            mod_bus_if.slave_port MOD_BUS,
            tr_bus_if.slave_port TR_BUS,
            output var [252:1] XDCR_OUT
@@ -114,7 +115,7 @@ generate begin:TRANSDUCERS_GEN
                           .TIME(TIME),
                           .DUTY(duty_modulated),
                           .PHASE(phase[ii]),
-                          .SILENT(1'b0),
+                          .SILENT(SILENT),
                           .PWM_OUT(XDCR_OUT[cvt_uid(ii) + 1])
                       );
         end

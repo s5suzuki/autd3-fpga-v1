@@ -1,6 +1,6 @@
 # README
 
-Version: 0.9
+Version: 1.0
 
 This repository contains the FPGA design of [AUTD3](https://hapislab.org/airborne-ultrasound-tactile-display?lang=en).
 
@@ -31,28 +31,38 @@ The code is written in SystemVerilog with Vivado 2020.2.
 
 | BRAM_SELECT | BRAM_ADDR (8bit) | DATA (16 bit)                    | R/W |
 |-------------|------------------|----------------------------------|-----|
-| 0x0         | 0x00             | Control flags and Clock property | R/W |
-| 　          | 0x01             | STM Cycle                         | R   |
-| 　          | 0x02             | STM Division                      | R   |
-| 　          | 0x03             | STM Clock initialize lap          | W   |
-| 　          | 0x04             | STM Calibration shift             | R   |
-| 　          | 0x05             | STM bram addr offset              | -   |
-| 　          | 0x06             | Unused                           | 　  |
+| 0x0         | 0x00             | 7:0=Control flags<br>15:8=Clock property | R/W |
+| 　          | 0x01             | FPGA info                         | W   |
+| 　          | 0x02             | STM cycle                         | R   |
+| 　          | 0x03             | STM division                      | R   |
+| 　          | 0x04             | STM synchronization shift         | R   |
+| 　          | 0x05             | Modulation clk shift              | R   |
+| 　          | 0x06             | Reference clk cycle shift         | R  |
+| 　          | 0x07             | Unused                           | 　  |
 | 　          | ︙               | ︙                               | 　  |
 | 　          | 0xFE             | Unused                           | 　  |
 | 　          | 0xFF             | FPGA version number              | -   |
 
+* Control flags
+    * 3: silent mode
+    * 4: force fan
+    * 5: stm mode
+* Clock property
+    * 0: reference clock init
+    * 1: stm clock init
+    * 7: software reset
+
 ### Modulation
 
-| BRAM_SELECT | BRAM_ADDR (11bit) | DATA (8bit) | R/W |
+| BRAM_SELECT | BRAM_ADDR (15bit) | DATA (8bit) | R/W |
 |-------------|-------------------|-------------|-----|
-| 0x1         | 0x000             | mod[0]      | R   |
-| 　          | 0x001             | mod[1]      | R   |
+| 0x1         | 0x0000             | mod[0]      | R   |
+| 　          | 0x0001             | mod[1]      | R   |
 | 　          | ︙                | ︙          | ︙  |
-| 　          | 0xF9F             | mod[3999]   | R   |
-| 　          | 0xF9F             | Unused      | 　  |
+| 　          | 0x7CFF             | mod[31999]   | R   |
+| 　          | 0x7D00             | Unused      | 　  |
 | 　          | ︙                | ︙          | 　  |
-| 　          | 0xFFF             | Unused      | 　  |
+| 　          | 0x7FFF             | Unused      | 　  |
 
 ### Normal operation
 
@@ -76,4 +86,4 @@ The code is written in SystemVerilog with Vivado 2020.2.
 
 # Author
 
-Shun Suzuki, 2020-
+Shun Suzuki, 2020-2021

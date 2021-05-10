@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 09/05/2021
+ * Last Modified: 10/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -21,9 +21,9 @@ module mem_manager(
            config_bus_if.master_port CONFIG_BUS
        );
 
-localparam [1:0] BRAM_TR_SELECT = 2'h0;
+localparam [1:0] BRAM_CONFIG_SELECT = 2'h0;
 localparam [1:0] BRAM_MOD_SELECT = 2'h1;
-localparam [1:0] BRAM_CONFIG_SELECT = 2'h3;
+localparam [1:0] BRAM_TR_SELECT = 2'h2;
 
 logic bus_clk;
 logic en;

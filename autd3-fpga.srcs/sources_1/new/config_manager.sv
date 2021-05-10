@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 09/05/2021
+ * Last Modified: 10/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -16,70 +16,175 @@ module config_manager(
            input var CLK,
            input var RST,
            config_bus_if.slave_port CONFIG_BUS,
-           output var CLK_SYNC,
+           input var SYNC,
+           output var REF_CLK_INIT,
+           output var [7:0] REF_CLK_CYCLE_SHIFT,
+           output var [7:0] MOD_IDX_SHIFT,
+           output var SILENT,
            output var FORCE_FAN,
            input var THERMO
        );
 
-localparam int CTRL_FLAGS_ADDR = 0;
-localparam int FPGA_INFO_ADDR = 1;
-localparam int CLK_SYNC_ADDR = 2;
+// CF: Control Flag
+// CP: Clock Properties
+localparam [8:0] BRAM_CF_AND_CP_IDX       = 9'd0;
+localparam [8:0] BRAM_FPGA_INFO           = 9'd1;
+localparam [8:0] BRAM_STM_CYCLE           = 9'd2;
+localparam [8:0] BRAM_STM_DIV             = 9'd3;
+localparam [8:0] BRAM_STM_SYNC_SHIFT      = 9'd4;
+localparam [8:0] BRAM_MOD_IDX_SHIFT       = 9'd5;
+localparam [8:0] BRAM_REF_CLK_CYCLE_SHIFT = 9'd6;
 
-localparam int SILENT_MODE_IDX = 3;
-localparam int FORCE_FAN_IDX = 4;
+localparam CF_SILENT    = 3;
+localparam CF_FORCE_FAN = 4;
+localparam CF_STM_MODE  = 5;
+
+localparam CP_REF_INIT_IDX  = 0;
+localparam CP_STM_INIT_IDX  = 1;
+localparam CP_RST_IDX       = 7;
 
 logic [8:0] config_bram_addr;
 logic [15:0] config_bram_din;
+logic [15:0] config_bram_dout;
 logic config_web;
 
 logic [7:0] ctrl_flags;
+logic [7:0] clk_props;
 logic [7:0] fpga_info;
-logic silent;
-logic clk_sync;
+logic soft_rst;
 
-enum logic [2:0] {
-         CTRL_FLAGS_READ,
-         FPGA_INFO_WRITE,
-         CLK_SYNC_READ
-     } config_state;
+logic [15:0] stm_clk_cycle;
+logic [15:0] stm_div;
+logic [7:0] mod_idx_shift;
+logic [7:0] ref_clk_cycle_shift;
+
+enum logic [4:0] {
+         READ_CF_AND_CP,
+         READ_STM_CLK_CYCLE,
+         READ_STM_CLK_DIV,
+         READ_MOD_IDX_SHIFT,
+
+         SOFT_RST,
+
+         REQ_CP_CLEAR,
+         REQ_CP_CLEAR_WAIT0,
+         REQ_CP_CLEAR_WAIT1,
+         CP_CLEAR,
+
+         REQ_REF_CLK_SHIFT_READ,
+         REQ_REF_CLK_SHIFT_READ_WAIT0,
+         REQ_REF_CLK_SHIFT_READ_WAIT1,
+         REF_CLK_SHIFT_READ
+     } state_props;
 
 assign CONFIG_BUS.WE = config_web;
 assign CONFIG_BUS.IDX = config_bram_addr;
 assign CONFIG_BUS.DATA_IN = config_bram_din;
+assign config_bram_dout = CONFIG_BUS.DATA_OUT;
 
-assign silent = ctrl_flags[SILENT_MODE_IDX];
-assign FORCE_FAN = ctrl_flags[FORCE_FAN_IDX];
+assign SILENT = ctrl_flags[CF_SILENT];
+assign FORCE_FAN = ctrl_flags[CF_FORCE_FAN];
 assign fpga_info = {7'd0, THERMO};
 
-assign CLK_SYNC = clk_sync;
+assign REF_CLK_INIT = clk_props[CP_REF_INIT_IDX];
+assign REF_CLK_CYCLE_SHIFT = ref_clk_cycle_shift;
+assign MOD_IDX_SHIFT = mod_idx_shift;
 
 always_ff @(posedge CLK) begin
-    if (RST) begin
-        config_state <= CTRL_FLAGS_READ;
+    if(RST) begin
+        config_web <= 0;
+        clk_props <= 0;
+        ctrl_flags <= 0;
         config_bram_addr <= 0;
         config_bram_din <= 0;
-        config_web <= 0;
-        ctrl_flags <= 0;
-        clk_sync <= 0;
+
+        soft_rst <= 0;
+        state_props <= READ_CF_AND_CP;
     end
     else begin
-        case(config_state)
-            CTRL_FLAGS_READ: begin
-                config_bram_addr <= CTRL_FLAGS_ADDR;
-                ctrl_flags <= CONFIG_BUS.DATA_OUT[7:0];
-                config_state <= FPGA_INFO_WRITE;
+        case(state_props)
+            READ_CF_AND_CP: begin
+                config_web <= 0;
+                clk_props <= config_bram_dout[15:8];
+                ctrl_flags <= config_bram_dout[7:0];
+                if(clk_props[CP_RST_IDX]) begin
+                    clk_props <= 0;
+                    ctrl_flags <= 0;
+                    config_bram_addr <= 0;
+                    config_bram_din <= 0;
+
+                    soft_rst <= 1;
+                    state_props <= SOFT_RST;
+                end
+                else if(clk_props[CP_REF_INIT_IDX]) begin
+                    config_bram_addr <= BRAM_REF_CLK_CYCLE_SHIFT;
+                    state_props <= REQ_REF_CLK_SHIFT_READ;
+                end
+                else begin
+                    config_bram_addr <= BRAM_MOD_IDX_SHIFT;
+                    state_props <= READ_STM_CLK_CYCLE;
+                end
             end
-            FPGA_INFO_WRITE: begin
-                config_bram_addr <= FPGA_INFO_ADDR;
-                config_bram_din <= fpga_info;
-                config_web <= 1'b1;
-                config_state <= CLK_SYNC_READ;
+            READ_STM_CLK_CYCLE: begin
+                config_bram_addr <= BRAM_CF_AND_CP_IDX;
+                stm_clk_cycle <= config_bram_dout;
+
+                state_props <= READ_STM_CLK_DIV;
             end
-            CLK_SYNC_READ: begin
-                config_bram_addr <= CLK_SYNC_ADDR;
-                clk_sync <= CONFIG_BUS.DATA_OUT[0];
-                config_web <= 1'b0;
-                config_state <= CTRL_FLAGS_READ;
+            READ_STM_CLK_DIV: begin
+                config_bram_addr <= BRAM_STM_CYCLE;
+                stm_div <= config_bram_dout;
+
+                state_props <= READ_MOD_IDX_SHIFT;
+            end
+            READ_MOD_IDX_SHIFT: begin
+                config_bram_addr <= BRAM_STM_DIV;
+                mod_idx_shift <= config_bram_dout[7:0];
+
+                state_props <= READ_CF_AND_CP;
+            end
+
+            SOFT_RST: begin
+                soft_rst <= 0;
+                ctrl_flags <= 0;
+                state_props <= REQ_CP_CLEAR;
+            end
+
+            REQ_CP_CLEAR: begin
+                config_web <= 1;
+                config_bram_addr <= BRAM_CF_AND_CP_IDX;
+                config_bram_din <= {8'h00, ctrl_flags};
+                state_props <= REQ_CP_CLEAR_WAIT0;
+            end
+            REQ_CP_CLEAR_WAIT0: begin
+                config_web <= 0;
+                state_props <= REQ_CP_CLEAR_WAIT1;
+            end
+            REQ_CP_CLEAR_WAIT1: begin
+                config_bram_addr <= BRAM_STM_CYCLE;
+                state_props <= CP_CLEAR;
+            end
+            CP_CLEAR: begin
+                config_bram_addr <= BRAM_STM_DIV;
+                clk_props <= config_bram_dout[15:8];
+                ctrl_flags <= config_bram_dout[7:0];
+                state_props <= READ_CF_AND_CP;
+            end
+
+            REQ_REF_CLK_SHIFT_READ: begin
+                state_props <= REQ_REF_CLK_SHIFT_READ_WAIT0;
+            end
+            REQ_REF_CLK_SHIFT_READ_WAIT0: begin
+                state_props <= REQ_REF_CLK_SHIFT_READ_WAIT1;
+            end
+            REQ_REF_CLK_SHIFT_READ_WAIT1: begin
+                ref_clk_cycle_shift <= config_bram_dout[7:0];
+                state_props <= REF_CLK_SHIFT_READ;
+            end
+            REF_CLK_SHIFT_READ: begin
+                if (SYNC) begin
+                    state_props <= REQ_CP_CLEAR;
+                end
             end
         endcase
     end

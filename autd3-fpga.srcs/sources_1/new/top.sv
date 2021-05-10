@@ -4,7 +4,7 @@
  * Created Date: 27/03/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 09/05/2021
+ * Last Modified: 10/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -32,16 +32,25 @@ module top(
            output var [3:0]GPIO_OUT
        );
 
-localparam int TRANS_NUM = 249;
+localparam int TRANS_NUM = 5;
 localparam int SYS_CLK_FREQ = 20400000;
 localparam int ULTRASOUND_FREQ = 40000;
+localparam int SYNC0_FREQ = 1000;
 localparam int ULTRASOUND_CNT_CYCLE = SYS_CLK_FREQ/ULTRASOUND_FREQ;
 
 logic sys_clk;
 logic reset;
 
+logic [2:0] sync0;
+logic sync0_edge;
+
+logic [8:0] time_cnt;
+logic [7:0] ref_clk_cycle_shift;
+logic [7:0] mod_idx_shift;
+
 assign reset = ~RESET_N;
 assign CPU_DATA  = (~CPU_CS1_N && ~CPU_RD_N && CPU_RDWR) ? cpu_data_out : 16'bz;
+assign sync0_edge = (sync0 == 3'b011);
 
 ultrasound_cnt_clk_gen ultrasound_cnt_clk_gen(
                            .clk_in1(MRCC_25P6M),
@@ -49,6 +58,15 @@ ultrasound_cnt_clk_gen ultrasound_cnt_clk_gen(
                            .clk_out1(sys_clk),
                            .clk_out2(lpf_clk)
                        );
+
+always_ff @(posedge sys_clk) begin
+    if (reset) begin
+        sync0 <= 0;
+    end
+    else begin
+        sync0 <= {sync0[1:0], CAT_SYNC0};
+    end
+end
 
 cpu_bus_if cpu_bus();
 assign cpu_bus.BUS_CLK = CPU_CKIO;
@@ -74,21 +92,28 @@ config_manager config_manager(
                    .CLK(sys_clk),
                    .RST(reset),
                    .CONFIG_BUS(config_bus.slave_port),
-                   .CLK_SYNC(clk_sync),
+                   .SYNC(sync0_edge),
+                   .REF_CLK_INIT(ref_clk_init),
+                   .REF_CLK_CYCLE_SHIFT(ref_clk_cycle_shift),
+                   .MOD_IDX_SHIFT(mod_idx_shift),
+                   .SILENT(silent),
                    .FORCE_FAN(FORCE_FAN),
                    .THERMO(THERMO)
                );
 
-logic [8:0] time_cnt;
-
 synchronizer#(
                 .SYS_CLK_FREQ(SYS_CLK_FREQ),
-                .ULTRASOUND_FREQ(ULTRASOUND_FREQ)
+                .ULTRASOUND_FREQ(ULTRASOUND_FREQ),
+                .SYNC0_FREQ(SYNC0_FREQ),
+                .REF_CLK_CYCLE_BASE(1),
+                .REF_CLK_CYCLE_MAX(32)
             ) synchronizer(
                 .CLK(sys_clk),
                 .RST(reset),
-                .CAT_SYNC0(CAT_SYNC0),
-                .CLK_SYNC(clk_sync),
+                .SYNC(sync0_edge),
+                .REF_CLK_INIT(ref_clk_init),
+                .REF_CLK_CYCLE_SHIFT(ref_clk_cycle_shift),
+                .MOD_IDX_SHIFT(mod_idx_shift),
                 .TIME(time_cnt),
                 .MOD_BUS(mod_bus.slave_port)
             );
@@ -101,6 +126,7 @@ tr_cntroller#(
                 .RST(reset),
                 .CLK_LPF(lpf_clk),
                 .TIME(time_cnt),
+                .SILENT(silent),
                 .MOD_BUS(mod_bus.slave_port),
                 .TR_BUS(tr_bus.slave_port),
                 .XDCR_OUT(XDCR_OUT)
