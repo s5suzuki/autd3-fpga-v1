@@ -44,6 +44,8 @@ logic reset;
 logic [2:0] sync0;
 logic sync0_edge;
 
+logic [15:0] cpu_data_out;
+
 logic [8:0] time_cnt;
 logic [7:0] ref_clk_cycle_shift;
 logic [7:0] mod_idx_shift;
@@ -82,6 +84,7 @@ mod_bus_if mod_bus();
 config_bus_if config_bus();
 
 mem_manager mem_manager(
+                .CLK(sys_clk),
                 .CPU_BUS(cpu_bus.slave_port),
                 .TR_BUS(tr_bus.master_port),
                 .MOD_BUS(mod_bus.master_port),
