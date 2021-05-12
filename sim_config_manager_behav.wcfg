@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="sim_config_manager_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="sim_config_manager" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="968350000fs"></ZoomStartTime>
+      <ZoomEndTime time="1134850001fs"></ZoomEndTime>
+      <Cursor1Time time="996100000fs"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="448"></NameColumnWidth>
+      <ValueColumnWidth column_width="217"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="36" />
+   <wvobject fp_name="group56" type="group">
+      <obj_property name="label">TOP</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject fp_name="/sim_config_manager/MRCC_25P6M" type="logic">
+         <obj_property name="ElementShortName">MRCC_25P6M</obj_property>
+         <obj_property name="ObjectShortName">MRCC_25P6M</obj_property>
+      </wvobject>
+      <wvobject fp_name="/sim_config_manager/RST" type="logic">
+         <obj_property name="ElementShortName">RST</obj_property>
+         <obj_property name="ObjectShortName">RST</obj_property>
+      </wvobject>
+      <wvobject fp_name="/sim_config_manager/CAT_SYNC0" type="logic">
+         <obj_property name="ElementShortName">CAT_SYNC0</obj_property>
+         <obj_property name="ObjectShortName">CAT_SYNC0</obj_property>
+      </wvobject>
+      <wvobject fp_name="/sim_config_manager/sys_clk" type="logic">
+         <obj_property name="ElementShortName">sys_clk</obj_property>
+         <obj_property name="ObjectShortName">sys_clk</obj_property>
+      </wvobject>
+      <wvobject fp_name="/sim_config_manager/sync0_edge" type="array">
+         <obj_property name="ElementShortName">sync0_edge[2:0]</obj_property>
+         <obj_property name="ObjectShortName">sync0_edge[2:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/sim_config_manager/ref_clk_init" type="logic">
+         <obj_property name="ElementShortName">ref_clk_init</obj_property>
+         <obj_property name="ObjectShortName">ref_clk_init</obj_property>
+      </wvobject>
+      <wvobject fp_name="/sim_config_manager/ref_clk_cyc_shift" type="array">
+         <obj_property name="ElementShortName">ref_clk_cyc_shift[7:0]</obj_property>
+         <obj_property name="ObjectShortName">ref_clk_cyc_shift[7:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/sim_config_manager/mod_idx_shift" type="array">
+         <obj_property name="ElementShortName">mod_idx_shift[7:0]</obj_property>
+         <obj_property name="ObjectShortName">mod_idx_shift[7:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/sim_config_manager/soft_rst" type="logic">
+         <obj_property name="ElementShortName">soft_rst</obj_property>
+         <obj_property name="ObjectShortName">soft_rst</obj_property>
+      </wvobject>
+      <wvobject fp_name="/sim_config_manager/force_fan" type="logic">
+         <obj_property name="ElementShortName">force_fan</obj_property>
+         <obj_property name="ObjectShortName">force_fan</obj_property>
+      </wvobject>
+      <wvobject fp_name="/sim_config_manager/bram_addr" type="array">
+         <obj_property name="ElementShortName">bram_addr[15:0]</obj_property>
+         <obj_property name="ObjectShortName">bram_addr[15:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/sim_config_manager/CPU_ADDR" type="array">
+         <obj_property name="ElementShortName">CPU_ADDR[16:0]</obj_property>
+         <obj_property name="ObjectShortName">CPU_ADDR[16:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/sim_config_manager/CPU_DATA" type="array">
+         <obj_property name="ElementShortName">CPU_DATA[15:0]</obj_property>
+         <obj_property name="ObjectShortName">CPU_DATA[15:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/sim_config_manager/CPU_CKIO" type="logic">
+         <obj_property name="ElementShortName">CPU_CKIO</obj_property>
+         <obj_property name="ObjectShortName">CPU_CKIO</obj_property>
+      </wvobject>
+      <wvobject fp_name="/sim_config_manager/CPU_CS1_N" type="logic">
+         <obj_property name="ElementShortName">CPU_CS1_N</obj_property>
+         <obj_property name="ObjectShortName">CPU_CS1_N</obj_property>
+      </wvobject>
+      <wvobject fp_name="/sim_config_manager/CPU_WE0_N" type="logic">
+         <obj_property name="ElementShortName">CPU_WE0_N</obj_property>
+         <obj_property name="ObjectShortName">CPU_WE0_N</obj_property>
+      </wvobject>
+      <wvobject fp_name="/sim_config_manager/CPU_DATA_READ" type="array">
+         <obj_property name="ElementShortName">CPU_DATA_READ[15:0]</obj_property>
+         <obj_property name="ObjectShortName">CPU_DATA_READ[15:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/sim_config_manager/bus_data_reg" type="array">
+         <obj_property name="ElementShortName">bus_data_reg[15:0]</obj_property>
+         <obj_property name="ObjectShortName">bus_data_reg[15:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/sim_config_manager/cpu_data_out" type="logic">
+         <obj_property name="ElementShortName">cpu_data_out</obj_property>
+         <obj_property name="ObjectShortName">cpu_data_out</obj_property>
+      </wvobject>
+      <wvobject fp_name="/sim_config_manager/silent" type="logic">
+         <obj_property name="ElementShortName">silent</obj_property>
+         <obj_property name="ObjectShortName">silent</obj_property>
+      </wvobject>
+      <wvobject fp_name="/sim_config_manager/TCO" type="array">
+         <obj_property name="ElementShortName">TCO[31:0]</obj_property>
+         <obj_property name="ObjectShortName">TCO[31:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/CLK" type="logic">
+      <obj_property name="ElementShortName">CLK</obj_property>
+      <obj_property name="ObjectShortName">CLK</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/RST" type="logic">
+      <obj_property name="ElementShortName">RST</obj_property>
+      <obj_property name="ObjectShortName">RST</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/SYNC" type="logic">
+      <obj_property name="ElementShortName">SYNC</obj_property>
+      <obj_property name="ObjectShortName">SYNC</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/REF_CLK_INIT" type="logic">
+      <obj_property name="ElementShortName">REF_CLK_INIT</obj_property>
+      <obj_property name="ObjectShortName">REF_CLK_INIT</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/REF_CLK_CYCLE_SHIFT" type="array">
+      <obj_property name="ElementShortName">REF_CLK_CYCLE_SHIFT[7:0]</obj_property>
+      <obj_property name="ObjectShortName">REF_CLK_CYCLE_SHIFT[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/MOD_IDX_SHIFT" type="array">
+      <obj_property name="ElementShortName">MOD_IDX_SHIFT[7:0]</obj_property>
+      <obj_property name="ObjectShortName">MOD_IDX_SHIFT[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/SILENT" type="logic">
+      <obj_property name="ElementShortName">SILENT</obj_property>
+      <obj_property name="ObjectShortName">SILENT</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/FORCE_FAN" type="logic">
+      <obj_property name="ElementShortName">FORCE_FAN</obj_property>
+      <obj_property name="ObjectShortName">FORCE_FAN</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/THERMO" type="logic">
+      <obj_property name="ElementShortName">THERMO</obj_property>
+      <obj_property name="ObjectShortName">THERMO</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/config_bram_addr" type="array">
+      <obj_property name="ElementShortName">config_bram_addr[7:0]</obj_property>
+      <obj_property name="ObjectShortName">config_bram_addr[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/config_bram_din" type="array">
+      <obj_property name="ElementShortName">config_bram_din[15:0]</obj_property>
+      <obj_property name="ObjectShortName">config_bram_din[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/config_bram_dout" type="array">
+      <obj_property name="ElementShortName">config_bram_dout[15:0]</obj_property>
+      <obj_property name="ObjectShortName">config_bram_dout[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/config_web" type="logic">
+      <obj_property name="ElementShortName">config_web</obj_property>
+      <obj_property name="ObjectShortName">config_web</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/ctrl_flags" type="array">
+      <obj_property name="ElementShortName">ctrl_flags[7:0]</obj_property>
+      <obj_property name="ObjectShortName">ctrl_flags[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/clk_props" type="array">
+      <obj_property name="ElementShortName">clk_props[7:0]</obj_property>
+      <obj_property name="ObjectShortName">clk_props[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/fpga_info" type="array">
+      <obj_property name="ElementShortName">fpga_info[7:0]</obj_property>
+      <obj_property name="ObjectShortName">fpga_info[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/soft_rst" type="logic">
+      <obj_property name="ElementShortName">soft_rst</obj_property>
+      <obj_property name="ObjectShortName">soft_rst</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/seq_clk_cycle" type="array">
+      <obj_property name="ElementShortName">seq_clk_cycle[15:0]</obj_property>
+      <obj_property name="ObjectShortName">seq_clk_cycle[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/seq_div" type="array">
+      <obj_property name="ElementShortName">seq_div[15:0]</obj_property>
+      <obj_property name="ObjectShortName">seq_div[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/mod_idx_shift" type="array">
+      <obj_property name="ElementShortName">mod_idx_shift[7:0]</obj_property>
+      <obj_property name="ObjectShortName">mod_idx_shift[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/ref_clk_cycle_shift" type="array">
+      <obj_property name="ElementShortName">ref_clk_cycle_shift[7:0]</obj_property>
+      <obj_property name="ObjectShortName">ref_clk_cycle_shift[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/state_props" type="array">
+      <obj_property name="ElementShortName">state_props[4:0]</obj_property>
+      <obj_property name="ObjectShortName">state_props[4:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/BRAM_CF_AND_CP_IDX" type="array">
+      <obj_property name="ElementShortName">BRAM_CF_AND_CP_IDX[7:0]</obj_property>
+      <obj_property name="ObjectShortName">BRAM_CF_AND_CP_IDX[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/BRAM_FPGA_INFO" type="array">
+      <obj_property name="ElementShortName">BRAM_FPGA_INFO[7:0]</obj_property>
+      <obj_property name="ObjectShortName">BRAM_FPGA_INFO[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/BRAM_SEQ_CYCLE" type="array">
+      <obj_property name="ElementShortName">BRAM_SEQ_CYCLE[7:0]</obj_property>
+      <obj_property name="ObjectShortName">BRAM_SEQ_CYCLE[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/BRAM_SEQ_DIV" type="array">
+      <obj_property name="ElementShortName">BRAM_SEQ_DIV[7:0]</obj_property>
+      <obj_property name="ObjectShortName">BRAM_SEQ_DIV[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/BRAM_SEQ_SYNC_SHIFT" type="array">
+      <obj_property name="ElementShortName">BRAM_SEQ_SYNC_SHIFT[7:0]</obj_property>
+      <obj_property name="ObjectShortName">BRAM_SEQ_SYNC_SHIFT[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/BRAM_MOD_IDX_SHIFT" type="array">
+      <obj_property name="ElementShortName">BRAM_MOD_IDX_SHIFT[7:0]</obj_property>
+      <obj_property name="ObjectShortName">BRAM_MOD_IDX_SHIFT[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/BRAM_REF_CLK_CYCLE_SHIFT" type="array">
+      <obj_property name="ElementShortName">BRAM_REF_CLK_CYCLE_SHIFT[7:0]</obj_property>
+      <obj_property name="ObjectShortName">BRAM_REF_CLK_CYCLE_SHIFT[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/CF_SILENT" type="array">
+      <obj_property name="ElementShortName">CF_SILENT[31:0]</obj_property>
+      <obj_property name="ObjectShortName">CF_SILENT[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/CF_FORCE_FAN" type="array">
+      <obj_property name="ElementShortName">CF_FORCE_FAN[31:0]</obj_property>
+      <obj_property name="ObjectShortName">CF_FORCE_FAN[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/CF_SEQ_MODE" type="array">
+      <obj_property name="ElementShortName">CF_SEQ_MODE[31:0]</obj_property>
+      <obj_property name="ObjectShortName">CF_SEQ_MODE[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/CP_REF_INIT_IDX" type="array">
+      <obj_property name="ElementShortName">CP_REF_INIT_IDX[31:0]</obj_property>
+      <obj_property name="ObjectShortName">CP_REF_INIT_IDX[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/CP_SEQ_INIT_IDX" type="array">
+      <obj_property name="ElementShortName">CP_SEQ_INIT_IDX[31:0]</obj_property>
+      <obj_property name="ObjectShortName">CP_SEQ_INIT_IDX[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/sim_config_manager/config_manager/CP_RST_IDX" type="array">
+      <obj_property name="ElementShortName">CP_RST_IDX[31:0]</obj_property>
+      <obj_property name="ObjectShortName">CP_RST_IDX[31:0]</obj_property>
+   </wvobject>
+</wave_config>

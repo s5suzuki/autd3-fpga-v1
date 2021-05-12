@@ -44,7 +44,7 @@
     <Option Name="IPUserFilesDir" Val="$PPRDIR/../autd3-library-firmware/fpga/autd3-fpga.ip_user_files"/>
     <Option Name="IPStaticSourceDir" Val="$PPRDIR/../autd3-library-firmware/fpga/autd3-fpga.ip_user_files/ipstatic"/>
     <Option Name="EnableBDX" Val="FALSE"/>
-    <Option Name="WTXSimLaunchSim" Val="450"/>
+    <Option Name="WTXSimLaunchSim" Val="460"/>
     <Option Name="WTModelSimLaunchSim" Val="0"/>
     <Option Name="WTQuestaLaunchSim" Val="0"/>
     <Option Name="WTIesLaunchSim" Val="0"/>
@@ -190,11 +190,22 @@
     </FileSet>
     <FileSet Name="sim_1" Type="SimulationSrcs" RelSrcDir="$PSRCDIR/sim_1">
       <Filter Type="Srcs"/>
+      <File Path="$PSRCDIR/sim_1/new/sim_config_manager.sv">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/sim_config_manager_behav.wcfg">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <Config>
         <Option Name="DesignMode" Val="RTL"/>
-        <Option Name="TopModule" Val="top"/>
+        <Option Name="TopModule" Val="sim_config_manager"/>
         <Option Name="TopLib" Val="xil_defaultlib"/>
-        <Option Name="TopAutoSet" Val="TRUE"/>
         <Option Name="TransportPathDelay" Val="0"/>
         <Option Name="TransportIntDelay" Val="0"/>
         <Option Name="SelectedSimModel" Val="rtl"/>
@@ -210,6 +221,7 @@
         <Option Name="XSimWcfgFile" Val="$PPRDIR/sim_sync_behav.wcfg"/>
         <Option Name="XSimWcfgFile" Val="$PPRDIR/sim_delayed_fifo_behav.wcfg"/>
         <Option Name="XSimWcfgFile" Val="$PPRDIR/sim_fc_behav.wcfg"/>
+        <Option Name="XSimWcfgFile" Val="$PPRDIR/sim_config_manager_behav.wcfg"/>
         <Option Name="xsim.simulate.runtime" Val="0"/>
         <Option Name="NLNetlistMode" Val="funcsim"/>
       </Config>
@@ -252,6 +264,7 @@
     <FileSet Name="BRAM16x512" Type="BlockSrcs" RelSrcDir="$PSRCDIR/BRAM16x512">
       <File Path="$PSRCDIR/sources_1/ip/BRAM16x512/BRAM16x512.xci">
         <FileInfo>
+          <Attr Name="AutoDisabled" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -463,10 +476,10 @@
         <StratHandle Name="Flow_PerfOptimized_high" Flow="Vivado Synthesis 2020"/>
         <Step Id="synth_design">
           <Option Id="ResourceSharing">2</Option>
-          <Option Id="KeepEquivalentRegisters">1</Option>
           <Option Id="NoCombineLuts">1</Option>
-          <Option Id="Directive">7</Option>
           <Option Id="FsmExtraction">1</Option>
+          <Option Id="KeepEquivalentRegisters">1</Option>
+          <Option Id="Directive">7</Option>
           <Option Id="ShregMinSize">5</Option>
         </Step>
       </Strategy>
