@@ -4,7 +4,7 @@
  * Created Date: 27/03/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 10/05/2021
+ * Last Modified: 12/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -32,7 +32,7 @@ module top(
            output var [3:0]GPIO_OUT
        );
 
-localparam int TRANS_NUM = 5;
+localparam int TRANS_NUM = 249;
 localparam int SYS_CLK_FREQ = 20400000;
 localparam int ULTRASOUND_FREQ = 40000;
 localparam int SYNC0_FREQ = 1000;

@@ -33,9 +33,9 @@ The code is written in SystemVerilog with Vivado 2020.2.
 |-------------|------------------|----------------------------------|-----|
 | 0x0         | 0x00             | 7:0=Control flags<br>15:8=Clock property | R/W |
 | 　          | 0x01             | FPGA info                         | W   |
-| 　          | 0x02             | STM cycle                         | R   |
-| 　          | 0x03             | STM division                      | R   |
-| 　          | 0x04             | STM synchronization shift         | R   |
+| 　          | 0x02             | SEQ cycle                         | R   |
+| 　          | 0x03             | SEQ division                      | R   |
+| 　          | 0x04             | SEQ synchronization shift         | R   |
 | 　          | 0x05             | Modulation clk shift              | R   |
 | 　          | 0x06             | Reference clk cycle shift         | R  |
 | 　          | 0x07             | Unused                           | 　  |
@@ -46,10 +46,10 @@ The code is written in SystemVerilog with Vivado 2020.2.
 * Control flags
     * 3: silent mode
     * 4: force fan
-    * 5: stm mode
+    * 5: seq mode
 * Clock property
     * 0: reference clock init
-    * 1: stm clock init
+    * 1: seq clock init
     * 7: software reset
 
 ### Modulation
@@ -75,14 +75,14 @@ The code is written in SystemVerilog with Vivado 2020.2.
 | 　          | ︙                | ︙                  | 　  |
 | 　          | 0x1FF              | Unused              | 　  |
 
-### STM operation
+### SEQ operation
 
 | BRAM_SELECT | BRAM_ADDR (16bit) | DATA (128 bit)                                                                       | R/W |
 |-------------|-------------------|--------------------------------------------------------------------------------------|-----|
-| 0x3         | 0x0000            | 79:0 = {stm_duty[0], stm_z[0],   stm_y[0], stm_x[0]}      127:80 = Unused                 | R   |
-| 　          | 0x0001            | 79:0 = {stm_duty[1], stm_z[1],   stm_y[1], stm_x[1]}      127:80 = Unused                 | R   |
+| 0x3         | 0x0000            | 79:0 = {seq_duty[0], seq_z[0],   seq_y[0], seq_x[0]}      127:80 = Unused                 | R   |
+| 　          | 0x0001            | 79:0 = {seq_duty[1], seq_z[1],   seq_y[1], seq_x[1]}      127:80 = Unused                 | R   |
 | 　          | ︙                | ︙                                                                                   | ︙  |
-| 　          | 0x9C3F            | 79:0 = {stm_duty[39999],   stm_z[39999], stm_y[39999], stm_x[39999]}      127:80 = Unused | R   |
+| 　          | 0x9C3F            | 79:0 = {seq_duty[39999],   seq_z[39999], seq_y[39999], seq_x[39999]}      127:80 = Unused | R   |
 
 # Author
 

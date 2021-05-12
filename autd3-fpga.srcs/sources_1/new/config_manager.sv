@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 10/05/2021
+ * Last Modified: 12/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -29,18 +29,18 @@ module config_manager(
 // CP: Clock Properties
 localparam [8:0] BRAM_CF_AND_CP_IDX       = 9'd0;
 localparam [8:0] BRAM_FPGA_INFO           = 9'd1;
-localparam [8:0] BRAM_STM_CYCLE           = 9'd2;
-localparam [8:0] BRAM_STM_DIV             = 9'd3;
-localparam [8:0] BRAM_STM_SYNC_SHIFT      = 9'd4;
+localparam [8:0] BRAM_SEQ_CYCLE           = 9'd2;
+localparam [8:0] BRAM_SEQ_DIV             = 9'd3;
+localparam [8:0] BRAM_SEQ_SYNC_SHIFT      = 9'd4;
 localparam [8:0] BRAM_MOD_IDX_SHIFT       = 9'd5;
 localparam [8:0] BRAM_REF_CLK_CYCLE_SHIFT = 9'd6;
 
 localparam CF_SILENT    = 3;
 localparam CF_FORCE_FAN = 4;
-localparam CF_STM_MODE  = 5;
+localparam CF_SEQ_MODE  = 5;
 
 localparam CP_REF_INIT_IDX  = 0;
-localparam CP_STM_INIT_IDX  = 1;
+localparam CP_SEQ_INIT_IDX  = 1;
 localparam CP_RST_IDX       = 7;
 
 logic [8:0] config_bram_addr;
@@ -53,15 +53,15 @@ logic [7:0] clk_props;
 logic [7:0] fpga_info;
 logic soft_rst;
 
-logic [15:0] stm_clk_cycle;
-logic [15:0] stm_div;
+logic [15:0] seq_clk_cycle;
+logic [15:0] seq_div;
 logic [7:0] mod_idx_shift;
 logic [7:0] ref_clk_cycle_shift;
 
 enum logic [4:0] {
          READ_CF_AND_CP,
-         READ_STM_CLK_CYCLE,
-         READ_STM_CLK_DIV,
+         READ_SEQ_CLK_CYCLE,
+         READ_SEQ_CLK_DIV,
          READ_MOD_IDX_SHIFT,
 
          SOFT_RST,
@@ -122,23 +122,23 @@ always_ff @(posedge CLK) begin
                 end
                 else begin
                     config_bram_addr <= BRAM_MOD_IDX_SHIFT;
-                    state_props <= READ_STM_CLK_CYCLE;
+                    state_props <= READ_SEQ_CLK_CYCLE;
                 end
             end
-            READ_STM_CLK_CYCLE: begin
+            READ_SEQ_CLK_CYCLE: begin
                 config_bram_addr <= BRAM_CF_AND_CP_IDX;
-                stm_clk_cycle <= config_bram_dout;
+                seq_clk_cycle <= config_bram_dout;
 
-                state_props <= READ_STM_CLK_DIV;
+                state_props <= READ_SEQ_CLK_DIV;
             end
-            READ_STM_CLK_DIV: begin
-                config_bram_addr <= BRAM_STM_CYCLE;
-                stm_div <= config_bram_dout;
+            READ_SEQ_CLK_DIV: begin
+                config_bram_addr <= BRAM_SEQ_CYCLE;
+                seq_div <= config_bram_dout;
 
                 state_props <= READ_MOD_IDX_SHIFT;
             end
             READ_MOD_IDX_SHIFT: begin
-                config_bram_addr <= BRAM_STM_DIV;
+                config_bram_addr <= BRAM_SEQ_DIV;
                 mod_idx_shift <= config_bram_dout[7:0];
 
                 state_props <= READ_CF_AND_CP;
@@ -161,11 +161,11 @@ always_ff @(posedge CLK) begin
                 state_props <= REQ_CP_CLEAR_WAIT1;
             end
             REQ_CP_CLEAR_WAIT1: begin
-                config_bram_addr <= BRAM_STM_CYCLE;
+                config_bram_addr <= BRAM_SEQ_CYCLE;
                 state_props <= CP_CLEAR;
             end
             CP_CLEAR: begin
-                config_bram_addr <= BRAM_STM_DIV;
+                config_bram_addr <= BRAM_SEQ_DIV;
                 clk_props <= config_bram_dout[15:8];
                 ctrl_flags <= config_bram_dout[7:0];
                 state_props <= READ_CF_AND_CP;
