@@ -28,8 +28,12 @@ module synchronizer#(
            input var REF_CLK_INIT,
            input var [7:0] REF_CLK_CYCLE_SHIFT,
            input var [7:0] MOD_IDX_SHIFT,
+           input var SEQ_CLK_INIT,
+           input var [15:0] SEQ_CLK_CYCLE,
+           input var [15:0] SEQ_CLK_DIV,
            output var [ULTRASOUND_CNT_CYCLE_WIDTH-1:0] TIME,
-           output var [14:0] MOD_IDX
+           output var [14:0] MOD_IDX,
+           output var [15:0] SEQ_IDX
        );
 
 
@@ -37,14 +41,8 @@ logic [ULTRASOUND_CNT_CYCLE_WIDTH-1:0] time_cnt_for_ultrasound;
 
 assign TIME = time_cnt_for_ultrasound;
 
-always_ff @(posedge CLK) begin
-    if (RST | SYNC) begin
-        time_cnt_for_ultrasound <= 0;
-    end
-    else begin
-        time_cnt_for_ultrasound <= (time_cnt_for_ultrasound == (ULTRASOUND_CNT_CYCLE - 1)) ? 0 : time_cnt_for_ultrasound + 1;
-    end
-end
+always_ff @(posedge CLK)
+    time_cnt_for_ultrasound <= (RST | SYNC | (time_cnt_for_ultrasound == ULTRASOUND_CNT_CYCLE - 1)) ? 0 : time_cnt_for_ultrasound + 1;
 
 ///////////////////////////////// Reference Clock /////////////////////////////////////////
 localparam int REF_CLK_FREQ = ULTRASOUND_FREQ;
@@ -62,28 +60,10 @@ logic [REF_CLK_DIVIDER_CNT_WIDTH-1:0] ref_clk_divider;
 
 logic [REF_CLK_CYCLE_CNT_WIDTH-1:0] ref_clk_cycle;
 
-logic ref_clk_init;
-logic ref_clk_init_rst;
-
 assign ref_clk_cycle = REF_CLK_CYCLE_CNT_BASE << REF_CLK_CYCLE_SHIFT;
-assign ref_clk_init = REF_CLK_INIT;
 
 always_ff @(posedge CLK) begin
-    if (RST) begin
-        ref_clk_init_rst <= 0;
-    end
-    else if (SYNC) begin
-        if (ref_clk_init) begin
-            ref_clk_init_rst <= 1;
-        end
-        else begin
-            ref_clk_init_rst <= 0;
-        end
-    end
-end
-
-always_ff @(posedge CLK) begin
-    if(RST | (SYNC & ref_clk_init & ~ref_clk_init_rst)) begin
+    if(RST | (SYNC & REF_CLK_INIT)) begin
         ref_clk_cnt <= 0;
         ref_clk_cnt_sync <= 0;
         ref_clk_divider <= 0;
@@ -113,5 +93,34 @@ localparam int MOD_UPDATE_CYCLE_CNT = REF_CLK_FREQ / MOD_UPDATE_FREQ_BASE;
 
 assign MOD_IDX = (ref_clk_cnt / MOD_UPDATE_CYCLE_CNT) >> MOD_IDX_SHIFT;
 //////////////////////////////////// Modulation ///////////////////////////////////////////
+
+////////////////////////////////// Sequence Clock /////////////////////////////////////////
+logic [15:0] seq_cnt;
+logic [15:0] seq_cnt_div;
+logic [REF_CLK_CYCLE_CNT_WIDTH-1:0] ref_clk_cnt_watch;
+logic ref_clk_tick;
+
+assign SEQ_IDX = seq_cnt;
+assign ref_clk_tick = (ref_clk_cnt != ref_clk_cnt_watch);
+
+always_ff @(posedge SYS_CLK)
+    ref_clk_cnt_watch <= RST ? 0 : ref_clk_cnt;
+
+always_ff @(posedge SYS_CLK) begin
+    if(RST | (SYNC & SEQ_CLK_INIT)) begin
+        seq_cnt <= 0;
+        seq_cnt_div <= 0;
+    end
+    else if(ref_clk_tick) begin
+        if(seq_cnt_div == SEQ_CLK_DIV - 1) begin
+            seq_cnt_div <= 0;
+            seq_cnt <= (seq_cnt == SEQ_CLK_CYCLE - 1) ? 0 : seq_cnt + 1;
+        end
+        else begin
+            seq_cnt_div <= seq_cnt_div + 1;
+        end
+    end
+end
+////////////////////////////////// Sequence Clock /////////////////////////////////////////
 
 endmodule

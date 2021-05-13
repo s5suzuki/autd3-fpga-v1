@@ -33,12 +33,13 @@ The code is written in SystemVerilog with Vivado 2020.2.
 |-------------|------------------|----------------------------------|-----|
 | 0x0         | 0x00             | 7:0=Control flags<br>15:8=Clock property | R/W |
 | 　          | 0x01             | FPGA info                         | W   |
-| 　          | 0x02             | SEQ cycle                         | R   |
-| 　          | 0x03             | SEQ division                      | R   |
-| 　          | 0x04             | SEQ synchronization shift         | R   |
+| 　          | 0x02             | Seq cycle                         | R   |
+| 　          | 0x03             | Seq clk division                  | R   |
+| 　          | 0x04             | Seq synchronization shift         | R   |
 | 　          | 0x05             | Modulation clk shift              | R   |
 | 　          | 0x06             | Reference clk cycle shift         | R  |
-| 　          | 0x07             | Unused                           | 　  |
+| 　          | 0x07             | Seq bram addr offset	             | R  |
+| 　          | 0x08             | Unused                           | 　  |
 | 　          | ︙               | ︙                               | 　  |
 | 　          | 0xFE             | Unused                           | 　  |
 | 　          | 0xFF             | FPGA version number              | -   |

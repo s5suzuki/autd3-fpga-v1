@@ -16,6 +16,7 @@ module mem_manager(
            input var CLK,
            cpu_bus_if.slave_port CPU_BUS,
            tr_bus_if.master_port TR_BUS,
+           seq_bus_if.master_port SEQ_BUS,
            config_bus_if.master_port CONFIG_BUS,
            input var [14:0] MOD_IDX,
            output var [7:0] MOD
@@ -24,6 +25,9 @@ module mem_manager(
 localparam [1:0] BRAM_CONFIG_SELECT = 2'h0;
 localparam [1:0] BRAM_MOD_SELECT = 2'h1;
 localparam [1:0] BRAM_TR_SELECT = 2'h2;
+localparam [1:0] BRAM_SEQ_SELECT = 2'h3;
+
+localparam [13:0] SEQ_BRAM_ADDR_OFFSET_ADDR = 14'h0007;
 
 logic bus_clk;
 logic en;
@@ -97,5 +101,47 @@ BRAM16x256 tr_bram(
                .doutb(TR_BUS.DATA_OUT)
            );
 ///////////////////////////////// Normal Operation ////////////////////////////////////////
+
+//////////////////////////////// Sequence Operation ///////////////////////////////////////
+logic seq_ena;
+logic [18:0] seq_addr;
+logic [4:0] seq_addr_offset;
+logic [2:0] seq_we_edge;
+logic [47:0] _unused;
+
+assign seq_ena = (cpu_select == BRAM_SEQ_SELECT) & en;
+assign seq_addr = {seq_addr_offset, cpu_addr};
+
+BRAM256x14000 stm_ram(
+                  .clka(bus_clk),
+                  .ena(seq_ena),
+                  .wea(we),
+                  .addra(seq_addr),
+                  .dina(cpu_data),
+                  .douta(),
+                  .clkb(CLK),
+                  .web(1'b0),
+                  .addrb(SEQ_BUS.IDX),
+                  .dinb(128'd0),
+                  .doutb({_unused, SEQ_BUS.DATA_OUT})
+              );
+
+always_ff @(posedge bus_clk) begin
+    if (RST) begin
+        seq_we_edge <= 0;
+        stm_addr_in_offset <= 0;
+    end
+    else begin
+        seq_we_edge <= {seq_we_edge[1:0], (we & config_ena)};
+        if(seq_we_edge == 3'b011) begin
+            case(cpu_addr)
+                SEQ_BRAM_ADDR_OFFSET_ADDR:
+                    stm_addr_in_offset <= cpu_data[4:0];
+            endcase
+        end
+
+    end
+end
+//////////////////////////////// Sequence Operation ///////////////////////////////////////
 
 endmodule

@@ -53,6 +53,10 @@ logic [7:0] mod_idx_shift;
 logic [14:0] mod_idx;
 logic [7:0] mod;
 
+logic [15:0] seq_clk_cycle;
+logic [15:0] seq_div;
+logic [15:0] seq_idx;
+
 assign reset = ~RESET_N;
 assign CPU_DATA  = (~CPU_CS1_N && ~CPU_RD_N && CPU_RDWR) ? cpu_data_out : 16'bz;
 assign sync0_edge = (sync0 == 3'b011);
@@ -93,8 +97,13 @@ config_manager config_manager(
                    .REF_CLK_INIT(ref_clk_init),
                    .REF_CLK_CYCLE_SHIFT(ref_clk_cycle_shift),
                    .MOD_IDX_SHIFT(mod_idx_shift),
+                   .SEQ_CLK_INIT(seq_clk_init),
+                   .SEQ_CLK_CYCLE(seq_clk_cycle),
+                   .SEQ_CLK_DIV(seq_clk_div),
+                   .SEQ_MODE(),
                    .SILENT(silent),
                    .FORCE_FAN(FORCE_FAN),
+                   .SOFT_RST(soft_rst),
                    .THERMO(THERMO)
                );
 
@@ -111,8 +120,12 @@ synchronizer#(
                 .REF_CLK_INIT(ref_clk_init),
                 .REF_CLK_CYCLE_SHIFT(ref_clk_cycle_shift),
                 .MOD_IDX_SHIFT(mod_idx_shift),
+                .SEQ_CLK_INIT(seq_clk_init),
+                .SEQ_CLK_CYCLE(seq_clk_cycle),
+                .SEQ_CLK_DIV(seq_clk_div),
                 .TIME(time_cnt),
-                .MOD_IDX(mod_idx)
+                .MOD_IDX(mod_idx),
+                .SEQ_IDX(seq_idx)
             );
 
 tr_cntroller#(
