@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 10/05/2021
+ * Last Modified: 13/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -23,7 +23,7 @@ module tr_cntroller#(
            input var CLK_LPF,
            input var [8:0] TIME,
            input var SILENT,
-           mod_bus_if.slave_port MOD_BUS,
+           input var [7:0] MOD,
            tr_bus_if.slave_port TR_BUS,
            output var [252:1] XDCR_OUT
        );
@@ -105,7 +105,7 @@ generate begin:TRANSDUCERS_GEN
         genvar ii;
         for(ii = 0; ii < TRANS_NUM; ii++) begin
             logic [7:0] duty_modulated;
-            assign duty_modulated = modulate_duty(duty[ii], MOD_BUS.DATA_OUT);
+            assign duty_modulated = modulate_duty(duty[ii], MOD);
             transducer#(
                           .ULTRASOUND_CNT_CYCLE(ULTRASOUND_CNT_CYCLE)
                       ) tr(
@@ -129,3 +129,4 @@ function automatic [7:0] modulate_duty;
 endfunction
 
 endmodule
+

@@ -4,7 +4,7 @@
  * Created Date: 27/03/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 12/05/2021
+ * Last Modified: 13/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -50,6 +50,9 @@ logic [8:0] time_cnt;
 logic [7:0] ref_clk_cycle_shift;
 logic [7:0] mod_idx_shift;
 
+logic [14:0] mod_idx;
+logic [7:0] mod;
+
 assign reset = ~RESET_N;
 assign CPU_DATA  = (~CPU_CS1_N && ~CPU_RD_N && CPU_RDWR) ? cpu_data_out : 16'bz;
 assign sync0_edge = (sync0 == 3'b011);
@@ -61,15 +64,6 @@ ultrasound_cnt_clk_gen ultrasound_cnt_clk_gen(
                            .clk_out2(lpf_clk)
                        );
 
-always_ff @(posedge sys_clk) begin
-    if (reset) begin
-        sync0 <= 0;
-    end
-    else begin
-        sync0 <= {sync0[1:0], CAT_SYNC0};
-    end
-end
-
 cpu_bus_if cpu_bus();
 assign cpu_bus.BUS_CLK = CPU_CKIO;
 assign cpu_bus.EN = ~CPU_CS1_N;
@@ -80,15 +74,15 @@ assign cpu_bus.DATA_IN = CPU_DATA;
 assign cpu_data_out = cpu_bus.DATA_OUT;
 
 tr_bus_if tr_bus();
-mod_bus_if mod_bus();
 config_bus_if config_bus();
 
 mem_manager mem_manager(
                 .CLK(sys_clk),
                 .CPU_BUS(cpu_bus.slave_port),
                 .TR_BUS(tr_bus.master_port),
-                .MOD_BUS(mod_bus.master_port),
-                .CONFIG_BUS(config_bus.master_port)
+                .CONFIG_BUS(config_bus.master_port),
+                .MOD_IDX(mod_idx),
+                .MOD(mod)
             );
 
 config_manager config_manager(
@@ -118,7 +112,7 @@ synchronizer#(
                 .REF_CLK_CYCLE_SHIFT(ref_clk_cycle_shift),
                 .MOD_IDX_SHIFT(mod_idx_shift),
                 .TIME(time_cnt),
-                .MOD_BUS(mod_bus.slave_port)
+                .MOD_IDX(mod_idx)
             );
 
 tr_cntroller#(
@@ -130,8 +124,12 @@ tr_cntroller#(
                 .CLK_LPF(lpf_clk),
                 .TIME(time_cnt),
                 .SILENT(silent),
-                .MOD_BUS(mod_bus.slave_port),
+                .MOD(mod),
                 .TR_BUS(tr_bus.slave_port),
                 .XDCR_OUT(XDCR_OUT)
             );
+
+always_ff @(posedge sys_clk)
+    sync0 <= reset ? 0 :  {sync0[1:0], CAT_SYNC0};
+
 endmodule

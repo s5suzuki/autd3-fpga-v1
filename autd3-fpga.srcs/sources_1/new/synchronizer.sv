@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 10/05/2021
+ * Last Modified: 13/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -29,7 +29,7 @@ module synchronizer#(
            input var [7:0] REF_CLK_CYCLE_SHIFT,
            input var [7:0] MOD_IDX_SHIFT,
            output var [ULTRASOUND_CNT_CYCLE_WIDTH-1:0] TIME,
-           mod_bus_if.slave_port MOD_BUS
+           output var [14:0] MOD_IDX
        );
 
 
@@ -111,7 +111,7 @@ end
 localparam int MOD_UPDATE_FREQ_BASE = 8 * 1000;
 localparam int MOD_UPDATE_CYCLE_CNT = REF_CLK_FREQ / MOD_UPDATE_FREQ_BASE;
 
-assign MOD_BUS.IDX = (ref_clk_cnt / MOD_UPDATE_CYCLE_CNT) >> MOD_IDX_SHIFT;
+assign MOD_IDX = (ref_clk_cnt / MOD_UPDATE_CYCLE_CNT) >> MOD_IDX_SHIFT;
 //////////////////////////////////// Modulation ///////////////////////////////////////////
 
 endmodule

@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 12/05/2021
+ * Last Modified: 13/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -43,39 +43,39 @@ localparam CP_REF_INIT_IDX  = 0;
 localparam CP_SEQ_INIT_IDX  = 1;
 localparam CP_RST_IDX       = 7;
 
-(*mark_debug="true"*) logic [7:0] config_bram_addr;
-(*mark_debug="true"*) logic [15:0] config_bram_din;
-(*mark_debug="true"*) logic [15:0] config_bram_dout;
-(*mark_debug="true"*) logic config_web;
+logic [7:0] config_bram_addr;
+logic [15:0] config_bram_din;
+logic [15:0] config_bram_dout;
+logic config_web;
 
-(*mark_debug="true"*) logic [7:0] ctrl_flags;
-(*mark_debug="true"*) logic [7:0] clk_props;
-(*mark_debug="true"*) logic [7:0] fpga_info;
-(*mark_debug="true"*) logic soft_rst;
+logic [7:0] ctrl_flags;
+logic [7:0] clk_props;
+logic [7:0] fpga_info;
+logic soft_rst;
 
 logic [15:0] seq_clk_cycle;
 logic [15:0] seq_div;
-(*mark_debug="true"*) logic [7:0] mod_idx_shift;
-(*mark_debug="true"*) logic [7:0] ref_clk_cycle_shift;
+logic [7:0] mod_idx_shift;
+logic [7:0] ref_clk_cycle_shift;
 
-(*mark_debug="true"*) enum logic [4:0] {
-    READ_CF_AND_CP,
-    READ_SEQ_CLK_CYCLE,
-    READ_SEQ_CLK_DIV,
-    READ_MOD_IDX_SHIFT,
+enum logic [4:0] {
+         READ_CF_AND_CP,
+         READ_SEQ_CLK_CYCLE,
+         READ_SEQ_CLK_DIV,
+         READ_MOD_IDX_SHIFT,
 
-    SOFT_RST,
+         SOFT_RST,
 
-    REQ_CP_CLEAR,
-    REQ_CP_CLEAR_WAIT0,
-    REQ_CP_CLEAR_WAIT1,
-    CP_CLEAR,
+         REQ_CP_CLEAR,
+         REQ_CP_CLEAR_WAIT0,
+         REQ_CP_CLEAR_WAIT1,
+         CP_CLEAR,
 
-    REQ_REF_CLK_SHIFT_READ,
-    REQ_REF_CLK_SHIFT_READ_WAIT0,
-    REQ_REF_CLK_SHIFT_READ_WAIT1,
-    REF_CLK_SHIFT_READ
-} state_props;
+         REQ_REF_CLK_SHIFT_READ,
+         REQ_REF_CLK_SHIFT_READ_WAIT0,
+         REQ_REF_CLK_SHIFT_READ_WAIT1,
+         REF_CLK_SHIFT_READ
+     } state_props;
 
 assign CONFIG_BUS.WE = config_web;
 assign CONFIG_BUS.IDX = config_bram_addr;
