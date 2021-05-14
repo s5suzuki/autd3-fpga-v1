@@ -32,7 +32,7 @@ The code is written in SystemVerilog with Vivado 2020.2.
 | BRAM_SELECT | BRAM_ADDR (8bit) | DATA (16 bit)                    | R/W |
 |-------------|------------------|----------------------------------|-----|
 | 0x0         | 0x00             | 7:0=Control flags<br>15:8=Clock property | R/W |
-| 　          | 0x01             | FPGA info                         | W   |
+| 　          | 0x01             | 7:0=FPGA info                         | W   |
 | 　          | 0x02             | Seq cycle                         | R   |
 | 　          | 0x03             | Seq clk division                  | R   |
 | 　          | 0x04             | Seq synchronization shift         | R   |

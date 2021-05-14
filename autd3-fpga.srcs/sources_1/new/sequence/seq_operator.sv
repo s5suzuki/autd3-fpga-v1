@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 13/05/2021
+ * Last Modified: 14/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -52,14 +52,12 @@ logic [7:0] tr_cnt_in;
 
 logic [23:0] trans_spacing;
 logic [15:0] _unused;
-logic dout_tvalid;
 
 enum logic [3:0] {
          WAIT,
          POS_WAIT_0,
          POS_WAIT_1,
          POS_WAIT_2,
-         POS_WAIT_3,
          FC_DATA_IN_STREAM,
          PHASE_CALC_WAIT
      } state_calc;
@@ -112,8 +110,10 @@ focus_calculator focus_calculator(
                      .PHASE_CALC_DONE(phase_out_valid)
                  );
 
-always_ff @(posedge CLK)
+always_ff @(posedge CLK) begin
+    seq_idx <= RST ? 0 : SEQ_IDX;
     seq_idx_old <= RST ? 0 : seq_idx;
+end
 
 always_ff @(posedge CLK) begin
     if (RST) begin
@@ -142,10 +142,6 @@ always_ff @(posedge CLK) begin
                 state_calc <= POS_WAIT_2;
             end
             POS_WAIT_2: begin
-                tr_cnt <= tr_cnt + 1;
-                state_calc <= POS_WAIT_3;
-            end
-            POS_WAIT_3: begin
                 focus_x <= data_out[23:0];
                 focus_y <= data_out[47:24];
                 focus_z <= data_out[71:48];
@@ -155,9 +151,9 @@ always_ff @(posedge CLK) begin
                 state_calc <= FC_DATA_IN_STREAM;
             end
             FC_DATA_IN_STREAM: begin
-                tr_cnt <= (tr_cnt == TRANS_NUM + 4) ? 0 : tr_cnt + 1;
-                state_calc <= (tr_cnt == TRANS_NUM + 4) ? WAIT : FC_DATA_IN_STREAM;
-                fc_trig <= (tr_cnt == TRANS_NUM + 4) ? 0 : fc_trig;
+                tr_cnt <= (tr_cnt == TRANS_NUM + 3) ? 0 : tr_cnt + 1;
+                state_calc <= (tr_cnt == TRANS_NUM + 3) ? WAIT : FC_DATA_IN_STREAM;
+                fc_trig <= (tr_cnt == TRANS_NUM + 3) ? 0 : fc_trig;
             end
         endcase
     end

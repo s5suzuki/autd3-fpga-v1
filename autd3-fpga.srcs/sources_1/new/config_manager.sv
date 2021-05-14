@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 13/05/2021
+ * Last Modified: 14/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -155,6 +155,7 @@ always_ff @(posedge CLK) begin
             end
             WRITE_FPGA_INFO: begin
                 config_web <= 0;
+                config_bram_din <= 0;
                 config_bram_addr <= BRAM_CF_AND_CP;
                 state_props <= READ_CF_AND_CP;
             end
@@ -183,6 +184,8 @@ always_ff @(posedge CLK) begin
                 state_props <= CP_CLEAR;
             end
             CP_CLEAR: begin
+                config_web <= 0;
+                config_bram_din <= 0;
                 config_bram_addr <= BRAM_CF_AND_CP;
                 clk_props <= config_bram_dout[15:8];
                 ctrl_flags <= config_bram_dout[7:0];
