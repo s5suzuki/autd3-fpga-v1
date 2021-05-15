@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 13/05/2021
+ * Last Modified: 15/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -31,6 +31,7 @@ module synchronizer#(
            input var SEQ_CLK_INIT,
            input var [15:0] SEQ_CLK_CYCLE,
            input var [15:0] SEQ_CLK_DIV,
+           input var [63:0] SEQ_CLK_SYNC_TIME_NS,
            output var [ULTRASOUND_CNT_CYCLE_WIDTH-1:0] TIME,
            output var [14:0] MOD_IDX,
            output var [15:0] SEQ_IDX
@@ -100,16 +101,64 @@ logic [15:0] seq_cnt_div;
 logic [REF_CLK_CYCLE_CNT_WIDTH-1:0] ref_clk_cnt_watch;
 logic ref_clk_tick;
 
+localparam [31:0] REF_CLK_CYCLE_NS = 1000000000 / REF_CLK_FREQ;
 assign SEQ_IDX = seq_cnt;
 assign ref_clk_tick = (ref_clk_cnt != ref_clk_cnt_watch);
+
+logic [63:0] seq_clk_sync_time_ref_unit;
+logic [47:0] seq_tcycle;
+logic [31:0] seq_shift;
+logic [63:0] seq_cnt_shift;
+logic [31:0] seq_div_shift;
+
+logic [31:0] _unused_rem;
+logic [63:0] _unused_div;
+
+divider64 div_ref_unit(
+              .s_axis_dividend_tdata(SEQ_CLK_SYNC_TIME_NS),
+              .s_axis_dividend_tvalid(1'b1),
+              .s_axis_divisor_tdata(REF_CLK_CYCLE_NS),
+              .s_axis_divisor_tvalid(1'b1),
+              .aclk(CLK),
+              .m_axis_dout_tdata({seq_clk_sync_time_ref_unit, _unused_rem}),
+              .m_axis_dout_tvalid()
+          );
+mult_24 mult_tcycle(
+            .CLK(CLK),
+            .A({8'd0, SEQ_CLK_CYCLE}),
+            .B({8'd0, SEQ_CLK_DIV}),
+            .P(seq_tcycle)
+        );
+divider64 sync_shift_rem(
+              .s_axis_dividend_tdata(seq_clk_sync_time_ref_unit),
+              .s_axis_dividend_tvalid(1'b1),
+              .s_axis_divisor_tdata(seq_tcycle[31:0]),
+              .s_axis_divisor_tvalid(1'b1),
+              .aclk(CLK),
+              .m_axis_dout_tdata({_unused_div, seq_shift}),
+              .m_axis_dout_tvalid()
+          );
+divider64 sync_shift_div_rem(
+              .s_axis_dividend_tdata({32'd0, seq_shift}),
+              .s_axis_dividend_tvalid(1'b1),
+              .s_axis_divisor_tdata({16'd0, SEQ_CLK_DIV}),
+              .s_axis_divisor_tvalid(1'b1),
+              .aclk(CLK),
+              .m_axis_dout_tdata({seq_cnt_shift, seq_div_shift}),
+              .m_axis_dout_tvalid()
+          );
 
 always_ff @(posedge CLK)
     ref_clk_cnt_watch <= RST ? 0 : ref_clk_cnt;
 
 always_ff @(posedge CLK) begin
-    if(RST | (SYNC & SEQ_CLK_INIT)) begin
+    if(RST) begin
         seq_cnt <= 0;
         seq_cnt_div <= 0;
+    end
+    else if (SYNC & SEQ_CLK_INIT) begin
+        seq_cnt <= seq_cnt_shift[15:0];
+        seq_cnt_div <= seq_div_shift[15:0];
     end
     else if(ref_clk_tick) begin
         if(seq_cnt_div == SEQ_CLK_DIV - 1) begin

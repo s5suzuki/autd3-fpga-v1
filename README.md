@@ -35,11 +35,15 @@ The code is written in SystemVerilog with Vivado 2020.2.
 | 　          | 0x01             | 7:0=FPGA info                         | W   |
 | 　          | 0x02             | Seq cycle                         | R   |
 | 　          | 0x03             | Seq clk division                  | R   |
-| 　          | 0x04             | Seq synchronization shift         | R   |
+| 　          | 0x04             | -                                 | -   |
 | 　          | 0x05             | Modulation clk shift              | R   |
 | 　          | 0x06             | Reference clk cycle shift         | R  |
 | 　          | 0x07             | Seq bram addr offset	             | R  |
 | 　          | 0x08             | Wavelength     	                 | R  |
+| 　          | 0x09             | Seq clk sync time[15:0]           | R  |
+| 　          | 0x0A             | Seq clk sync time[31:16]           | R  |
+| 　          | 0x0B             | Seq clk sync time[47:32]           | R  |
+| 　          | 0x0C             | Seq clk sync time[63:48]           | R  |
 | 　          | 0x09             | Unused                           | 　  |
 | 　          | ︙               | ︙                               | 　  |
 | 　          | 0xFE             | Unused                           | 　  |

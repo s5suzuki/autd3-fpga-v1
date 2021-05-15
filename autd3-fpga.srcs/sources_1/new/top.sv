@@ -4,7 +4,7 @@
  * Created Date: 27/03/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 14/05/2021
+ * Last Modified: 15/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -57,7 +57,7 @@ logic [15:0] seq_clk_cycle;
 logic [15:0] seq_clk_div;
 logic [15:0] seq_idx;
 logic [15:0] wavelength;
-logic seq_mode;
+logic [63:0] seq_clk_sync_time;
 
 assign reset = ~RESET_N;
 assign CPU_DATA  = (~CPU_CS1_N && ~CPU_RD_N && CPU_RDWR) ? cpu_data_out : 16'bz;
@@ -105,6 +105,7 @@ config_manager config_manager(
                    .SEQ_CLK_INIT(seq_clk_init),
                    .SEQ_CLK_CYCLE(seq_clk_cycle),
                    .SEQ_CLK_DIV(seq_clk_div),
+                   .SEQ_CLK_SYNC_TIME_NS(seq_clk_sync_time),
                    .WAVELENGTH_UM(wavelength),
                    .SEQ_MODE(seq_mode),
                    .SILENT(silent),
@@ -129,6 +130,7 @@ synchronizer#(
                 .SEQ_CLK_INIT(seq_clk_init),
                 .SEQ_CLK_CYCLE(seq_clk_cycle),
                 .SEQ_CLK_DIV(seq_clk_div),
+                .SEQ_CLK_SYNC_TIME_NS(seq_clk_sync_time),
                 .TIME(time_cnt),
                 .MOD_IDX(mod_idx),
                 .SEQ_IDX(seq_idx)

@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 14/05/2021
+ * Last Modified: 15/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -23,6 +23,7 @@ module config_manager(
            output var SEQ_CLK_INIT,
            output var [15:0] SEQ_CLK_CYCLE,
            output var [15:0] SEQ_CLK_DIV,
+           output var [63:0] SEQ_CLK_SYNC_TIME_NS,
            output var [15:0] WAVELENGTH_UM,
            output var SEQ_MODE,
            output var SILENT,
@@ -37,10 +38,13 @@ localparam [7:0] BRAM_CF_AND_CP           = 8'd0;
 localparam [7:0] BRAM_FPGA_INFO           = 8'd1;
 localparam [7:0] BRAM_SEQ_CYCLE           = 8'd2;
 localparam [7:0] BRAM_SEQ_DIV             = 8'd3;
-localparam [7:0] BRAM_SEQ_SYNC_SHIFT      = 8'd4;
 localparam [7:0] BRAM_MOD_IDX_SHIFT       = 8'd5;
 localparam [7:0] BRAM_REF_CLK_CYCLE_SHIFT = 8'd6;
-localparam [7:0] BRAM_WAVELENGTH= 8'd8;
+localparam [7:0] BRAM_WAVELENGTH          = 8'd8;
+localparam [7:0] BRAM_SEQ_SYNC_TIME_0     = 8'd9;
+localparam [7:0] BRAM_SEQ_SYNC_TIME_1     = 8'd10;
+localparam [7:0] BRAM_SEQ_SYNC_TIME_2     = 8'd11;
+localparam [7:0] BRAM_SEQ_SYNC_TIME_3     = 8'd12;
 
 localparam CF_SILENT    = 3;
 localparam CF_FORCE_FAN = 4;
@@ -62,6 +66,7 @@ logic soft_rst;
 
 logic [15:0] seq_clk_cycle;
 logic [15:0] seq_clk_div;
+logic [63:0] seq_clk_sync_time;
 logic [15:0] wavelength;
 logic [7:0] mod_idx_shift;
 logic [7:0] ref_clk_cycle_shift;
@@ -84,9 +89,13 @@ enum logic [4:0] {
 
          REQ_READ_SEQ_CLK_DIV,
          REQ_READ_WAVELENGTH,
-         READ_SEQ_CLK_CYCLE,
-         READ_SEQ_CLK_DIV,
-         READ_WAVELENGTH
+         REQ_READ_SEQ_CLK_SYNC_TIME_0,
+         REQ_READ_SEQ_CLK_SYNC_TIME_1,
+         REQ_READ_SEQ_CLK_SYNC_TIME_2,
+         REQ_READ_SEQ_CLK_SYNC_TIME_3,
+         READ_SEQ_CLK_SYNC_TIME_1,
+         READ_SEQ_CLK_SYNC_TIME_2,
+         READ_SEQ_CLK_SYNC_TIME_3
      } state_props;
 
 assign CONFIG_BUS.WE = config_web;
@@ -106,6 +115,7 @@ assign MOD_IDX_SHIFT = mod_idx_shift;
 assign SEQ_CLK_INIT = clk_props[CP_SEQ_INIT_IDX];
 assign SEQ_CLK_CYCLE = seq_clk_cycle;
 assign SEQ_CLK_DIV = seq_clk_div;
+assign SEQ_CLK_SYNC_TIME_NS = seq_clk_sync_time;
 assign WAVELENGTH_UM = wavelength;
 
 always_ff @(posedge CLK) begin
@@ -218,18 +228,38 @@ always_ff @(posedge CLK) begin
             end
             REQ_READ_WAVELENGTH: begin
                 config_bram_addr <= BRAM_WAVELENGTH;
-                state_props <= READ_SEQ_CLK_CYCLE;
+                state_props <= REQ_READ_SEQ_CLK_SYNC_TIME_0;
             end
-            READ_SEQ_CLK_CYCLE: begin
+            REQ_READ_SEQ_CLK_SYNC_TIME_0: begin
                 seq_clk_cycle <= config_bram_dout;
-                state_props <= READ_SEQ_CLK_DIV;
+                config_bram_addr <= BRAM_SEQ_SYNC_TIME_0;
+                state_props <= REQ_READ_SEQ_CLK_SYNC_TIME_1;
             end
-            READ_SEQ_CLK_DIV: begin
+            REQ_READ_SEQ_CLK_SYNC_TIME_1: begin
                 seq_clk_div <= config_bram_dout;
-                state_props <= READ_WAVELENGTH;
+                config_bram_addr <= BRAM_SEQ_SYNC_TIME_1;
+                state_props <= REQ_READ_SEQ_CLK_SYNC_TIME_2;
             end
-            READ_WAVELENGTH: begin
-                wavelength = config_bram_dout;
+            REQ_READ_SEQ_CLK_SYNC_TIME_2: begin
+                wavelength <= config_bram_dout;
+                config_bram_addr <= BRAM_SEQ_SYNC_TIME_2;
+                state_props <= REQ_READ_SEQ_CLK_SYNC_TIME_3;
+            end
+            REQ_READ_SEQ_CLK_SYNC_TIME_3: begin
+                seq_clk_sync_time[15:0] <= config_bram_dout;
+                config_bram_addr <= BRAM_SEQ_SYNC_TIME_3;
+                state_props <= READ_SEQ_CLK_SYNC_TIME_1;
+            end
+            READ_SEQ_CLK_SYNC_TIME_1: begin
+                seq_clk_sync_time[31:16] <= config_bram_dout;
+                state_props <= READ_SEQ_CLK_SYNC_TIME_2;
+            end
+            READ_SEQ_CLK_SYNC_TIME_2: begin
+                seq_clk_sync_time[47:32] <= config_bram_dout;
+                state_props <= READ_SEQ_CLK_SYNC_TIME_3;
+            end
+            READ_SEQ_CLK_SYNC_TIME_3: begin
+                seq_clk_sync_time[63:48] <= config_bram_dout;
                 if (SYNC) begin
                     state_props <= REQ_CP_CLEAR;
                 end
