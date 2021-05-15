@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 13/05/2021
+ * Last Modified: 15/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -27,7 +27,7 @@ module focus_calculator(
        );
 
 localparam SQRT_LATENCY = 25 + 1 + 4;
-localparam SQRT_LATENCY_WIDTH = $clog2(SQRT_LATENCY);
+localparam REMINDER_LATENCY = 34;
 
 logic signed [23:0] dx, dy, dz;
 logic [47:0] d2;
@@ -38,11 +38,14 @@ logic [31:0] dout;
 logic [7:0] phase;
 logic phase_calc_done;
 
-logic [2:0] calc_mode_edge;
-logic [SQRT_LATENCY_WIDTH-1:0] wait_cnt;
+logic [1:0] calc_mode_edge;
+logic [$clog2(SQRT_LATENCY + REMINDER_LATENCY)-1:0] wait_cnt;
 logic [7:0] input_num;
 logic [7:0] output_num;
 logic run;
+
+logic [31:0] _unused;
+logic [7:0] reminder;
 
 sqrt_48 sqrt_48(
             .aclk(CLK),
@@ -50,6 +53,17 @@ sqrt_48 sqrt_48(
             .s_axis_cartesian_tdata(d2),
             .m_axis_dout_tvalid(tvalid_out),
             .m_axis_dout_tdata(dout));
+
+divider32 rem255(
+              .s_axis_dividend_tdata(dout),
+              .s_axis_dividend_tvalid(1'b1),
+              .s_axis_divisor_tdata(8'hFF),
+              .s_axis_divisor_tvalid(1'b1),
+              .aclk(CLK),
+              .m_axis_dout_tdata({_unused, reminder}),
+              .m_axis_dout_tvalid()
+          );
+
 mult_24 mult_24x(
             .CLK(CLK),
             .A(dx),
@@ -79,18 +93,18 @@ always_ff @(posedge CLK) begin
         tvalid_in <= 0;
     end
     else begin
-        calc_mode_edge <= {calc_mode_edge[1:0], DVALID_IN};
+        calc_mode_edge <= {calc_mode_edge[0], DVALID_IN};
         case(calc_mode_edge)
-            3'b001: begin
+            2'b01: begin
                 tvalid_in <= 1'b1;
                 wait_cnt <= 0;
             end
-            3'b110: begin
+            2'b10: begin
                 tvalid_in <= 1'b0;
-                wait_cnt <= ~run ? 0 : (wait_cnt == SQRT_LATENCY - 1) ? SQRT_LATENCY - 1 : wait_cnt + 1;
+                wait_cnt <= ~run ? 0 : (wait_cnt == SQRT_LATENCY + REMINDER_LATENCY - 1) ? SQRT_LATENCY + REMINDER_LATENCY - 1 : wait_cnt + 1;
             end
             default: begin
-                wait_cnt <= ~run ? 0 : (wait_cnt == SQRT_LATENCY - 1) ? SQRT_LATENCY - 1 : wait_cnt + 1;
+                wait_cnt <= ~run ? 0 : (wait_cnt == SQRT_LATENCY + REMINDER_LATENCY - 1) ? SQRT_LATENCY + REMINDER_LATENCY - 1 : wait_cnt + 1;
             end
         endcase
     end
@@ -124,8 +138,8 @@ always_ff @(posedge CLK) begin
         d2 <= dx2 + dy2 + dz2;
 
         // STAGE_2
-        phase <= 8'hFF - dout[7:0];
-        if(wait_cnt == SQRT_LATENCY - 1) begin
+        phase <= 8'hFF - reminder;
+        if(wait_cnt == SQRT_LATENCY + REMINDER_LATENCY - 1) begin
             if(output_num == input_num) begin
                 phase_calc_done <= 0;
                 output_num <= 0;
@@ -133,7 +147,7 @@ always_ff @(posedge CLK) begin
             end
             else begin
                 phase_calc_done <= 1;
-                output_num <= output_num+1;
+                output_num <= output_num + 1;
             end
         end
     end

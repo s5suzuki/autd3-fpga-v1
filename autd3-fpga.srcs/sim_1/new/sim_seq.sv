@@ -4,7 +4,7 @@
  * Created Date: 14/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 14/05/2021
+ * Last Modified: 15/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -14,13 +14,15 @@
 `timescale 1ns / 1ps
 module sim_seq();
 
+localparam TRANS_NUM = 249;
+
 logic MRCC_25P6M;
 logic CLK;
 logic RST;
 
 logic [15:0] SEQ_IDX;
-logic [7:0] duty[0:4];
-logic [7:0] phase[0:4];
+logic [7:0] duty[0:TRANS_NUM-1];
+logic [7:0] phase[0:TRANS_NUM-1];
 
 // CPU
 parameter TCO = 10; // bus delay 10ns
@@ -57,7 +59,7 @@ ultrasound_cnt_clk_gen ultrasound_cnt_clk_gen(
                        );
 
 seq_operator #(
-                 .TRANS_NUM(5)
+                 .TRANS_NUM(TRANS_NUM)
              ) seq_operator(
                  .CLK,
                  .RST,
@@ -111,13 +113,16 @@ initial begin
     RST = 0;
 
     focus_write(0, 24'sd0, 24'sd0, 24'sd6000, 8'h01);
-    focus_write(1, 24'sd2100, 24'sd2700, 24'sd6000, 8'h04);
-
+    focus_write(1, 24'sd2590, 24'sd1981, 24'sd4500, 8'h04);
     @(posedge CLK);
     #50000;
 
     @(posedge CLK);
     SEQ_IDX = 1;
+
+    #25000;
+    @(posedge CLK);
+    SEQ_IDX = 0;
 end
 
 always begin
