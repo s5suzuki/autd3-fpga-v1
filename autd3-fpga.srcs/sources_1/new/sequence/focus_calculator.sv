@@ -29,9 +29,7 @@ module focus_calculator(
 localparam SQRT_LATENCY = 25 + 1 + 4;
 localparam SQRT_LATENCY_WIDTH = $clog2(SQRT_LATENCY);
 
-logic signed [23:0] dx;
-logic signed [23:0] dy;
-logic signed [23:0] dz;
+logic signed [23:0] dx, dy, dz;
 logic [47:0] d2;
 logic [47:0] dx2, dy2, dz2;
 logic tvalid_in;

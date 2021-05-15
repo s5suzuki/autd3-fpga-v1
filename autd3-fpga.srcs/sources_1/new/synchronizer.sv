@@ -103,10 +103,10 @@ logic ref_clk_tick;
 assign SEQ_IDX = seq_cnt;
 assign ref_clk_tick = (ref_clk_cnt != ref_clk_cnt_watch);
 
-always_ff @(posedge SYS_CLK)
+always_ff @(posedge CLK)
     ref_clk_cnt_watch <= RST ? 0 : ref_clk_cnt;
 
-always_ff @(posedge SYS_CLK) begin
+always_ff @(posedge CLK) begin
     if(RST | (SYNC & SEQ_CLK_INIT)) begin
         seq_cnt <= 0;
         seq_cnt_div <= 0;

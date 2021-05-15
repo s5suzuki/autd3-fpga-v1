@@ -1448,7 +1448,7 @@ set_property IOSTANDARD LVCMOS33 [get_ports {GPIO_OUT[3]}]
 set_property PULLUP true [get_ports {GPIO_OUT[3]}]
 set_property PACKAGE_PIN AB20 [get_ports {GPIO_OUT[3]}]
 
-create_clock -period 13.300 -name cpu_bsc_75M -waveform {0.000 6.650} [get_ports CPU_CKIO]
+create_clock -period 13.333 -name cpu_bsc_75M -waveform {0.000 6.666} [get_ports CPU_CKIO]
 set_input_delay -clock cpu_bsc_75M -min 0.500 [get_ports CPU_WE0_N]
 set_input_delay -clock cpu_bsc_75M -max 1.000 [get_ports CPU_WE0_N]
 set_input_delay -clock cpu_bsc_75M -min 0.500 [get_ports CPU_CS1_N]

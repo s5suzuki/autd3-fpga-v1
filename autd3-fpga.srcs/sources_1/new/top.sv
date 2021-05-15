@@ -54,8 +54,9 @@ logic [14:0] mod_idx;
 logic [7:0] mod;
 
 logic [15:0] seq_clk_cycle;
-logic [15:0] seq_div;
+logic [15:0] seq_clk_div;
 logic [15:0] seq_idx;
+logic [15:0] wavelength;
 
 assign reset = ~RESET_N;
 assign CPU_DATA  = (~CPU_CS1_N && ~CPU_RD_N && CPU_RDWR) ? cpu_data_out : 16'bz;
@@ -79,12 +80,15 @@ assign cpu_data_out = cpu_bus.DATA_OUT;
 
 tr_bus_if tr_bus();
 config_bus_if config_bus();
+seq_bus_if seq_bus();
 
 mem_manager mem_manager(
                 .CLK(sys_clk),
+                .RST(rst),
                 .CPU_BUS(cpu_bus.slave_port),
                 .TR_BUS(tr_bus.master_port),
                 .CONFIG_BUS(config_bus.master_port),
+                .SEQ_BUS(seq_bus.master_port),
                 .MOD_IDX(mod_idx),
                 .MOD(mod)
             );
@@ -100,10 +104,11 @@ config_manager config_manager(
                    .SEQ_CLK_INIT(seq_clk_init),
                    .SEQ_CLK_CYCLE(seq_clk_cycle),
                    .SEQ_CLK_DIV(seq_clk_div),
-                   .SEQ_MODE(),
+                   .WAVELENGTH_UM(wavelength),
+                   .SEQ_MODE(seq_mode),
                    .SILENT(silent),
                    .FORCE_FAN(FORCE_FAN),
-                   .SOFT_RST(soft_rst),
+                   .SOFT_RST_OUT(soft_rst),
                    .THERMO(THERMO)
                );
 
@@ -136,9 +141,13 @@ tr_cntroller#(
                 .RST(reset),
                 .CLK_LPF(lpf_clk),
                 .TIME(time_cnt),
-                .SILENT(silent),
-                .MOD(mod),
                 .TR_BUS(tr_bus.slave_port),
+                .MOD(mod),
+                .SILENT(silent),
+                .SEQ_BUS(seq_bus.slave_port),
+                .SEQ_MODE(seq_mode),
+                .SEQ_IDX(seq_idx),
+                .WAVELENGTH_UM(wavelength),
                 .XDCR_OUT(XDCR_OUT)
             );
 

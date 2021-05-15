@@ -22,14 +22,20 @@ module tr_cntroller#(
            input var RST,
            input var CLK_LPF,
            input var [8:0] TIME,
-           input var SILENT,
-           input var [7:0] MOD,
            tr_bus_if.slave_port TR_BUS,
+           input var [7:0] MOD,
+           input var SILENT,
+           seq_bus_if.slave_port SEQ_BUS,
+           input var SEQ_MODE,
+           input var [15:0] SEQ_IDX,
+           input var [15:0] WAVELENGTH_UM,
            output var [252:1] XDCR_OUT
        );
 
 logic [7:0] duty[0:TRANS_NUM-1];
 logic [7:0] phase[0:TRANS_NUM-1];
+logic [7:0] seq_duty[0:TRANS_NUM-1];
+logic [7:0] seq_phase[0:TRANS_NUM-1];
 
 logic [7:0] tr_buf_write_idx;
 logic [7:0] tr_bram_idx;
@@ -46,6 +52,18 @@ enum logic [2:0] {
          DUTY_PHASE_WAIT_1,
          DUTY_PHASE
      } tr_state;
+
+seq_operator#(
+                .TRANS_NUM(TRANS_NUM)
+            ) seq_operator(
+                .CLK(CLK),
+                .RST(RST),
+                .SEQ_BUS(SEQ_BUS),
+                .SEQ_IDX(SEQ_IDX),
+                .WAVELENGTH_UM(WAVELENGTH_UM),
+                .DUTY(seq_duty),
+                .PHASE(seq_phase)
+            );
 
 always_ff @(posedge CLK) begin
     if (RST) begin
@@ -95,8 +113,8 @@ always_ff @(posedge CLK) begin
         phase <= '{TRANS_NUM{8'h00}};
     end
     else if (TIME == (ULTRASOUND_CNT_CYCLE - 1)) begin
-        duty <= duty_buf;
-        phase <= phase_buf;
+        duty <= SEQ_MODE ? seq_duty : duty_buf;
+        phase <= SEQ_MODE ? seq_phase : phase_buf;
     end
 end
 

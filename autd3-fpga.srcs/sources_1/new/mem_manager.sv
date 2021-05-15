@@ -14,6 +14,7 @@
 `timescale 1ns / 1ps
 module mem_manager(
            input var CLK,
+           input var RST,
            cpu_bus_if.slave_port CPU_BUS,
            tr_bus_if.master_port TR_BUS,
            seq_bus_if.master_port SEQ_BUS,
@@ -129,14 +130,14 @@ BRAM256x14000 stm_ram(
 always_ff @(posedge bus_clk) begin
     if (RST) begin
         seq_we_edge <= 0;
-        stm_addr_in_offset <= 0;
+        seq_addr_offset <= 0;
     end
     else begin
         seq_we_edge <= {seq_we_edge[1:0], (we & config_ena)};
         if(seq_we_edge == 3'b011) begin
             case(cpu_addr)
                 SEQ_BRAM_ADDR_OFFSET_ADDR:
-                    stm_addr_in_offset <= cpu_data[4:0];
+                    seq_addr_offset <= cpu_data[4:0];
             endcase
         end
 

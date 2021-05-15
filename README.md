@@ -39,7 +39,8 @@ The code is written in SystemVerilog with Vivado 2020.2.
 | 　          | 0x05             | Modulation clk shift              | R   |
 | 　          | 0x06             | Reference clk cycle shift         | R  |
 | 　          | 0x07             | Seq bram addr offset	             | R  |
-| 　          | 0x08             | Unused                           | 　  |
+| 　          | 0x08             | Wavelength     	                 | R  |
+| 　          | 0x09             | Unused                           | 　  |
 | 　          | ︙               | ︙                               | 　  |
 | 　          | 0xFE             | Unused                           | 　  |
 | 　          | 0xFF             | FPGA version number              | -   |

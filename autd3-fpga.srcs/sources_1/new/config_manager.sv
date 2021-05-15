@@ -23,10 +23,11 @@ module config_manager(
            output var SEQ_CLK_INIT,
            output var [15:0] SEQ_CLK_CYCLE,
            output var [15:0] SEQ_CLK_DIV,
+           output var [15:0] WAVELENGTH_UM,
            output var SEQ_MODE,
            output var SILENT,
            output var FORCE_FAN,
-           output var SOFT_RST,
+           output var SOFT_RST_OUT,
            input var THERMO
        );
 
@@ -39,6 +40,7 @@ localparam [7:0] BRAM_SEQ_DIV             = 8'd3;
 localparam [7:0] BRAM_SEQ_SYNC_SHIFT      = 8'd4;
 localparam [7:0] BRAM_MOD_IDX_SHIFT       = 8'd5;
 localparam [7:0] BRAM_REF_CLK_CYCLE_SHIFT = 8'd6;
+localparam [7:0] BRAM_WAVELENGTH= 8'd8;
 
 localparam CF_SILENT    = 3;
 localparam CF_FORCE_FAN = 4;
@@ -59,7 +61,8 @@ logic [7:0] fpga_info;
 logic soft_rst;
 
 logic [15:0] seq_clk_cycle;
-logic [15:0] seq_div;
+logic [15:0] seq_clk_div;
+logic [15:0] wavelength;
 logic [7:0] mod_idx_shift;
 logic [7:0] ref_clk_cycle_shift;
 
@@ -80,9 +83,10 @@ enum logic [4:0] {
          READ_MOD_IDX_SHIFT,
 
          REQ_READ_SEQ_CLK_DIV,
-         REQ_READ_SEQ_CLK_CYCLE_WAIT,
+         REQ_READ_WAVELENGTH,
          READ_SEQ_CLK_CYCLE,
-         READ_SEQ_CLK_DIV
+         READ_SEQ_CLK_DIV,
+         READ_WAVELENGTH
      } state_props;
 
 assign CONFIG_BUS.WE = config_web;
@@ -94,7 +98,7 @@ assign SILENT = ctrl_flags[CF_SILENT];
 assign SEQ_MODE = ctrl_flags[CF_SEQ_MODE];
 assign FORCE_FAN = ctrl_flags[CF_FORCE_FAN];
 assign fpga_info = {7'd0, THERMO};
-assign SOFT_RST = soft_rst;
+assign SOFT_RST_OUT = soft_rst;
 
 assign REF_CLK_INIT = clk_props[CP_REF_INIT_IDX];
 assign REF_CLK_CYCLE_SHIFT = ref_clk_cycle_shift;
@@ -102,6 +106,7 @@ assign MOD_IDX_SHIFT = mod_idx_shift;
 assign SEQ_CLK_INIT = clk_props[CP_SEQ_INIT_IDX];
 assign SEQ_CLK_CYCLE = seq_clk_cycle;
 assign SEQ_CLK_DIV = seq_clk_div;
+assign WAVELENGTH_UM = wavelength;
 
 always_ff @(posedge CLK) begin
     if(RST) begin
@@ -148,29 +153,9 @@ always_ff @(posedge CLK) begin
                     state_props <= WRITE_FPGA_INFO;
                 end
             end
-
             WRITE_FPGA_INFO: begin
                 config_web <= 0;
                 config_bram_addr <= BRAM_CF_AND_CP;
-                state_props <= READ_CF_AND_CP;
-            end
-
-            READ_SEQ_CLK_CYCLE: begin
-                config_bram_addr <= BRAM_CF_AND_CP;
-                seq_clk_cycle <= config_bram_dout;
-
-                state_props <= READ_SEQ_CLK_DIV;
-            end
-            READ_SEQ_CLK_DIV: begin
-                config_bram_addr <= BRAM_SEQ_CYCLE;
-                seq_div <= config_bram_dout;
-
-                state_props <= READ_MOD_IDX_SHIFT;
-            end
-            READ_MOD_IDX_SHIFT: begin
-                config_bram_addr <= BRAM_SEQ_DIV;
-                mod_idx_shift <= config_bram_dout[7:0];
-
                 state_props <= READ_CF_AND_CP;
             end
 
@@ -226,9 +211,10 @@ always_ff @(posedge CLK) begin
             // Init sequence clk
             REQ_READ_SEQ_CLK_DIV: begin
                 config_bram_addr <= BRAM_SEQ_DIV;
-                state_props <= REQ_READ_SEQ_CLK_CYCLE_WAIT;
+                state_props <= REQ_READ_WAVELENGTH;
             end
-            REQ_READ_SEQ_CLK_CYCLE_WAIT: begin
+            REQ_READ_WAVELENGTH: begin
+                config_bram_addr <= BRAM_WAVELENGTH;
                 state_props <= READ_SEQ_CLK_CYCLE;
             end
             READ_SEQ_CLK_CYCLE: begin
@@ -237,6 +223,10 @@ always_ff @(posedge CLK) begin
             end
             READ_SEQ_CLK_DIV: begin
                 seq_clk_div <= config_bram_dout;
+                state_props <= READ_WAVELENGTH;
+            end
+            READ_WAVELENGTH: begin
+                wavelength = config_bram_dout;
                 if (SYNC) begin
                     state_props <= REQ_CP_CLEAR;
                 end
