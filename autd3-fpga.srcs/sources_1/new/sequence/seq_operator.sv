@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 15/05/2021
+ * Last Modified: 17/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -120,29 +120,21 @@ focus_calculator focus_calculator(
                  );
 
 always_ff @(posedge CLK) begin
-    seq_idx <= RST ? 0 : SEQ_IDX;
-    seq_idx_old <= RST ? 0 : seq_idx;
+    seq_idx <= SEQ_IDX;
+    seq_idx_old <= seq_idx;
 end
 
 always_ff @(posedge CLK) begin
     if (RST) begin
-        focus_x <= 0;
-        focus_y <= 0;
-        focus_z <= 0;
-        duty <= 0;
-        fc_trig <= 0;
-        tr_cnt <= 0;
-        wait_cnt <= 0;
         state_calc <= WAIT;
     end
     else begin
         case(state_calc)
             WAIT: begin
-                if(idx_change) begin
-                    tr_cnt <= 0;
-                    wait_cnt <= 0;
-                    state_calc <= DIV_WAIT;
-                end
+                fc_trig <= 0;
+                tr_cnt <= 0;
+                wait_cnt <= 0;
+                state_calc <= idx_change ? DIV_WAIT : WAIT;
             end
             DIV_WAIT: begin
                 tr_cnt <= tr_cnt + 1;
@@ -157,14 +149,10 @@ always_ff @(posedge CLK) begin
                 end
             end
             FC_DATA_IN_STREAM: begin
+                tr_cnt <= tr_cnt + 1;
                 if (tr_cnt == TRANS_NUM + MULT_DIVIDER_LATENCY - 1) begin
-                    tr_cnt <= 0;
-                    wait_cnt <= 0;
                     state_calc <= WAIT;
                     fc_trig <= 0;
-                end
-                else begin
-                    tr_cnt <= tr_cnt + 1;
                 end
             end
         endcase
@@ -172,11 +160,7 @@ always_ff @(posedge CLK) begin
 end
 
 always_ff @(posedge CLK) begin
-    if (RST) begin
-        phase <= '{TRANS_NUM{8'h00}};
-        tr_cnt_in <= 0;
-    end
-    else if(phase_out_valid) begin
+    if(phase_out_valid) begin
         phase[tr_cnt_in] <= phase_out;
         tr_cnt_in <= tr_cnt_in + 1;
     end

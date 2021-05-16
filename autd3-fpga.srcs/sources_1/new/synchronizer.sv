@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 15/05/2021
+ * Last Modified: 16/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -43,7 +43,7 @@ logic [ULTRASOUND_CNT_CYCLE_WIDTH-1:0] time_cnt_for_ultrasound;
 assign TIME = time_cnt_for_ultrasound;
 
 always_ff @(posedge CLK)
-    time_cnt_for_ultrasound <= (RST | SYNC | (time_cnt_for_ultrasound == ULTRASOUND_CNT_CYCLE - 1)) ? 0 : time_cnt_for_ultrasound + 1;
+    time_cnt_for_ultrasound <= (SYNC | (time_cnt_for_ultrasound == ULTRASOUND_CNT_CYCLE - 1)) ? 0 : time_cnt_for_ultrasound + 1;
 
 ///////////////////////////////// Reference Clock /////////////////////////////////////////
 localparam int REF_CLK_FREQ = ULTRASOUND_FREQ;
@@ -64,7 +64,7 @@ logic [REF_CLK_CYCLE_CNT_WIDTH-1:0] ref_clk_cycle;
 assign ref_clk_cycle = REF_CLK_CYCLE_CNT_BASE << REF_CLK_CYCLE_SHIFT;
 
 always_ff @(posedge CLK) begin
-    if(RST | (SYNC & REF_CLK_INIT)) begin
+    if(SYNC & REF_CLK_INIT) begin
         ref_clk_cnt <= 0;
         ref_clk_cnt_sync <= 0;
         ref_clk_divider <= 0;
@@ -149,14 +149,10 @@ divider64 sync_shift_div_rem(
           );
 
 always_ff @(posedge CLK)
-    ref_clk_cnt_watch <= RST ? 0 : ref_clk_cnt;
+    ref_clk_cnt_watch <= ref_clk_cnt;
 
 always_ff @(posedge CLK) begin
-    if(RST) begin
-        seq_cnt <= 0;
-        seq_cnt_div <= 0;
-    end
-    else if (SYNC & SEQ_CLK_INIT) begin
+    if (SYNC & SEQ_CLK_INIT) begin
         seq_cnt <= seq_cnt_shift[15:0];
         seq_cnt_div <= seq_div_shift[15:0];
     end

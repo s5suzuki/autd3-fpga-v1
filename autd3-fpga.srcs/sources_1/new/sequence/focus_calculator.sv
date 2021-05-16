@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 15/05/2021
+ * Last Modified: 17/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -89,8 +89,6 @@ assign PHASE_CALC_DONE = phase_calc_done;
 always_ff @(posedge CLK) begin
     if (RST) begin
         calc_mode_edge <= 0;
-        wait_cnt <= 0;
-        tvalid_in <= 0;
     end
     else begin
         calc_mode_edge <= {calc_mode_edge[0], DVALID_IN};
@@ -112,11 +110,6 @@ end
 
 always_ff @(posedge CLK) begin
     if (RST) begin
-        dx <= 0;
-        dy <= 0;
-        dz <= 0;
-        d2 <= 0;
-        phase <= 0;
         phase_calc_done <= 0;
         input_num <= 0;
         output_num <= 0;

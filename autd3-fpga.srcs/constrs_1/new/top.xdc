@@ -1461,13 +1461,17 @@ set_output_delay -clock cpu_bsc_75M -min 0.500 [get_ports CPU_DATA*]
 set_output_delay -clock cpu_bsc_75M -max 1.000 [get_ports CPU_DATA*]
 
 create_clock -period 39.063 -name main_25P6M -waveform {0.000 19.531} [get_ports MRCC_25P6M]
-set_input_delay -clock clk_out1_ultrasound_cnt_clk_gen -min 0.500 [get_ports CAT_SYNC0]
-set_input_delay -clock clk_out1_ultrasound_cnt_clk_gen -max 1.500 [get_ports CAT_SYNC0]
-set_output_delay -clock clk_out1_ultrasound_cnt_clk_gen -min 0.500 [get_ports FORCE_FAN]
-set_output_delay -clock clk_out1_ultrasound_cnt_clk_gen -max 1.500 [get_ports FORCE_FAN]
+set_input_delay -clock [get_clocks -of_objects [get_pins ultrasound_cnt_clk_gen/inst/mmcm_adv_inst/CLKOUT0]] -min 0.500 [get_ports CAT_SYNC0]
+set_input_delay -clock [get_clocks -of_objects [get_pins ultrasound_cnt_clk_gen/inst/mmcm_adv_inst/CLKOUT0]] -max 1.500 [get_ports CAT_SYNC0]
+set_output_delay -clock [get_clocks -of_objects [get_pins ultrasound_cnt_clk_gen/inst/mmcm_adv_inst/CLKOUT0]] -min 0.500 [get_ports FORCE_FAN]
+set_output_delay -clock [get_clocks -of_objects [get_pins ultrasound_cnt_clk_gen/inst/mmcm_adv_inst/CLKOUT0]] -max 1.500 [get_ports FORCE_FAN]
+set_input_delay -clock [get_clocks -of_objects [get_pins ultrasound_cnt_clk_gen/inst/mmcm_adv_inst/CLKOUT0]] -min 0.500 [get_ports RESET_N]
+set_input_delay -clock [get_clocks -of_objects [get_pins ultrasound_cnt_clk_gen/inst/mmcm_adv_inst/CLKOUT0]] -max 1.500 [get_ports RESET_N]
+set_input_delay -clock [get_clocks -of_objects [get_pins ultrasound_cnt_clk_gen/inst/mmcm_adv_inst/CLKOUT0]] -min 0.500 [get_ports THERMO]
+set_input_delay -clock [get_clocks -of_objects [get_pins ultrasound_cnt_clk_gen/inst/mmcm_adv_inst/CLKOUT0]] -max 1.500 [get_ports THERMO]
 set _xlnx_shared_i0 [get_ports XDCR_OUT*]
-set_output_delay -clock clk_out1_ultrasound_cnt_clk_gen -min 0.500 $_xlnx_shared_i0
-set_output_delay -clock clk_out1_ultrasound_cnt_clk_gen -max 1.500 $_xlnx_shared_i0
+set_output_delay -clock [get_clocks -of_objects [get_pins ultrasound_cnt_clk_gen/inst/mmcm_adv_inst/CLKOUT0]] -min 0.500 $_xlnx_shared_i0
+set_output_delay -clock [get_clocks -of_objects [get_pins ultrasound_cnt_clk_gen/inst/mmcm_adv_inst/CLKOUT0]] -max 1.500 $_xlnx_shared_i0
 
 set_property CFGBVS VCCO [current_design]
 set_property CONFIG_VOLTAGE 3.3 [current_design]

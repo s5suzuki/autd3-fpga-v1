@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 13/05/2021
+ * Last Modified: 16/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -67,11 +67,7 @@ seq_operator#(
 
 always_ff @(posedge CLK) begin
     if (RST) begin
-        tr_bram_idx <= 0;
         tr_state <= IDLE;
-        tr_buf_write_idx <= 0;
-        duty_buf <= '{TRANS_NUM{8'h00}};
-        phase_buf <= '{TRANS_NUM{8'h00}};
     end
     else begin
         case(tr_state)
@@ -108,11 +104,7 @@ always_ff @(posedge CLK) begin
 end
 
 always_ff @(posedge CLK) begin
-    if (RST) begin
-        duty <= '{TRANS_NUM{8'h00}};
-        phase <= '{TRANS_NUM{8'h00}};
-    end
-    else if (TIME == (ULTRASOUND_CNT_CYCLE - 1)) begin
+    if (TIME == (ULTRASOUND_CNT_CYCLE - 1)) begin
         duty <= SEQ_MODE ? seq_duty : duty_buf;
         phase <= SEQ_MODE ? seq_phase : phase_buf;
     end

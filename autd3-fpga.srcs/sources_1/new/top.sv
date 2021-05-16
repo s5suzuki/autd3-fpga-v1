@@ -110,7 +110,6 @@ config_manager config_manager(
                    .SEQ_MODE(seq_mode),
                    .SILENT(silent),
                    .FORCE_FAN(FORCE_FAN),
-                   .SOFT_RST_OUT(soft_rst),
                    .THERMO(THERMO)
                );
 
@@ -122,7 +121,7 @@ synchronizer#(
                 .REF_CLK_CYCLE_MAX(32)
             ) synchronizer(
                 .CLK(sys_clk),
-                .RST(reset | soft_rst),
+                .RST(reset),
                 .SYNC(sync0_edge),
                 .REF_CLK_INIT(ref_clk_init),
                 .REF_CLK_CYCLE_SHIFT(ref_clk_cycle_shift),
@@ -141,7 +140,7 @@ tr_cntroller#(
                 .ULTRASOUND_CNT_CYCLE(ULTRASOUND_CNT_CYCLE)
             ) tr_cntroller(
                 .CLK(sys_clk),
-                .RST(reset | soft_rst),
+                .RST(reset),
                 .CLK_LPF(lpf_clk),
                 .TIME(time_cnt),
                 .TR_BUS(tr_bus.slave_port),
@@ -155,6 +154,6 @@ tr_cntroller#(
             );
 
 always_ff @(posedge sys_clk)
-    sync0 <= reset ? 0 :  {sync0[1:0], CAT_SYNC0};
+    sync0 <= reset ? 0 : {sync0[1:0], CAT_SYNC0};
 
 endmodule

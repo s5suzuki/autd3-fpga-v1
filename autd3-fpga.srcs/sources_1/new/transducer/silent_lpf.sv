@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 09/05/2021
+ * Last Modified: 16/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -23,12 +23,12 @@ module silent_lpf(
            output var [7:0] PHASE_S
        );
 
-logic[7:0] fd_async;
-logic[7:0] fs_async;
-logic[7:0] fd_async_buf;
-logic[7:0] fs_async_buf;
+logic [7:0] fd_async;
+logic [7:0] fs_async;
+logic [7:0] fd_async_buf;
+logic [7:0] fs_async_buf;
 
-logic[7:0] datain;
+logic [7:0] datain;
 logic chin;
 logic signed [15:0] dataout;
 logic chout, enout, enin;
@@ -52,7 +52,6 @@ lpf_40k_500 LPF(
 always_ff @(posedge CLK) begin
     if (RST) begin
         chin <= 1;
-        datain <= 0;
     end
     else if (enin & ~enin_rst) begin
         chin <= ~chin;
@@ -61,34 +60,12 @@ always_ff @(posedge CLK) begin
 end
 
 always_ff @(posedge CLK) begin
-    if (RST) begin
-        enin_rst <= 1'b0;
-    end
-    else if (enin) begin
-        enin_rst <= 1'b1;
-    end
-    else begin
-        enin_rst <= 1'b0;
-    end
-end
-always_ff @(posedge CLK) begin
-    if (RST) begin
-        enout_rst <= 1'b0;
-    end
-    else if (enout) begin
-        enout_rst <= 1'b1;
-    end
-    else begin
-        enout_rst <= 1'b0;
-    end
+    enout_rst <= enout ? 1'b1 : 1'b0;
+    enin_rst <= enin ? 1'b1 : 1'b0;
 end
 
 always_ff @(negedge CLK) begin
-    if (RST) begin
-        fs_async_buf <= 0;
-        fd_async_buf <= 0;
-    end
-    else if (enout & ~enout_rst) begin
+    if (enout & ~enout_rst) begin
         if (chout == 1'd0) begin
             fd_async_buf <= clamp(dataout);
         end
@@ -99,11 +76,7 @@ always_ff @(negedge CLK) begin
 end
 
 always_ff @(posedge CLK) begin
-    if (RST) begin
-        fd_async <= 0;
-        fs_async <= 0;
-    end
-    else if(UPDATE) begin
+    if(UPDATE) begin
         fd_async <= fd_async_buf;
         fs_async <= fs_async_buf;
     end

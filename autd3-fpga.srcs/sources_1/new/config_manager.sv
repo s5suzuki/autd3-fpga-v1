@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 15/05/2021
+ * Last Modified: 17/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -28,7 +28,6 @@ module config_manager(
            output var SEQ_MODE,
            output var SILENT,
            output var FORCE_FAN,
-           output var SOFT_RST_OUT,
            input var THERMO
        );
 
@@ -52,7 +51,6 @@ localparam CF_SEQ_MODE  = 5;
 
 localparam CP_REF_INIT_IDX  = 0;
 localparam CP_SEQ_INIT_IDX  = 1;
-localparam CP_RST_IDX       = 7;
 
 logic [7:0] config_bram_addr;
 logic [15:0] config_bram_din;
@@ -62,7 +60,6 @@ logic config_web;
 logic [7:0] ctrl_flags;
 logic [7:0] clk_props;
 logic [7:0] fpga_info;
-logic soft_rst;
 
 logic [15:0] seq_clk_cycle;
 logic [15:0] seq_clk_div;
@@ -74,8 +71,6 @@ logic [7:0] ref_clk_cycle_shift;
 enum logic [4:0] {
          READ_CF_AND_CP,
          WRITE_FPGA_INFO,
-
-         SOFT_RST,
 
          REQ_CP_CLEAR,
          REQ_CP_CLEAR_WAIT0,
@@ -107,7 +102,6 @@ assign SILENT = ctrl_flags[CF_SILENT];
 assign SEQ_MODE = ctrl_flags[CF_SEQ_MODE];
 assign FORCE_FAN = ctrl_flags[CF_FORCE_FAN];
 assign fpga_info = {7'd0, THERMO};
-assign SOFT_RST_OUT = soft_rst;
 
 assign REF_CLK_INIT = clk_props[CP_REF_INIT_IDX];
 assign REF_CLK_CYCLE_SHIFT = ref_clk_cycle_shift;
@@ -120,16 +114,6 @@ assign WAVELENGTH_UM = wavelength;
 
 always_ff @(posedge CLK) begin
     if(RST) begin
-        config_web <= 0;
-        clk_props <= 0;
-        ctrl_flags <= 0;
-        config_bram_addr <= 0;
-        config_bram_din <= 0;
-
-        ref_clk_cycle_shift <= 0;
-        mod_idx_shift <= 0;
-
-        soft_rst <= 0;
         state_props <= READ_CF_AND_CP;
     end
     else begin
@@ -137,14 +121,7 @@ always_ff @(posedge CLK) begin
             READ_CF_AND_CP: begin
                 clk_props <= config_bram_dout[15:8];
                 ctrl_flags <= config_bram_dout[7:0];
-                if(clk_props[CP_RST_IDX]) begin
-                    config_web <= 0;
-                    config_bram_addr <= 0;
-                    config_bram_din <= 0;
-                    soft_rst <= 1;
-                    state_props <= SOFT_RST;
-                end
-                else if(clk_props[CP_REF_INIT_IDX]) begin
+                if(clk_props[CP_REF_INIT_IDX]) begin
                     config_web <= 0;
                     config_bram_addr <= BRAM_REF_CLK_CYCLE_SHIFT;
                     config_bram_din <= 0;
@@ -168,13 +145,6 @@ always_ff @(posedge CLK) begin
                 config_bram_din <= 0;
                 config_bram_addr <= BRAM_CF_AND_CP;
                 state_props <= READ_CF_AND_CP;
-            end
-
-            SOFT_RST: begin
-                clk_props <= 0;
-                ctrl_flags <= 0;
-                soft_rst <= 0;
-                state_props <= REQ_CP_CLEAR;
             end
 
             REQ_CP_CLEAR: begin
