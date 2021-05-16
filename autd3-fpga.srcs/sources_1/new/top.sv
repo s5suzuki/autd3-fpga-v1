@@ -4,7 +4,7 @@
  * Created Date: 27/03/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 13/05/2021
+ * Last Modified: 15/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -53,6 +53,12 @@ logic [7:0] mod_idx_shift;
 logic [14:0] mod_idx;
 logic [7:0] mod;
 
+logic [15:0] seq_clk_cycle;
+logic [15:0] seq_clk_div;
+logic [15:0] seq_idx;
+logic [15:0] wavelength;
+logic [63:0] seq_clk_sync_time;
+
 assign reset = ~RESET_N;
 assign CPU_DATA  = (~CPU_CS1_N && ~CPU_RD_N && CPU_RDWR) ? cpu_data_out : 16'bz;
 assign sync0_edge = (sync0 == 3'b011);
@@ -75,12 +81,15 @@ assign cpu_data_out = cpu_bus.DATA_OUT;
 
 tr_bus_if tr_bus();
 config_bus_if config_bus();
+seq_bus_if seq_bus();
 
 mem_manager mem_manager(
                 .CLK(sys_clk),
+                .RST(rst),
                 .CPU_BUS(cpu_bus.slave_port),
                 .TR_BUS(tr_bus.master_port),
                 .CONFIG_BUS(config_bus.master_port),
+                .SEQ_BUS(seq_bus.master_port),
                 .MOD_IDX(mod_idx),
                 .MOD(mod)
             );
@@ -93,8 +102,15 @@ config_manager config_manager(
                    .REF_CLK_INIT(ref_clk_init),
                    .REF_CLK_CYCLE_SHIFT(ref_clk_cycle_shift),
                    .MOD_IDX_SHIFT(mod_idx_shift),
+                   .SEQ_CLK_INIT(seq_clk_init),
+                   .SEQ_CLK_CYCLE(seq_clk_cycle),
+                   .SEQ_CLK_DIV(seq_clk_div),
+                   .SEQ_CLK_SYNC_TIME_NS(seq_clk_sync_time),
+                   .WAVELENGTH_UM(wavelength),
+                   .SEQ_MODE(seq_mode),
                    .SILENT(silent),
                    .FORCE_FAN(FORCE_FAN),
+                   .SOFT_RST_OUT(soft_rst),
                    .THERMO(THERMO)
                );
 
@@ -111,8 +127,13 @@ synchronizer#(
                 .REF_CLK_INIT(ref_clk_init),
                 .REF_CLK_CYCLE_SHIFT(ref_clk_cycle_shift),
                 .MOD_IDX_SHIFT(mod_idx_shift),
+                .SEQ_CLK_INIT(seq_clk_init),
+                .SEQ_CLK_CYCLE(seq_clk_cycle),
+                .SEQ_CLK_DIV(seq_clk_div),
+                .SEQ_CLK_SYNC_TIME_NS(seq_clk_sync_time),
                 .TIME(time_cnt),
-                .MOD_IDX(mod_idx)
+                .MOD_IDX(mod_idx),
+                .SEQ_IDX(seq_idx)
             );
 
 tr_cntroller#(
@@ -123,9 +144,13 @@ tr_cntroller#(
                 .RST(reset),
                 .CLK_LPF(lpf_clk),
                 .TIME(time_cnt),
-                .SILENT(silent),
-                .MOD(mod),
                 .TR_BUS(tr_bus.slave_port),
+                .MOD(mod),
+                .SILENT(silent),
+                .SEQ_BUS(seq_bus.slave_port),
+                .SEQ_MODE(seq_mode),
+                .SEQ_IDX(seq_idx),
+                .WAVELENGTH_UM(wavelength),
                 .XDCR_OUT(XDCR_OUT)
             );
 
