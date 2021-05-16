@@ -4,7 +4,7 @@
  * Created Date: 27/03/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 15/05/2021
+ * Last Modified: 16/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -122,7 +122,7 @@ synchronizer#(
                 .REF_CLK_CYCLE_MAX(32)
             ) synchronizer(
                 .CLK(sys_clk),
-                .RST(reset),
+                .RST(reset | soft_rst),
                 .SYNC(sync0_edge),
                 .REF_CLK_INIT(ref_clk_init),
                 .REF_CLK_CYCLE_SHIFT(ref_clk_cycle_shift),
@@ -141,7 +141,7 @@ tr_cntroller#(
                 .ULTRASOUND_CNT_CYCLE(ULTRASOUND_CNT_CYCLE)
             ) tr_cntroller(
                 .CLK(sys_clk),
-                .RST(reset),
+                .RST(reset | soft_rst),
                 .CLK_LPF(lpf_clk),
                 .TIME(time_cnt),
                 .TR_BUS(tr_bus.slave_port),
