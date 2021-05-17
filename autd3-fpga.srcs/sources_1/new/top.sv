@@ -4,7 +4,7 @@
  * Created Date: 27/03/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 16/05/2021
+ * Last Modified: 17/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -47,9 +47,10 @@ logic sync0_edge;
 logic [15:0] cpu_data_out;
 
 logic [8:0] time_cnt;
-logic [7:0] ref_clk_cycle_shift;
-logic [7:0] mod_idx_shift;
 
+logic [15:0] mod_clk_cycle;
+logic [15:0] mod_clk_div;
+logic [63:0] mod_clk_sync_time;
 logic [14:0] mod_idx;
 logic [7:0] mod;
 
@@ -99,9 +100,10 @@ config_manager config_manager(
                    .RST(reset),
                    .CONFIG_BUS(config_bus.slave_port),
                    .SYNC(sync0_edge),
-                   .REF_CLK_INIT(ref_clk_init),
-                   .REF_CLK_CYCLE_SHIFT(ref_clk_cycle_shift),
-                   .MOD_IDX_SHIFT(mod_idx_shift),
+                   .MOD_CLK_INIT(mod_clk_init),
+                   .MOD_CLK_CYCLE(mod_clk_cycle),
+                   .MOD_CLK_DIV(mod_clk_div),
+                   .MOD_CLK_SYNC_TIME_NS(mod_clk_sync_time),
                    .SEQ_CLK_INIT(seq_clk_init),
                    .SEQ_CLK_CYCLE(seq_clk_cycle),
                    .SEQ_CLK_DIV(seq_clk_div),
@@ -116,16 +118,15 @@ config_manager config_manager(
 synchronizer#(
                 .SYS_CLK_FREQ(SYS_CLK_FREQ),
                 .ULTRASOUND_FREQ(ULTRASOUND_FREQ),
-                .SYNC0_FREQ(SYNC0_FREQ),
-                .REF_CLK_CYCLE_BASE(1),
-                .REF_CLK_CYCLE_MAX(32)
+                .SYNC0_FREQ(SYNC0_FREQ)
             ) synchronizer(
                 .CLK(sys_clk),
                 .RST(reset),
                 .SYNC(sync0_edge),
-                .REF_CLK_INIT(ref_clk_init),
-                .REF_CLK_CYCLE_SHIFT(ref_clk_cycle_shift),
-                .MOD_IDX_SHIFT(mod_idx_shift),
+                .MOD_CLK_INIT(mod_clk_init),
+                .MOD_CLK_CYCLE(mod_clk_cycle),
+                .MOD_CLK_DIV(mod_clk_div),
+                .MOD_CLK_SYNC_TIME_NS(mod_clk_sync_time),
                 .SEQ_CLK_INIT(seq_clk_init),
                 .SEQ_CLK_CYCLE(seq_clk_cycle),
                 .SEQ_CLK_DIV(seq_clk_div),

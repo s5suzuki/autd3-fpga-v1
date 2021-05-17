@@ -56,7 +56,6 @@ The code is written in SystemVerilog with Vivado 2020.2.
 * Clock property
     * 0: reference clock init
     * 1: seq clock init
-    * 7: software reset
 
 ### Modulation
 
