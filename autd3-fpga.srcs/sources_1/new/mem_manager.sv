@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 13/05/2021
+ * Last Modified: 18/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -88,11 +88,11 @@ BRAM8x32768 mod_bram(
 logic tr_ena;
 assign tr_ena = (cpu_select == BRAM_TR_SELECT) & en;
 
-BRAM16x256 tr_bram(
+BRAM16x512 tr_bram(
                .clka(bus_clk),
                .ena(tr_ena),
                .wea(we),
-               .addra(cpu_addr[7:0]),
+               .addra(cpu_addr[8:0]),
                .dina(cpu_data),
                .douta(),
                .clkb(CLK),

@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 17/05/2021
+ * Last Modified: 18/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -19,17 +19,20 @@ module transducer#(
            input var RST,
            input var CLK_LPF,
            input var [8:0] TIME,
+           input var UPDATE,
            input var [7:0] DUTY,
            input var [7:0] PHASE,
+           input var [7:0] DELAY,
            input var SILENT,
            output var PWM_OUT
        );
 
 logic[7:0] duty_s, phase_s;
 logic[7:0] duty, phase;
+logic[7:0] dutyd, phased;
 
 always_ff @(posedge CLK) begin
-    if (TIME == (ULTRASOUND_CNT_CYCLE - 1)) begin
+    if (UPDATE) begin
         duty <= SILENT ? duty_s : DUTY;
         phase <= SILENT ? phase_s : PHASE;
     end
@@ -45,10 +48,19 @@ silent_lpf silent_lpf(
                .PHASE_S(phase_s)
            );
 
+delayed_fifo delayed_fifo(
+                 .CLK(CLK),
+                 .RST(RST),
+                 .UPDATE(UPDATE),
+                 .DELAY(DELAY),
+                 .DATA_IN({duty, phase}),
+                 .DATA_OUT({dutyd, phased})
+             );
+
 pwm_generator pwm_generator(
                   .TIME(TIME),
-                  .DUTY(duty),
-                  .PHASE(phase),
+                  .DUTY(dutyd),
+                  .PHASE(phased),
                   .PWM_OUT(PWM_OUT)
               );
 
