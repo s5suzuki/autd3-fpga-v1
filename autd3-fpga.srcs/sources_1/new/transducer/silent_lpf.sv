@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 17/05/2021
+ * Last Modified: 18/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -57,8 +57,8 @@ always_ff @(posedge CLK) begin
 end
 
 always_ff @(posedge CLK) begin
-    enout_rst <= enout ? 1'b1 : 1'b0;
-    enin_rst <= enin ? 1'b1 : 1'b0;
+    enout_rst <= enout;
+    enin_rst <= enin;
 end
 
 always_ff @(negedge CLK) begin
