@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 18/05/2021
+ * Last Modified: 20/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -22,7 +22,7 @@ module transducer#(
            input var UPDATE,
            input var [7:0] DUTY,
            input var [7:0] PHASE,
-           input var [7:0] DELAY,
+           input var [6:0] DELAY,
            input var SILENT,
            output var PWM_OUT
        );
@@ -31,12 +31,8 @@ logic[7:0] duty_s, phase_s;
 logic[7:0] duty, phase;
 logic[7:0] dutyd, phased;
 
-always_ff @(posedge CLK) begin
-    if (UPDATE) begin
-        duty <= SILENT ? duty_s : DUTY;
-        phase <= SILENT ? phase_s : PHASE;
-    end
-end
+assign duty = SILENT ? duty_s : DUTY;
+assign phase = SILENT ? phase_s : PHASE;
 
 silent_lpf silent_lpf(
                .CLK(CLK),

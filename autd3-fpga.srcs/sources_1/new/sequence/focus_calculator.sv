@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 17/05/2021
+ * Last Modified: 20/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -87,25 +87,20 @@ assign PHASE = phase;
 assign PHASE_CALC_DONE = phase_calc_done;
 
 always_ff @(posedge CLK) begin
-    if (RST) begin
-        calc_mode_edge <= 0;
-    end
-    else begin
-        calc_mode_edge <= {calc_mode_edge[0], DVALID_IN};
-        case(calc_mode_edge)
-            2'b01: begin
-                tvalid_in <= 1'b1;
-                wait_cnt <= 0;
-            end
-            2'b10: begin
-                tvalid_in <= 1'b0;
-                wait_cnt <= ~run ? 0 : (wait_cnt == SQRT_LATENCY + REMINDER_LATENCY - 1) ? SQRT_LATENCY + REMINDER_LATENCY - 1 : wait_cnt + 1;
-            end
-            default: begin
-                wait_cnt <= ~run ? 0 : (wait_cnt == SQRT_LATENCY + REMINDER_LATENCY - 1) ? SQRT_LATENCY + REMINDER_LATENCY - 1 : wait_cnt + 1;
-            end
-        endcase
-    end
+    calc_mode_edge <= {calc_mode_edge[0], DVALID_IN};
+    case(calc_mode_edge)
+        2'b01: begin
+            tvalid_in <= 1'b1;
+            wait_cnt <= 0;
+        end
+        2'b10: begin
+            tvalid_in <= 1'b0;
+            wait_cnt <= ~run ? 0 : (wait_cnt == SQRT_LATENCY + REMINDER_LATENCY - 1) ? SQRT_LATENCY + REMINDER_LATENCY - 1 : wait_cnt + 1;
+        end
+        default: begin
+            wait_cnt <= ~run ? 0 : (wait_cnt == SQRT_LATENCY + REMINDER_LATENCY - 1) ? SQRT_LATENCY + REMINDER_LATENCY - 1 : wait_cnt + 1;
+        end
+    endcase
 end
 
 always_ff @(posedge CLK) begin

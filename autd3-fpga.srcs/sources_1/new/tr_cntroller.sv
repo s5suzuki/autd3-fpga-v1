@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 18/05/2021
+ * Last Modified: 20/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -37,7 +37,7 @@ logic [7:0] phase[0:TRANS_NUM-1];
 logic [7:0] seq_duty[0:TRANS_NUM-1];
 logic [7:0] seq_phase[0:TRANS_NUM-1];
 
-logic [7:0] delay[0:TRANS_NUM-1];
+logic [6:0] delay[0:TRANS_NUM-1];
 
 logic [7:0] tr_buf_write_idx;
 logic [8:0] tr_bram_idx;
@@ -50,6 +50,9 @@ logic update;
 assign TR_BUS.IDX = tr_bram_idx;
 assign tr_bram_dataout = TR_BUS.DATA_OUT;
 assign update = TIME == (ULTRASOUND_CNT_CYCLE - 1);
+
+assign duty = SEQ_MODE ? seq_duty : duty_buf;
+assign phase = SEQ_MODE ? seq_phase : phase_buf;
 
 enum logic [2:0] {
          IDLE,
@@ -108,15 +111,15 @@ always_ff @(posedge CLK) begin
             end
             DELAY_WAIT_0: begin
                 tr_bram_idx <= tr_bram_idx + 1;
-                tr_state <= DUTY_PHASE_WAIT_1;
+                tr_state <= DELAY_WAIT_1;
             end
             DELAY_WAIT_1: begin
                 tr_bram_idx <= tr_bram_idx + 1;
                 tr_buf_write_idx <= 0;
-                tr_state <= DUTY_PHASE;
+                tr_state <= DELAY;
             end
             DELAY: begin
-                delay[tr_buf_write_idx] <= tr_bram_dataout[7:0];
+                delay[tr_buf_write_idx] <= tr_bram_dataout[6:0];
                 if (tr_buf_write_idx == TRANS_NUM - 1) begin
                     tr_state <= IDLE;
                 end
@@ -129,19 +132,20 @@ always_ff @(posedge CLK) begin
     end
 end
 
-always_ff @(posedge CLK) begin
-    if (update) begin
-        duty <= SEQ_MODE ? seq_duty : duty_buf;
-        phase <= SEQ_MODE ? seq_phase : phase_buf;
-    end
-end
+logic [8:0] mod;
+assign mod = {1'b0, MOD} + 9'd1;
 
 `include "cvt_uid.vh"
 generate begin:TRANSDUCERS_GEN
         genvar ii;
         for(ii = 0; ii < TRANS_NUM; ii++) begin
-            logic [7:0] duty_modulated;
-            assign duty_modulated = modulate_duty(duty[ii], MOD);
+            logic [16:0] duty_modulated;
+            mult8x8 mod_mult(
+                        .CLK(CLK),
+                        .A(duty[ii]),
+                        .B(mod),
+                        .P(duty_modulated)
+                    );
             transducer#(
                           .ULTRASOUND_CNT_CYCLE(ULTRASOUND_CNT_CYCLE)
                       ) tr(
@@ -150,7 +154,7 @@ generate begin:TRANSDUCERS_GEN
                           .CLK_LPF(CLK_LPF),
                           .TIME(TIME),
                           .UPDATE(update),
-                          .DUTY(duty_modulated),
+                          .DUTY(duty_modulated[15:8]),
                           .PHASE(phase[ii]),
                           .DELAY(delay[ii]),
                           .SILENT(SILENT),
@@ -160,11 +164,4 @@ generate begin:TRANSDUCERS_GEN
     end
 endgenerate
 
-function automatic [7:0] modulate_duty;
-    input [7:0] duty;
-    input [7:0] mod;
-    modulate_duty = (({9'd0, duty} + 17'd1) * ({9'd0, mod} + 17'd1) - 17'd1) >> 8;
-endfunction
-
 endmodule
-

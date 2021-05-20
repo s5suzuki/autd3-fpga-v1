@@ -4,7 +4,7 @@
  * Created Date: 27/03/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 17/05/2021
+ * Last Modified: 20/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -35,7 +35,7 @@ module top(
 localparam int TRANS_NUM = 249;
 localparam int SYS_CLK_FREQ = 20400000;
 localparam int ULTRASOUND_FREQ = 40000;
-localparam int SYNC0_FREQ = 1000;
+localparam int SYNC0_FREQ = 2000;
 localparam int ULTRASOUND_CNT_CYCLE = SYS_CLK_FREQ/ULTRASOUND_FREQ;
 
 logic sys_clk;
@@ -155,6 +155,41 @@ tr_cntroller#(
             );
 
 always_ff @(posedge sys_clk)
-    sync0 <= reset ? 0 : {sync0[1:0], CAT_SYNC0};
+    sync0 <= {sync0[1:0], CAT_SYNC0};
+
+// SYNC DBG OUT
+logic dbg_0, dbg_0_rst;
+logic dbg_1, dbg_1_rst;
+logic dbg_2, dbg_2_rst;
+logic dbg_3, dbg_3_rst;
+logic gpo_0;
+logic gpo_1;
+logic gpo_2;
+logic gpo_3;
+
+assign GPIO_OUT = {gpo_3, gpo_2, gpo_1, gpo_0};
+
+always_ff @(posedge sys_clk) begin
+    if(reset) begin
+        gpo_0 <= 0;
+        gpo_1 <= 0;
+        gpo_2 <= 0;
+        gpo_3 <= 0;
+    end
+    else begin
+        dbg_0 <= mod_idx == mod_clk_cycle - 1;
+        dbg_1 <= seq_idx == seq_clk_cycle - 1;
+        dbg_2 <= sync0_edge;
+        dbg_3 <= time_cnt == (ULTRASOUND_CNT_CYCLE >> 1);
+        dbg_0_rst <= dbg_0 ? 1 : 0;
+        dbg_1_rst <= dbg_1 ? 1 : 0;
+        dbg_2_rst <= dbg_2 ? 1 : 0;
+        dbg_3_rst <= dbg_3 ? 1 : 0;
+        gpo_0 <= (dbg_0 & ~dbg_0_rst) ? ~gpo_0 : gpo_0;
+        gpo_1 <= (dbg_1 & ~dbg_1_rst) ? ~gpo_1 : gpo_1;
+        gpo_2 <= (dbg_2 & ~dbg_2_rst) ? ~gpo_2 : gpo_2;
+        gpo_3 <= (dbg_3 & ~dbg_3_rst) ? ~gpo_3 : gpo_3;
+    end
+end
 
 endmodule

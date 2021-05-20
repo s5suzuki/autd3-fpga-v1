@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 17/05/2021
+ * Last Modified: 20/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -15,7 +15,7 @@
 module synchronizer#(
            parameter int SYS_CLK_FREQ = 20400000,
            parameter int ULTRASOUND_FREQ = 40000,
-           parameter int SYNC0_FREQ = 1000,
+           parameter int SYNC0_FREQ = 2000,
            localparam int ULTRASOUND_CNT_CYCLE = SYS_CLK_FREQ/ULTRASOUND_FREQ,
            localparam int ULTRASOUND_CNT_CYCLE_WIDTH = $clog2(ULTRASOUND_CNT_CYCLE)
        )
