@@ -1,4 +1,4 @@
-# README
+# AUTD3 FPGA firmware
 
 Version: 1.0
 
@@ -36,25 +36,31 @@ The code is written in SystemVerilog with Vivado 2020.2.
 | 　          | 0x02             | Seq cycle                         | R   |
 | 　          | 0x03             | Seq clk division                  | R   |
 | 　          | 0x04             | -                                 | -   |
-| 　          | 0x05             | Modulation clk shift              | R   |
-| 　          | 0x06             | Reference clk cycle shift         | R  |
+| 　          | 0x05             | -                                 | -   |
+| 　          | 0x06             | -                                 | -  |
 | 　          | 0x07             | Seq bram addr offset	             | R  |
 | 　          | 0x08             | Wavelength     	                 | R  |
 | 　          | 0x09             | Seq clk sync time[15:0]           | R  |
 | 　          | 0x0A             | Seq clk sync time[31:16]           | R  |
 | 　          | 0x0B             | Seq clk sync time[47:32]           | R  |
 | 　          | 0x0C             | Seq clk sync time[63:48]           | R  |
-| 　          | 0x09             | Unused                           | 　  |
-| 　          | ︙               | ︙                               | 　  |
-| 　          | 0xFE             | Unused                           | 　  |
-| 　          | 0xFF             | FPGA version number              | -   |
+| 　          | 0x0D             | Modulation cycle   	             | R  |
+| 　          | 0x0E             | Modulation clock division         | R  |
+| 　          | 0x0F             | Mod clk sync time[15:0]           | R  |
+| 　          | 0x10             | Mod clk sync time[31:16]           | R  |
+| 　          | 0x11             | Mod clk sync time[47:32]           | R  |
+| 　          | 0x12             | Mod clk sync time[63:48]           | R  |
+| 　          | 0x13             | Unused                           | -  |
+| 　          | ︙               | ︙                               |　︙  |
+| 　          | 0xFE             | Unused                           | -　  |
+| 　          | 0xFF             | FPGA version number              | R   |
 
 * Control flags
     * 3: silent mode
     * 4: force fan
     * 5: seq mode
 * Clock property
-    * 0: reference clock init
+    * 0: modulation clock init
     * 1: seq clock init
 
 ### Modulation
@@ -65,9 +71,9 @@ The code is written in SystemVerilog with Vivado 2020.2.
 | 　          | 0x0001             | mod[1]      | R   |
 | 　          | ︙                | ︙          | ︙  |
 | 　          | 0x7CFF             | mod[31999]   | R   |
-| 　          | 0x7D00             | Unused      | 　  |
-| 　          | ︙                | ︙          | 　  |
-| 　          | 0x7FFF             | Unused      | 　  |
+| 　          | 0x7D00             | Unused      | -  |
+| 　          | ︙                | ︙          | 　︙ |
+| 　          | 0x7FFF             | Unused      | -　 |
 
 ### Normal operation
 
@@ -76,9 +82,15 @@ The code is written in SystemVerilog with Vivado 2020.2.
 | 0x2         | 0x000              | duty[0]/phase[0]     | R   |
 | 　          | ︙                | ︙                  | ︙  |
 | 　          | 0x0F8              | duty[248]/phase[248] | R   |
-| 　          | 0x0F9              | Unused              | 　  |
-| 　          | ︙                | ︙                  | 　  |
-| 　          | 0x1FF              | Unused              | 　  |
+| 　          | 0x0F9              | Unused              | -  |
+| 　          | ︙                | ︙                  | ︙  |
+| 　          | 0x0FF              | Unused              | -  |
+|             | 0x100              | delay[0]           | R   |
+| 　          | ︙                | ︙                  | ︙  |
+| 　          | 0x0F8              | delay[248]        | R   |
+| 　          | 0x1F9              | Unused              | -  |
+| 　          | ︙                | ︙                  | ︙  |
+| 　          | 0x1FF              | Unused              | -  |
 
 ### SEQ operation
 
