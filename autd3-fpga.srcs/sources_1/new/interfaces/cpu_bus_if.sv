@@ -1,13 +1,13 @@
 /*
  * File: cpu_bus_if.sv
- * Project: new
- * Created Date: 15/12/2020
+ * Project: interfaces
+ * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 17/12/2020
+ * Last Modified: 09/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
- * Copyright (c) 2020 Hapis Lab. All rights reserved.
+ * Copyright (c) 2021 Hapis Lab. All rights reserved.
  * 
  */
 

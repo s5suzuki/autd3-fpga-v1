@@ -1,52 +1,62 @@
 /*
  * File: transducer.sv
- * Project: new
- * Created Date: 03/10/2019
+ * Project: transducer
+ * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 06/03/2021
+ * Last Modified: 20/05/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
- * Copyright (c) 2019 Hapis Lab. All rights reserved.
+ * Copyright (c) 2021 Hapis Lab. All rights reserved.
  * 
  */
 
 `timescale 1ns / 1ps
-module transducer(
+module transducer#(
+           parameter int ULTRASOUND_CNT_CYCLE = 510
+       )(
            input var CLK,
            input var RST,
            input var CLK_LPF,
-           input var [9:0] TIME,
-           input var [7:0] D,
+           input var [8:0] TIME,
+           input var UPDATE,
+           input var [7:0] DUTY,
            input var [7:0] PHASE,
+           input var [6:0] DELAY,
            input var SILENT,
            output var PWM_OUT
        );
 
-logic[7:0] d_s, phase_s;
+logic[7:0] duty_s, phase_s;
+logic[7:0] duty, phase;
+logic[7:0] dutyd, phased;
 
-logic[7:0] d, phase;
-
-assign d = SILENT ? d_s : D;
+assign duty = SILENT ? duty_s : DUTY;
 assign phase = SILENT ? phase_s : PHASE;
-
-assign update = (TIME == 10'd639);
 
 silent_lpf silent_lpf(
                .CLK(CLK),
                .RST(RST),
                .CLK_LPF(CLK_LPF),
-               .UPDATE(update),
-               .D(D),
+               .DUTY(DUTY),
                .PHASE(PHASE),
-               .D_S(d_s),
+               .DUTY_S(duty_s),
                .PHASE_S(phase_s)
            );
 
+delayed_fifo delayed_fifo(
+                 .CLK(CLK),
+                 .RST(RST),
+                 .UPDATE(UPDATE),
+                 .DELAY(DELAY),
+                 .DATA_IN({duty, phase}),
+                 .DATA_OUT({dutyd, phased})
+             );
+
 pwm_generator pwm_generator(
                   .TIME(TIME),
-                  .D(d),
-                  .PHASE(phase),
+                  .DUTY(dutyd),
+                  .PHASE(phased),
                   .PWM_OUT(PWM_OUT)
               );
 
