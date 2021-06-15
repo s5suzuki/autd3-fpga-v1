@@ -51,7 +51,7 @@ logic [8:0] time_cnt;
 logic [15:0] mod_clk_cycle;
 logic [15:0] mod_clk_div;
 logic [63:0] mod_clk_sync_time;
-logic [14:0] mod_idx;
+logic [15:0] mod_idx;
 logic [7:0] mod;
 
 logic [15:0] seq_clk_cycle;
