@@ -15,7 +15,8 @@
 
 module tr_cntroller#(
            parameter int TRANS_NUM = 249,
-           parameter int ULTRASOUND_CNT_CYCLE = 510
+           parameter int ULTRASOUND_CNT_CYCLE = 510,
+           parameter int DELAY_DEPTH = 8
        )
        (
            input var CLK,
@@ -34,7 +35,7 @@ module tr_cntroller#(
 logic [7:0] seq_duty;
 logic [7:0] seq_phase[0:TRANS_NUM-1];
 
-logic [6:0] delay[0:TRANS_NUM-1];
+logic [DELAY_DEPTH-1:0] delay[0:TRANS_NUM-1];
 
 logic [7:0] tr_buf_write_idx;
 logic [8:0] tr_bram_idx;
@@ -109,7 +110,7 @@ always_ff @(posedge CLK) begin
             tr_state <= DELAY;
         end
         DELAY: begin
-            delay[tr_buf_write_idx] <= tr_bram_dataout[6:0];
+            delay[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH-1:0];
             if (tr_buf_write_idx == TRANS_NUM - 1) begin
                 tr_state <= IDLE;
             end
@@ -128,26 +129,21 @@ assign mod = {1'b0, MOD} + 9'd1;
 generate begin:TRANSDUCERS_GEN
         genvar ii;
         for(ii = 0; ii < TRANS_NUM; ii++) begin
-            logic [16:0] duty_modulated;
             logic [7:0] duty, phase;
             assign duty = SEQ_MODE ? seq_duty : duty_buf[ii];
             assign phase = SEQ_MODE ? seq_phase[ii] : phase_buf[ii];
-            mult8x8 mod_mult(
-                        .CLK(CLK),
-                        .A(duty),
-                        .B(mod),
-                        .P(duty_modulated)
-                    );
             transducer#(
-                          .ULTRASOUND_CNT_CYCLE(ULTRASOUND_CNT_CYCLE)
+                          .ULTRASOUND_CNT_CYCLE(ULTRASOUND_CNT_CYCLE),
+                          .DELAY_DEPTH(DELAY_DEPTH)
                       ) tr(
                           .CLK(CLK),
                           .CLK_LPF(CLK_LPF),
                           .TIME(TIME),
                           .UPDATE(update),
-                          .DUTY(duty_modulated[15:8]),
+                          .DUTY(duty),
                           .PHASE(phase),
                           .DELAY(delay[ii]),
+                          .MOD(MOD),
                           .SILENT(SILENT),
                           .PWM_OUT(XDCR_OUT[cvt_uid(ii) + 1])
                       );

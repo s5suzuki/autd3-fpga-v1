@@ -32,11 +32,13 @@ module top(
            output var [3:0]GPIO_OUT
        );
 
-localparam int TRANS_NUM = 1;
+localparam int TRANS_NUM = 249;
 localparam int SYS_CLK_FREQ = 20400000;
 localparam int ULTRASOUND_FREQ = 40000;
 localparam int SYNC0_FREQ = 2000;
 localparam int ULTRASOUND_CNT_CYCLE = SYS_CLK_FREQ/ULTRASOUND_FREQ;
+
+localparam int DELAY_DEPTH = 8;
 
 logic sys_clk;
 logic reset;
@@ -135,7 +137,8 @@ synchronizer#(
 
 tr_cntroller#(
                 .TRANS_NUM(TRANS_NUM),
-                .ULTRASOUND_CNT_CYCLE(ULTRASOUND_CNT_CYCLE)
+                .ULTRASOUND_CNT_CYCLE(ULTRASOUND_CNT_CYCLE),
+                .DELAY_DEPTH(DELAY_DEPTH)
             ) tr_cntroller(
                 .CLK(sys_clk),
                 .CLK_LPF(lpf_clk),

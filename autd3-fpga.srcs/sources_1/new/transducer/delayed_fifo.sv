@@ -12,17 +12,19 @@
  */
 
 `timescale 1ns / 1ps
-module delayed_fifo(
+module delayed_fifo#(
+           parameter int DEPTH = 8
+       )(
            input var CLK,
            input var UPDATE,
-           input var [6:0] DELAY,
-           input var [15:0] DATA_IN,
-           output var [15:0] DATA_OUT
+           input var [DEPTH-1:0] DELAY,
+           input var [7:0] DATA_IN,
+           output var [7:0] DATA_OUT
        );
 
-logic [6:0] a = 0;
+logic [DEPTH-1:0] a = 0;
 
-dist_mem16x128 mem(
+dist_mem_delay mem(
                    .a(a),
                    .d(DATA_IN),
                    .clk(CLK),
