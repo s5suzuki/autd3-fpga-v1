@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 20/05/2021
+ * Last Modified: 15/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -14,47 +14,49 @@
 `timescale 1ns / 1ps
 module focus_calculator(
            input var CLK,
-           input var RST,
            input var DVALID_IN,
-           input var [23:0] FOCUS_X,
-           input var [23:0] FOCUS_Y,
-           input var [23:0] FOCUS_Z,
-           input var [23:0] TRANS_X,
-           input var [23:0] TRANS_Y,
-           input var [23:0] TRANS_Z,
+           input var [17:0] FOCUS_X,
+           input var [17:0] FOCUS_Y,
+           input var [17:0] FOCUS_Z,
+           input var [17:0] TRANS_X,
+           input var [17:0] TRANS_Y,
+           input var [17:0] TRANS_Z,
            output var [7:0] PHASE,
            output var PHASE_CALC_DONE
        );
 
-localparam SQRT_LATENCY = 25 + 1 + 4;
-localparam REMINDER_LATENCY = 34;
+localparam SQRT_LATENCY = 21 + 1 + 4;
+localparam REMINDER_LATENCY = 26;
 
-logic signed [23:0] dx, dy, dz;
-logic [47:0] d2;
-logic [47:0] dx2, dy2, dz2;
+logic signed [18:0] focus_x, focus_y, focus_z;
+logic signed [18:0] trans_x, trans_y, trans_z;
+
+logic signed [18:0] dx, dy, dz;
+logic [39:0] d2;
+logic [37:0] dx2, dy2, dz2;
 logic tvalid_in;
 logic tvalid_out;
-logic [31:0] dout;
+logic [23:0] dout;
 logic [7:0] phase;
-logic phase_calc_done;
+logic phase_calc_done = 0;
 
 logic [1:0] calc_mode_edge;
 logic [$clog2(SQRT_LATENCY + REMINDER_LATENCY)-1:0] wait_cnt;
-logic [7:0] input_num;
-logic [7:0] output_num;
-logic run;
+logic [7:0] input_num = 0;
+logic [7:0] output_num = 0;
+logic run = 0;
 
-logic [31:0] _unused;
+logic [23:0] _unused;
 logic [7:0] reminder;
 
-sqrt_48 sqrt_48(
+sqrt_40 sqrt_40(
             .aclk(CLK),
             .s_axis_cartesian_tvalid(tvalid_in),
             .s_axis_cartesian_tdata(d2),
             .m_axis_dout_tvalid(tvalid_out),
             .m_axis_dout_tdata(dout));
 
-divider32 rem255(
+divider24 rem255(
               .s_axis_dividend_tdata(dout),
               .s_axis_dividend_tvalid(1'b1),
               .s_axis_divisor_tdata(8'hFF),
@@ -64,24 +66,31 @@ divider32 rem255(
               .m_axis_dout_tvalid()
           );
 
-mult_24 mult_24x(
+mult_19 mult_19x(
             .CLK(CLK),
             .A(dx),
             .B(dx),
             .P(dx2)
         );
-mult_24 mult_24y(
+mult_19 mult_19y(
             .CLK(CLK),
             .A(dy),
             .B(dy),
             .P(dy2)
         );
-mult_24 mult_24z(
+mult_19 mult_19z(
             .CLK(CLK),
             .A(dz),
             .B(dz),
             .P(dz2)
         );
+
+assign focus_x = FOCUS_X;
+assign focus_y = FOCUS_Y;
+assign focus_z = FOCUS_Z;
+assign trans_x = TRANS_X;
+assign trans_y = TRANS_Y;
+assign trans_z = TRANS_Z;
 
 assign PHASE = phase;
 assign PHASE_CALC_DONE = phase_calc_done;
@@ -104,18 +113,12 @@ always_ff @(posedge CLK) begin
 end
 
 always_ff @(posedge CLK) begin
-    if (RST) begin
-        phase_calc_done <= 0;
-        input_num <= 0;
-        output_num <= 0;
-        run <= 0;
-    end
-    else if(run) begin
+    if(run) begin
         if(DVALID_IN) begin
             // STAGE_0
-            dx <= {1'b0, TRANS_X} - {1'b0, FOCUS_X};
-            dy <= {1'b0, TRANS_Y} - {1'b0, FOCUS_Y};
-            dz <= {1'b0, TRANS_Z} - {1'b0, FOCUS_Z};
+            dx <= trans_x - focus_x;
+            dy <= trans_y - focus_y;
+            dz <= trans_z - focus_z;
             input_num <= input_num + 1;
         end
         else if(output_num == input_num) begin
@@ -123,7 +126,7 @@ always_ff @(posedge CLK) begin
         end
 
         // STAGE_1
-        d2 <= dx2 + dy2 + dz2;
+        d2 <= {2'd0, dx2} + {2'd0, dy2} + {2'd0, dz2};
 
         // STAGE_2
         phase <= 8'hFF - reminder;
@@ -142,9 +145,9 @@ always_ff @(posedge CLK) begin
     else begin
         if(DVALID_IN) begin
             // STAGE_0
-            dx <= {1'b0, TRANS_X} - {1'b0, FOCUS_X};
-            dy <= {1'b0, TRANS_Y} - {1'b0, FOCUS_Y};
-            dz <= {1'b0, TRANS_Z} - {1'b0, FOCUS_Z};
+            dx <= trans_x - focus_x;
+            dy <= trans_y - focus_y;
+            dz <= trans_z - focus_z;
             input_num <= 1;
             run <= 1;
         end

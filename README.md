@@ -29,7 +29,7 @@ The code is written in SystemVerilog with Vivado 2020.2.
 
 ### Properties
 
-| BRAM_SELECT | BRAM_ADDR (8bit) | DATA (16 bit)                    | R/W |
+| BRAM_SELECT | BRAM_ADDR (6bit) | DATA (16 bit)                    | R/W |
 |-------------|------------------|----------------------------------|-----|
 | 0x0         | 0x00             | 7:0=Control flags<br>15:8=Clock property | R/W |
 | 　          | 0x01             | 7:0=FPGA info                         | W   |
@@ -37,8 +37,8 @@ The code is written in SystemVerilog with Vivado 2020.2.
 | 　          | 0x03             | Seq clk division                  | R   |
 | 　          | 0x04             | -                                 | -   |
 | 　          | 0x05             | -                                 | -   |
-| 　          | 0x06             | -                                 | -  |
-| 　          | 0x07             | Seq bram addr offset	             | R  |
+| 　          | 0x06             | Mod bram addr offset (1bit)       | R  |
+| 　          | 0x07             | Seq bram addr offset	(4bit)       | R  |
 | 　          | 0x08             | Wavelength     	                 | R  |
 | 　          | 0x09             | Seq clk sync time[15:0]           | R  |
 | 　          | 0x0A             | Seq clk sync time[31:16]           | R  |
@@ -52,8 +52,8 @@ The code is written in SystemVerilog with Vivado 2020.2.
 | 　          | 0x12             | Mod clk sync time[63:48]           | R  |
 | 　          | 0x13             | Unused                           | -  |
 | 　          | ︙               | ︙                               |　︙  |
-| 　          | 0xFE             | Unused                           | -　  |
-| 　          | 0xFF             | FPGA version number              | R   |
+| 　          | 0x3E             | Unused                           | -　  |
+| 　          | 0x3F             | FPGA version number              | R   |
 
 * Control flags
     * 3: silent mode

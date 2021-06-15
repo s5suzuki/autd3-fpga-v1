@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 20/05/2021
+ * Last Modified: 15/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -16,7 +16,6 @@ module transducer#(
            parameter int ULTRASOUND_CNT_CYCLE = 510
        )(
            input var CLK,
-           input var RST,
            input var CLK_LPF,
            input var [8:0] TIME,
            input var UPDATE,
@@ -36,7 +35,6 @@ assign phase = SILENT ? phase_s : PHASE;
 
 silent_lpf silent_lpf(
                .CLK(CLK),
-               .RST(RST),
                .CLK_LPF(CLK_LPF),
                .DUTY(DUTY),
                .PHASE(PHASE),
@@ -46,7 +44,6 @@ silent_lpf silent_lpf(
 
 delayed_fifo delayed_fifo(
                  .CLK(CLK),
-                 .RST(RST),
                  .UPDATE(UPDATE),
                  .DELAY(DELAY),
                  .DATA_IN({duty, phase}),

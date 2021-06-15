@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 20/05/2021
+ * Last Modified: 15/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -21,7 +21,6 @@ module synchronizer#(
        )
        (
            input var CLK,
-           input var RST,
            input var SYNC,
            input var SEQ_CLK_INIT,
            input var MOD_CLK_INIT,
@@ -32,7 +31,7 @@ module synchronizer#(
            input var [63:0] SEQ_CLK_SYNC_TIME_NS,
            input var [63:0] MOD_CLK_SYNC_TIME_NS,
            output var [ULTRASOUND_CNT_CYCLE_WIDTH-1:0] TIME,
-           output var [14:0] MOD_IDX,
+           output var [15:0] MOD_IDX,
            output var [15:0] SEQ_IDX
        );
 

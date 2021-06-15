@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 18/05/2021
+ * Last Modified: 15/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -15,7 +15,6 @@
 module silent_lpf(
            input var CLK,
            input var CLK_LPF,
-           input var RST,
            input var [7:0] DUTY,
            input var [7:0] PHASE,
            output var [7:0] DUTY_S,
@@ -26,7 +25,7 @@ logic [7:0] fd_async;
 logic [7:0] fs_async;
 
 logic [7:0] datain;
-logic chin;
+logic chin = 1;
 logic signed [15:0] dataout;
 logic chout, enout, enin;
 logic enout_rst, enin_rst;
@@ -47,10 +46,7 @@ lpf_40k_500 LPF(
             );
 
 always_ff @(posedge CLK) begin
-    if (RST) begin
-        chin <= 1;
-    end
-    else if (enin & ~enin_rst) begin
+    if (enin & ~enin_rst) begin
         chin <= ~chin;
         datain <= (chin == 1'b0) ? PHASE : DUTY;
     end

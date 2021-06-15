@@ -32,7 +32,7 @@ module top(
            output var [3:0]GPIO_OUT
        );
 
-localparam int TRANS_NUM = 249;
+localparam int TRANS_NUM = 1;
 localparam int SYS_CLK_FREQ = 20400000;
 localparam int ULTRASOUND_FREQ = 40000;
 localparam int SYNC0_FREQ = 2000;
@@ -96,7 +96,6 @@ mem_manager mem_manager(
 
 config_manager config_manager(
                    .CLK(sys_clk),
-                   .RST(reset),
                    .CONFIG_BUS(config_bus.slave_port),
                    .SYNC(sync0_edge),
                    .MOD_CLK_INIT(mod_clk_init),
@@ -120,7 +119,6 @@ synchronizer#(
                 .SYNC0_FREQ(SYNC0_FREQ)
             ) synchronizer(
                 .CLK(sys_clk),
-                .RST(reset),
                 .SYNC(sync0_edge),
                 .MOD_CLK_INIT(mod_clk_init),
                 .MOD_CLK_CYCLE(mod_clk_cycle),
@@ -140,7 +138,6 @@ tr_cntroller#(
                 .ULTRASOUND_CNT_CYCLE(ULTRASOUND_CNT_CYCLE)
             ) tr_cntroller(
                 .CLK(sys_clk),
-                .RST(reset),
                 .CLK_LPF(lpf_clk),
                 .TIME(time_cnt),
                 .TR_BUS(tr_bus.slave_port),
