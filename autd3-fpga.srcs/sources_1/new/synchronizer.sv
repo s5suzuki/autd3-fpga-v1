@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 15/06/2021
+ * Last Modified: 16/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -31,6 +31,7 @@ module synchronizer#(
            input var [63:0] SEQ_CLK_SYNC_TIME_NS,
            input var [63:0] MOD_CLK_SYNC_TIME_NS,
            output var [ULTRASOUND_CNT_CYCLE_WIDTH-1:0] TIME,
+           output var UPDATE,
            output var [15:0] MOD_IDX,
            output var [15:0] SEQ_IDX
        );
@@ -38,6 +39,7 @@ module synchronizer#(
 logic [ULTRASOUND_CNT_CYCLE_WIDTH-1:0] time_cnt_for_ultrasound;
 
 assign TIME = time_cnt_for_ultrasound;
+assign UPDATE = SYNC | (time_cnt_for_ultrasound == ULTRASOUND_CNT_CYCLE - 1);
 
 always_ff @(posedge CLK)
     time_cnt_for_ultrasound <= (SYNC | (time_cnt_for_ultrasound == ULTRASOUND_CNT_CYCLE - 1)) ? 0 : time_cnt_for_ultrasound + 1;
@@ -57,8 +59,6 @@ logic [REF_CLK_DIVIDER_CNT_WIDTH-1:0] ref_clk_divider;
 logic [REF_CLK_CYCLE_CNT_WIDTH-1:0] ref_clk_cnt_watch;
 logic ref_clk_tick;
 
-assign ref_clk_tick = (ref_clk_cnt != ref_clk_cnt_watch);
-
 always_ff @(posedge CLK) begin
     if(SYNC) begin
         ref_clk_cnt <= 0;
@@ -75,8 +75,10 @@ always_ff @(posedge CLK) begin
     end
 end
 
-always_ff @(posedge CLK)
+always_ff @(posedge CLK) begin
     ref_clk_cnt_watch <= ref_clk_cnt;
+    ref_clk_tick <= (ref_clk_cnt != ref_clk_cnt_watch);
+end
 ///////////////////////////////// Reference Clock /////////////////////////////////////////
 
 //////////////////////////////////// Modulation ///////////////////////////////////////////

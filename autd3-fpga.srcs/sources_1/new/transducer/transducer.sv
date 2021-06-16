@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 15/06/2021
+ * Last Modified: 16/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -32,9 +32,6 @@ logic [16:0] duty_modulated;
 logic [7:0] mod_d;
 logic [7:0] duty_s, phase_s;
 logic [7:0] duty, phase;
-
-assign duty = SILENT ? duty_s : duty_modulated[15:8];
-assign phase = SILENT ? phase_s : PHASE;
 
 mult8x8 mod_mult(
             .CLK(CLK),
@@ -68,5 +65,12 @@ pwm_generator pwm_generator(
                   .PHASE(phase),
                   .PWM_OUT(PWM_OUT)
               );
+
+always_ff @(posedge CLK) begin
+    if (UPDATE) begin
+        duty <= SILENT ? duty_s : duty_modulated[15:8];
+        phase <= SILENT ? phase_s : PHASE;
+    end
+end
 
 endmodule

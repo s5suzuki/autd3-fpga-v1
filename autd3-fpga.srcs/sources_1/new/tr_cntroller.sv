@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 15/06/2021
+ * Last Modified: 16/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -22,6 +22,7 @@ module tr_cntroller#(
            input var CLK,
            input var CLK_LPF,
            input var [8:0] TIME,
+           input var UPDATE,
            tr_bus_if.slave_port TR_BUS,
            input var [7:0] MOD,
            input var SILENT,
@@ -43,12 +44,8 @@ logic [15:0] tr_bram_dataout;
 logic [7:0] duty_buf[0:TRANS_NUM-1];
 logic [7:0] phase_buf[0:TRANS_NUM-1];
 
-logic update;
-
 assign TR_BUS.IDX = tr_bram_idx;
 assign tr_bram_dataout = TR_BUS.DATA_OUT;
-assign update = TIME == (ULTRASOUND_CNT_CYCLE - 1);
-
 
 enum logic [2:0] {
          IDLE,
@@ -74,7 +71,7 @@ seq_operator#(
 always_ff @(posedge CLK) begin
     case(tr_state)
         IDLE: begin
-            if (update) begin
+            if (UPDATE) begin
                 tr_bram_idx <= 9'd0;
                 tr_state <= DUTY_PHASE_WAIT_0;
             end
@@ -139,7 +136,7 @@ generate begin:TRANSDUCERS_GEN
                           .CLK(CLK),
                           .CLK_LPF(CLK_LPF),
                           .TIME(TIME),
-                          .UPDATE(update),
+                          .UPDATE(UPDATE),
                           .DUTY(duty),
                           .PHASE(phase),
                           .DELAY(delay[ii]),

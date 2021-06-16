@@ -4,7 +4,7 @@
  * Created Date: 27/03/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 15/06/2021
+ * Last Modified: 16/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -28,8 +28,8 @@ module top(
            output var FORCE_FAN,
            input var THERMO,
            output var [252:1] XDCR_OUT,
-           input var [3:0]GPIO_IN,
-           output var [3:0]GPIO_OUT
+           input var [3:0] GPIO_IN,
+           output var [3:0] GPIO_OUT
        );
 
 localparam int TRANS_NUM = 249;
@@ -131,6 +131,7 @@ synchronizer#(
                 .SEQ_CLK_DIV(seq_clk_div),
                 .SEQ_CLK_SYNC_TIME_NS(seq_clk_sync_time),
                 .TIME(time_cnt),
+                .UPDATE(update),
                 .MOD_IDX(mod_idx),
                 .SEQ_IDX(seq_idx)
             );
@@ -143,6 +144,7 @@ tr_cntroller#(
                 .CLK(sys_clk),
                 .CLK_LPF(lpf_clk),
                 .TIME(time_cnt),
+                .UPDATE(update),
                 .TR_BUS(tr_bus.slave_port),
                 .MOD(mod),
                 .SILENT(silent),
