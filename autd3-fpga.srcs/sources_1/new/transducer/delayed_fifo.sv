@@ -4,7 +4,7 @@
  * Created Date: 18/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 15/06/2021
+ * Last Modified: 17/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -18,8 +18,8 @@ module delayed_fifo#(
            input var CLK,
            input var UPDATE,
            input var [DEPTH-1:0] DELAY,
-           input var [7:0] DATA_IN,
-           output var [7:0] DATA_OUT
+           input var [15:0] DATA_IN,
+           output var [15:0] DATA_OUT
        );
 
 logic [DEPTH-1:0] a = 0;

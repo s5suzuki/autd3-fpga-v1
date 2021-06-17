@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 16/06/2021
+ * Last Modified: 17/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -59,6 +59,8 @@ logic [REF_CLK_DIVIDER_CNT_WIDTH-1:0] ref_clk_divider;
 logic [REF_CLK_CYCLE_CNT_WIDTH-1:0] ref_clk_cnt_watch;
 logic ref_clk_tick;
 
+assign ref_clk_tick = (ref_clk_cnt != ref_clk_cnt_watch);
+
 always_ff @(posedge CLK) begin
     if(SYNC) begin
         ref_clk_cnt <= 0;
@@ -75,10 +77,8 @@ always_ff @(posedge CLK) begin
     end
 end
 
-always_ff @(posedge CLK) begin
+always_ff @(posedge CLK)
     ref_clk_cnt_watch <= ref_clk_cnt;
-    ref_clk_tick <= (ref_clk_cnt != ref_clk_cnt_watch);
-end
 ///////////////////////////////// Reference Clock /////////////////////////////////////////
 
 //////////////////////////////////// Modulation ///////////////////////////////////////////

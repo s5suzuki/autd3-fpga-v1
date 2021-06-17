@@ -132,6 +132,13 @@ generate begin:TRANSDUCERS_GEN
             logic [7:0] duty, phase;
             assign duty = SEQ_MODE ? seq_duty : duty_buf[ii];
             assign phase = SEQ_MODE ? seq_phase[ii] : phase_buf[ii];
+            logic [16:0] duty_modulated;
+            mult8x8 mod_mult(
+                        .CLK(CLK),
+                        .A(duty),
+                        .B(mod),
+                        .P(duty_modulated)
+                    );
             transducer#(
                           .ULTRASOUND_CNT_CYCLE(ULTRASOUND_CNT_CYCLE),
                           .DELAY_DEPTH(DELAY_DEPTH)
@@ -140,10 +147,9 @@ generate begin:TRANSDUCERS_GEN
                           .CLK_LPF(CLK_LPF),
                           .TIME(TIME),
                           .UPDATE(update),
-                          .DUTY(duty),
+                          .DUTY(duty_modulated[15:8]),
                           .PHASE(phase),
                           .DELAY(delay[ii]),
-                          .MOD(MOD),
                           .SILENT(SILENT),
                           .PWM_OUT(XDCR_OUT[cvt_uid(ii) + 1])
                       );
