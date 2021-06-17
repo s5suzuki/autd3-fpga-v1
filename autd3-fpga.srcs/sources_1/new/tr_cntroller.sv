@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 16/06/2021
+ * Last Modified: 17/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -57,6 +57,9 @@ enum logic [2:0] {
          DELAY
      } tr_state = IDLE;
 
+logic update;
+BUFG bufg(.O(update), .I(UPDATE));
+
 seq_operator#(
                 .TRANS_NUM(TRANS_NUM)
             ) seq_operator(
@@ -71,7 +74,7 @@ seq_operator#(
 always_ff @(posedge CLK) begin
     case(tr_state)
         IDLE: begin
-            if (UPDATE) begin
+            if (update) begin
                 tr_bram_idx <= 9'd0;
                 tr_state <= DUTY_PHASE_WAIT_0;
             end
@@ -136,7 +139,7 @@ generate begin:TRANSDUCERS_GEN
                           .CLK(CLK),
                           .CLK_LPF(CLK_LPF),
                           .TIME(TIME),
-                          .UPDATE(UPDATE),
+                          .UPDATE(update),
                           .DUTY(duty),
                           .PHASE(phase),
                           .DELAY(delay[ii]),
