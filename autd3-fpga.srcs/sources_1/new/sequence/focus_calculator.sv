@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 15/06/2021
+ * Last Modified: 17/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -15,9 +15,9 @@
 module focus_calculator(
            input var CLK,
            input var DVALID_IN,
-           input var [17:0] FOCUS_X,
-           input var [17:0] FOCUS_Y,
-           input var [17:0] FOCUS_Z,
+           input var signed [17:0] FOCUS_X,
+           input var signed [17:0] FOCUS_Y,
+           input var signed [17:0] FOCUS_Z,
            input var [17:0] TRANS_X,
            input var [17:0] TRANS_Y,
            input var [17:0] TRANS_Z,

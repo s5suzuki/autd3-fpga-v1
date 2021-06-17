@@ -4,7 +4,7 @@
  * Created Date: 14/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 15/06/2021
+ * Last Modified: 17/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -61,7 +61,6 @@ seq_operator #(
                  .TRANS_NUM(TRANS_NUM)
              ) seq_operator(
                  .CLK,
-                 .RST,
                  .SEQ_BUS(seq_bus.slave_port),
                  .SEQ_IDX,
                  .WAVELENGTH_UM(16'd8500),
@@ -114,7 +113,7 @@ initial begin
     bram_write(0, 14'h0007, 0); // offset
 
     focus_write(0, 18'sd0, 18'sd0, 18'sd6000, 8'h01);
-    focus_write(1, 18'sd2590, 18'sd1981, 18'sd4500, 8'h04);
+    focus_write(1, 18'sd0, 18'sd0, -18'sd6000, 8'h04);
     @(posedge CLK);
     #50000;
 
