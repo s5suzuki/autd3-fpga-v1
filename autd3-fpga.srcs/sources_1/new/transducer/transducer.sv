@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 17/06/2021
+ * Last Modified: 18/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -28,11 +28,10 @@ module transducer#(
        );
 
 logic [7:0] duty_s, phase_s;
-logic [7:0] duty, phase;
-logic [7:0] dutyd, phased;
+logic [7:0] duty, dutyd;
+logic [7:0] phase;
 
 assign duty = SILENT ? duty_s : DUTY;
-assign phase = SILENT ? phase_s : PHASE;
 
 silent_lpf silent_lpf(
                .CLK(CLK),
@@ -49,16 +48,18 @@ delayed_fifo #(
                  .CLK(CLK),
                  .UPDATE(UPDATE),
                  .DELAY(DELAY),
-                 .DATA_IN({duty, phase}),
-                 .DATA_OUT({dutyd, phased})
+                 .DATA_IN(duty),
+                 .DATA_OUT(dutyd)
              );
 
 pwm_generator pwm_generator(
                   .TIME(TIME),
                   .DUTY(dutyd),
-                  .PHASE(phased),
+                  .PHASE(phase),
                   .PWM_OUT(PWM_OUT)
               );
 
+always_ff @(posedge CLK)
+    phase <= UPDATE ? (SILENT ? phase_s : PHASE) : phase;
 
 endmodule
