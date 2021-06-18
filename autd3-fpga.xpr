@@ -44,20 +44,20 @@
     <Option Name="IPUserFilesDir" Val="$PPRDIR/../autd3-library-firmware/fpga/autd3-fpga.ip_user_files"/>
     <Option Name="IPStaticSourceDir" Val="$PPRDIR/../autd3-library-firmware/fpga/autd3-fpga.ip_user_files/ipstatic"/>
     <Option Name="EnableBDX" Val="FALSE"/>
-    <Option Name="WTXSimLaunchSim" Val="648"/>
+    <Option Name="WTXSimLaunchSim" Val="659"/>
     <Option Name="WTModelSimLaunchSim" Val="0"/>
     <Option Name="WTQuestaLaunchSim" Val="0"/>
     <Option Name="WTIesLaunchSim" Val="0"/>
     <Option Name="WTVcsLaunchSim" Val="0"/>
     <Option Name="WTRivieraLaunchSim" Val="0"/>
     <Option Name="WTActivehdlLaunchSim" Val="0"/>
-    <Option Name="WTXSimExportSim" Val="94"/>
-    <Option Name="WTModelSimExportSim" Val="94"/>
-    <Option Name="WTQuestaExportSim" Val="94"/>
-    <Option Name="WTIesExportSim" Val="94"/>
-    <Option Name="WTVcsExportSim" Val="94"/>
-    <Option Name="WTRivieraExportSim" Val="94"/>
-    <Option Name="WTActivehdlExportSim" Val="94"/>
+    <Option Name="WTXSimExportSim" Val="96"/>
+    <Option Name="WTModelSimExportSim" Val="96"/>
+    <Option Name="WTQuestaExportSim" Val="96"/>
+    <Option Name="WTIesExportSim" Val="96"/>
+    <Option Name="WTVcsExportSim" Val="96"/>
+    <Option Name="WTRivieraExportSim" Val="96"/>
+    <Option Name="WTActivehdlExportSim" Val="96"/>
     <Option Name="GenerateIPUpgradeLog" Val="TRUE"/>
     <Option Name="XSimRadix" Val="hex"/>
     <Option Name="XSimTimeUnit" Val="ns"/>
@@ -211,14 +211,14 @@
     </FileSet>
     <FileSet Name="sim_1" Type="SimulationSrcs" RelSrcDir="$PSRCDIR/sim_1">
       <Filter Type="Srcs"/>
-      <File Path="$PSRCDIR/sim_1/new/sim_delayed_fifo.sv">
+      <File Path="$PSRCDIR/sim_1/new/sim_pwm_generator.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PSRCDIR/sim_1/new/sim_pwm_generator.sv">
+      <File Path="$PSRCDIR/sim_1/new/sim_delayed_fifo.sv">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -252,7 +252,7 @@
       </File>
       <Config>
         <Option Name="DesignMode" Val="RTL"/>
-        <Option Name="TopModule" Val="sim_delayed_fifo"/>
+        <Option Name="TopModule" Val="sim_pwm_generator"/>
         <Option Name="TopLib" Val="xil_defaultlib"/>
         <Option Name="TransportPathDelay" Val="0"/>
         <Option Name="TransportIntDelay" Val="0"/>
@@ -303,45 +303,6 @@
       </File>
       <Config>
         <Option Name="TopModule" Val="lpf_40k_500"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
-    <FileSet Name="divider64" Type="BlockSrcs" RelSrcDir="$PSRCDIR/divider64">
-      <File Path="$PSRCDIR/sources_1/ip/divider64/divider64.xci">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <Config>
-        <Option Name="TopModule" Val="divider64"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
-    <FileSet Name="divider" Type="BlockSrcs" RelSrcDir="$PSRCDIR/divider">
-      <File Path="$PSRCDIR/sources_1/ip/divider/divider.xci">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <Config>
-        <Option Name="TopModule" Val="divider"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
-    <FileSet Name="mult8x8" Type="BlockSrcs" RelSrcDir="$PSRCDIR/mult8x8">
-      <File Path="$PSRCDIR/sources_1/ip/mult8x8/mult8x8.xci">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <Config>
-        <Option Name="TopModule" Val="mult8x8"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
@@ -409,6 +370,19 @@
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
+    <FileSet Name="ultrasound_cnt_clk_gen" Type="BlockSrcs" RelSrcDir="$PSRCDIR/ultrasound_cnt_clk_gen">
+      <File Path="$PSRCDIR/sources_1/ip/ultrasound_cnt_clk_gen/ultrasound_cnt_clk_gen.xci">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <Config>
+        <Option Name="TopModule" Val="ultrasound_cnt_clk_gen"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
     <FileSet Name="dist_mem_delay" Type="BlockSrcs" RelSrcDir="$PSRCDIR/dist_mem_delay">
       <File Path="$PSRCDIR/sources_1/ip/dist_mem_delay_1/dist_mem_delay.xci">
         <FileInfo>
@@ -422,8 +396,8 @@
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
-    <FileSet Name="sqrt_40" Type="BlockSrcs" RelSrcDir="$PSRCDIR/sqrt_40">
-      <File Path="$PSRCDIR/sources_1/ip/sqrt_40/sqrt_40.xci">
+    <FileSet Name="divider64" Type="BlockSrcs" RelSrcDir="$PSRCDIR/divider64">
+      <File Path="$PSRCDIR/sources_1/ip/divider64/divider64.xci">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -431,7 +405,20 @@
         </FileInfo>
       </File>
       <Config>
-        <Option Name="TopModule" Val="sqrt_40"/>
+        <Option Name="TopModule" Val="divider64"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="mult8x8" Type="BlockSrcs" RelSrcDir="$PSRCDIR/mult8x8">
+      <File Path="$PSRCDIR/sources_1/ip/mult8x8/mult8x8.xci">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <Config>
+        <Option Name="TopModule" Val="mult8x8"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
@@ -448,8 +435,8 @@
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
-    <FileSet Name="divider24" Type="BlockSrcs" RelSrcDir="$PSRCDIR/divider24">
-      <File Path="$PSRCDIR/sources_1/ip/divider24/divider24.xci">
+    <FileSet Name="divider" Type="BlockSrcs" RelSrcDir="$PSRCDIR/divider">
+      <File Path="$PSRCDIR/sources_1/ip/divider/divider.xci">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -457,12 +444,12 @@
         </FileInfo>
       </File>
       <Config>
-        <Option Name="TopModule" Val="divider24"/>
+        <Option Name="TopModule" Val="divider"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
-    <FileSet Name="ultrasound_cnt_clk_gen" Type="BlockSrcs" RelSrcDir="$PSRCDIR/ultrasound_cnt_clk_gen">
-      <File Path="$PSRCDIR/sources_1/ip/ultrasound_cnt_clk_gen/ultrasound_cnt_clk_gen.xci">
+    <FileSet Name="sqrt_40" Type="BlockSrcs" RelSrcDir="$PSRCDIR/sqrt_40">
+      <File Path="$PSRCDIR/sources_1/ip/sqrt_40/sqrt_40.xci">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -470,7 +457,7 @@
         </FileInfo>
       </File>
       <Config>
-        <Option Name="TopModule" Val="ultrasound_cnt_clk_gen"/>
+        <Option Name="TopModule" Val="sqrt_40"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
@@ -504,16 +491,16 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="synth_2" Type="Ft3:Synth" SrcSet="sources_1" Part="xc7a200tfbg676-2" ConstrsSet="constrs_1" Description="Higher performance designs, resource sharing is turned off, the global fanout guide is set to a lower number, FSM extraction forced to one-hot, LUT combining is disabled, equivalent registers are preserved, SRL are inferred  with a larger threshold" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" State="current" Dir="$PRUNDIR/synth_2" IncludeInArchive="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/synth_2">
+    <Run Id="synth_2" Type="Ft3:Synth" SrcSet="sources_1" Part="xc7a200tfbg676-2" ConstrsSet="constrs_1" Description="Higher performance designs, resource sharing is turned off, the global fanout guide is set to a lower number, FSM extraction forced to one-hot, LUT combining is disabled, equivalent registers are preserved, SRL are inferred  with a larger threshold" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/synth_2" IncludeInArchive="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/synth_2">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Flow_PerfOptimized_high" Flow="Vivado Synthesis 2020"/>
         <Step Id="synth_design">
           <Option Id="ResourceSharing">2</Option>
+          <Option Id="ShregMinSize">5</Option>
           <Option Id="KeepEquivalentRegisters">1</Option>
           <Option Id="FsmExtraction">1</Option>
-          <Option Id="Directive">7</Option>
           <Option Id="NoCombineLuts">1</Option>
-          <Option Id="ShregMinSize">5</Option>
+          <Option Id="Directive">7</Option>
         </Step>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -541,43 +528,13 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="divider64_synth_1" Type="Ft3:Synth" SrcSet="divider64" Part="xc7a200tfbg676-2" ConstrsSet="divider64" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/divider64_synth_1" IncludeInArchive="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/divider64_synth_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2020"/>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2020"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="divider_synth_1" Type="Ft3:Synth" SrcSet="divider" Part="xc7a200tfbg676-2" ConstrsSet="divider" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/divider_synth_1" IncludeInArchive="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/divider_synth_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2020"/>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2020"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="synth_3" Type="Ft3:Synth" SrcSet="sources_1" Part="xc7a200tfbg676-2" ConstrsSet="constrs_1" Description="Performs general area optimizations including changing the threshold for control set optimizations, forcing ternary adder implementation, applying lower thresholds for use of carry chain in comparators and also area optimized mux optimizations." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/synth_3" IncludeInArchive="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/synth_3">
+    <Run Id="synth_3" Type="Ft3:Synth" SrcSet="sources_1" Part="xc7a200tfbg676-2" ConstrsSet="constrs_1" Description="Performs general area optimizations including changing the threshold for control set optimizations, forcing ternary adder implementation, applying lower thresholds for use of carry chain in comparators and also area optimized mux optimizations." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" State="current" Dir="$PRUNDIR/synth_3" IncludeInArchive="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/synth_3">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Flow_AreaOptimized_high" Flow="Vivado Synthesis 2020"/>
         <Step Id="synth_design">
           <Option Id="ControlSetOptThreshold">1</Option>
           <Option Id="Directive">1</Option>
         </Step>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2020"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="mult8x8_synth_1" Type="Ft3:Synth" SrcSet="mult8x8" Part="xc7a200tfbg676-2" ConstrsSet="mult8x8" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/mult8x8_synth_1" IncludeInArchive="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/mult8x8_synth_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2020"/>
-        <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
       <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2020"/>
@@ -624,6 +581,16 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
+    <Run Id="ultrasound_cnt_clk_gen_synth_1" Type="Ft3:Synth" SrcSet="ultrasound_cnt_clk_gen" Part="xc7a200tfbg676-2" ConstrsSet="ultrasound_cnt_clk_gen" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/ultrasound_cnt_clk_gen_synth_1" IncludeInArchive="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/ultrasound_cnt_clk_gen_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2020"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2020"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
     <Run Id="dist_mem_delay_synth_1" Type="Ft3:Synth" SrcSet="dist_mem_delay" Part="xc7a200tfbg676-2" ConstrsSet="dist_mem_delay" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/dist_mem_delay_synth_1" IncludeInArchive="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/dist_mem_delay_synth_1">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2020"/>
@@ -634,9 +601,23 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="sqrt_40_synth_1" Type="Ft3:Synth" SrcSet="sqrt_40" Part="xc7a200tfbg676-2" ConstrsSet="sqrt_40" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/sqrt_40_synth_1" IncludeInArchive="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/sqrt_40_synth_1">
+    <Run Id="divider64_synth_1" Type="Ft3:Synth" SrcSet="divider64" Part="xc7a200tfbg676-2" ConstrsSet="divider64" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/divider64_synth_1" IncludeInArchive="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/divider64_synth_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2020"/>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2020">
+          <Desc>Vivado Synthesis Defaults</Desc>
+        </StratHandle>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2020"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="mult8x8_synth_1" Type="Ft3:Synth" SrcSet="mult8x8" Part="xc7a200tfbg676-2" ConstrsSet="mult8x8" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/mult8x8_synth_1" IncludeInArchive="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/mult8x8_synth_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2020">
+          <Desc>Vivado Synthesis Defaults</Desc>
+        </StratHandle>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -646,7 +627,9 @@
     </Run>
     <Run Id="mult_19_synth_1" Type="Ft3:Synth" SrcSet="mult_19" Part="xc7a200tfbg676-2" ConstrsSet="mult_19" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/mult_19_synth_1" IncludeInArchive="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/mult_19_synth_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2020"/>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2020">
+          <Desc>Vivado Synthesis Defaults</Desc>
+        </StratHandle>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -654,9 +637,11 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="divider24_synth_1" Type="Ft3:Synth" SrcSet="divider24" Part="xc7a200tfbg676-2" ConstrsSet="divider24" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/divider24_synth_1" IncludeInArchive="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/divider24_synth_1">
+    <Run Id="divider_synth_1" Type="Ft3:Synth" SrcSet="divider" Part="xc7a200tfbg676-2" ConstrsSet="divider" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/divider_synth_1" IncludeInArchive="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/divider_synth_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2020"/>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2020">
+          <Desc>Vivado Synthesis Defaults</Desc>
+        </StratHandle>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -664,7 +649,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="ultrasound_cnt_clk_gen_synth_1" Type="Ft3:Synth" SrcSet="ultrasound_cnt_clk_gen" Part="xc7a200tfbg676-2" ConstrsSet="ultrasound_cnt_clk_gen" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/ultrasound_cnt_clk_gen_synth_1" IncludeInArchive="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/ultrasound_cnt_clk_gen_synth_1">
+    <Run Id="sqrt_40_synth_1" Type="Ft3:Synth" SrcSet="sqrt_40" Part="xc7a200tfbg676-2" ConstrsSet="sqrt_40" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/sqrt_40_synth_1" IncludeInArchive="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/sqrt_40_synth_1">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2020">
           <Desc>Vivado Synthesis Defaults</Desc>
@@ -694,7 +679,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="impl_2" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="constrs_1" Description="Similar to Performance_ExplorePostRoutePhysOpt, but enables logic optimization step (opt_design) with the ExploreWithRemap directive." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" State="current" Dir="$PRUNDIR/impl_2" SynthRun="synth_2" IncludeInArchive="true" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/impl_2">
+    <Run Id="impl_2" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="constrs_1" Description="Similar to Performance_ExplorePostRoutePhysOpt, but enables logic optimization step (opt_design) with the ExploreWithRemap directive." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/impl_2" SynthRun="synth_2" IncludeInArchive="true" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/impl_2">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Performance_ExploreWithRemap" Flow="Vivado Implementation 2020"/>
         <Step Id="init_design"/>
@@ -757,41 +742,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="divider64_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="divider64" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="divider64_synth_1" IncludeInArchive="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/divider64_impl_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2020"/>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2020"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="divider_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="divider" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="divider_synth_1" IncludeInArchive="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/divider_impl_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2020"/>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2020"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="impl_3" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="constrs_1" Description="Adds the remap optimization to reduce logic" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/impl_3" SynthRun="synth_3" IncludeInArchive="true" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/impl_3">
+    <Run Id="impl_3" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="constrs_1" Description="Adds the remap optimization to reduce logic" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" State="current" Dir="$PRUNDIR/impl_3" SynthRun="synth_3" IncludeInArchive="true" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/impl_3">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Area_ExploreWithRemap" Flow="Vivado Implementation 2020"/>
         <Step Id="init_design"/>
@@ -807,23 +758,6 @@
         <Step Id="write_bitstream"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2020"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="mult8x8_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="mult8x8" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="mult8x8_synth_1" IncludeInArchive="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/mult8x8_impl_1">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2020"/>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
       <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2020"/>
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
@@ -896,6 +830,23 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
+    <Run Id="ultrasound_cnt_clk_gen_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="ultrasound_cnt_clk_gen" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="ultrasound_cnt_clk_gen_synth_1" IncludeInArchive="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/ultrasound_cnt_clk_gen_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2020"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2020"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
     <Run Id="dist_mem_delay_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="dist_mem_delay" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="dist_mem_delay_synth_1" IncludeInArchive="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/dist_mem_delay_impl_1">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2020"/>
@@ -913,9 +864,30 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="sqrt_40_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="sqrt_40" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="sqrt_40_synth_1" IncludeInArchive="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/sqrt_40_impl_1">
+    <Run Id="divider64_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="divider64" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="divider64_synth_1" IncludeInArchive="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/divider64_impl_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2020"/>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2020">
+          <Desc>Default settings for Implementation.</Desc>
+        </StratHandle>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2020"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="mult8x8_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="mult8x8" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="mult8x8_synth_1" IncludeInArchive="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/mult8x8_impl_1">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2020">
+          <Desc>Default settings for Implementation.</Desc>
+        </StratHandle>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -932,7 +904,9 @@
     </Run>
     <Run Id="mult_19_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="mult_19" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="mult_19_synth_1" IncludeInArchive="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/mult_19_impl_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2020"/>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2020">
+          <Desc>Default settings for Implementation.</Desc>
+        </StratHandle>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -947,9 +921,11 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="divider24_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="divider24" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="divider24_synth_1" IncludeInArchive="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/divider24_impl_1">
+    <Run Id="divider_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="divider" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="divider_synth_1" IncludeInArchive="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/divider_impl_1">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2020"/>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2020">
+          <Desc>Default settings for Implementation.</Desc>
+        </StratHandle>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -964,7 +940,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="ultrasound_cnt_clk_gen_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="ultrasound_cnt_clk_gen" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="ultrasound_cnt_clk_gen_synth_1" IncludeInArchive="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/ultrasound_cnt_clk_gen_impl_1">
+    <Run Id="sqrt_40_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="sqrt_40" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="sqrt_40_synth_1" IncludeInArchive="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/sqrt_40_impl_1">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2020">
           <Desc>Default settings for Implementation.</Desc>

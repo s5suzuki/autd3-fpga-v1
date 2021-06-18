@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 13/05/2021
+ * Last Modified: 18/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -14,8 +14,7 @@
 `timescale 1ns / 1ps
 module sim_pwm_generator();
 
-
-localparam int ULTRASOUND_CNT_CYCLE = 510;
+localparam int ULTRASOUND_CNT_CYCLE = 512;
 
 logic MRCC_25P6M;
 logic RST;
@@ -36,9 +35,7 @@ ultrasound_cnt_clk_gen ultrasound_cnt_clk_gen(
                            .clk_out2()
                        );
 
-pwm_generator #(
-                  .CYCLE(ULTRASOUND_CNT_CYCLE)
-              ) pwm_generator(
+pwm_generator pwm_generator(
                   .TIME(time_cnt),
                   .DUTY(duty),
                   .PHASE(phase),

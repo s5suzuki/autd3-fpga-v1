@@ -13,28 +13,26 @@
 
 
 `timescale 1ns / 1ps
-module pwm_generator#(
-           parameter [9:0] CYCLE = 510
-       )(
+module pwm_generator(
            input var [8:0] TIME,
            input var [7:0] DUTY,
            input var [7:0] PHASE,
            output var PWM_OUT
        );
 
-assign PWM_OUT = pwm({1'b0, TIME}, {2'b00, DUTY}, {1'b0, PHASE, 1'b0});
+assign PWM_OUT = pwm(TIME, {1'b0, DUTY} + 10'd1, {PHASE, 1'b0});
 
 function automatic pwm;
-    input [9:0] time_t;
-    input [9:0] duty;
-    input [9:0] phase;
-    logic [9:0] dl = {1'b0, duty[9:1]};
-    logic [9:0] dr = {1'b0, duty[9:1]} + duty[0];
-    logic pwm1 = phase <= time_t + dl;
-    logic pwm1o = phase + CYCLE <= time_t + dl;
-    logic pwm2 = time_t < phase + dr;
-    logic pwm2o = time_t + CYCLE < dr + phase;
-    pwm = ((phase < dl) & (pwm1o | pwm2)) | ((phase + dr > CYCLE) & (pwm1 | pwm2o)) | (pwm1 & pwm2);
+    input [8:0] time_t;
+    input [8:0] duty;
+    input [8:0] phase;
+    logic [8:0] dl = {1'b0, duty[8:1]};
+    logic [8:0] dr = {1'b0, duty[8:1]} + duty[0];
+    logic pwm1 = {1'b0, phase} <= {1'b0, time_t} + {1'b0, dl};
+    logic pwm1o = {1'b1, phase[8:0]} <= {1'b0, time_t} + {1'b0, dl};
+    logic pwm2 = {1'b0, time_t} < {1'b0, phase} + {1'b0, dr};
+    logic pwm2o = {1'b1, time_t[8:0]} < {1'b0, phase} + {1'b0, dr};
+    pwm = ((phase < dl) & (pwm1o | pwm2)) | (({1'b0, phase} + {1'b0, dr} > 10'h200) & (pwm1 | pwm2o)) | (pwm1 & pwm2);
 endfunction
 
 endmodule

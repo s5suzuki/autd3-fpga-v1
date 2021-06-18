@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 17/06/2021
+ * Last Modified: 18/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -15,7 +15,7 @@
 
 module tr_cntroller#(
            parameter int TRANS_NUM = 249,
-           parameter int ULTRASOUND_CNT_CYCLE = 510,
+           parameter int ULTRASOUND_CNT_CYCLE = 512,
            parameter int DELAY_DEPTH = 8
        )
        (
@@ -30,12 +30,14 @@ module tr_cntroller#(
            input var SEQ_MODE,
            input var [15:0] SEQ_IDX,
            input var [15:0] WAVELENGTH_UM,
-           output var [252:1] XDCR_OUT
+           output var [252:1] XDCR_OUT,
+           input var [255:0] OUTPUT_EN
        );
 
 logic [7:0] seq_duty;
 logic [7:0] seq_phase[0:TRANS_NUM-1];
 
+logic output_en[0:TRANS_NUM-1];
 logic [DELAY_DEPTH-1:0] delay[0:TRANS_NUM-1];
 
 logic [7:0] tr_buf_write_idx;
@@ -52,9 +54,9 @@ enum logic [2:0] {
          DUTY_PHASE_WAIT_0,
          DUTY_PHASE_WAIT_1,
          DUTY_PHASE,
-         DELAY_WAIT_0,
-         DELAY_WAIT_1,
-         DELAY
+         DELAY_EN_WAIT_0,
+         DELAY_EN_WAIT_1,
+         DELAY_EN
      } tr_state = IDLE;
 
 logic update;
@@ -93,23 +95,24 @@ always_ff @(posedge CLK) begin
             phase_buf[tr_buf_write_idx] <= tr_bram_dataout[7:0];
             if (tr_buf_write_idx == TRANS_NUM - 1) begin
                 tr_bram_idx <= 9'h100;
-                tr_state <= DELAY_WAIT_0;
+                tr_state <= DELAY_EN_WAIT_0;
             end
             else begin
                 tr_bram_idx <= tr_bram_idx + 1;
                 tr_buf_write_idx <= tr_buf_write_idx + 1;
             end
         end
-        DELAY_WAIT_0: begin
+        DELAY_EN_WAIT_0: begin
             tr_bram_idx <= tr_bram_idx + 1;
-            tr_state <= DELAY_WAIT_1;
+            tr_state <= DELAY_EN_WAIT_1;
         end
-        DELAY_WAIT_1: begin
+        DELAY_EN_WAIT_1: begin
             tr_bram_idx <= tr_bram_idx + 1;
             tr_buf_write_idx <= 0;
-            tr_state <= DELAY;
+            tr_state <= DELAY_EN;
         end
-        DELAY: begin
+        DELAY_EN: begin
+            output_en[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH];
             delay[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH-1:0];
             if (tr_buf_write_idx == TRANS_NUM - 1) begin
                 tr_state <= IDLE;
@@ -130,9 +133,11 @@ generate begin:TRANSDUCERS_GEN
         genvar ii;
         for(ii = 0; ii < TRANS_NUM; ii++) begin
             logic [7:0] duty, phase;
+            logic pwm_out;
+            logic [16:0] duty_modulated;
             assign duty = SEQ_MODE ? seq_duty : duty_buf[ii];
             assign phase = SEQ_MODE ? seq_phase[ii] : phase_buf[ii];
-            logic [16:0] duty_modulated;
+            assign XDCR_OUT[cvt_uid(ii) + 1] = pwm_out & output_en[ii];
             mult8x8 mod_mult(
                         .CLK(CLK),
                         .A(duty),
@@ -151,7 +156,7 @@ generate begin:TRANSDUCERS_GEN
                           .PHASE(phase),
                           .DELAY(delay[ii]),
                           .SILENT(SILENT),
-                          .PWM_OUT(XDCR_OUT[cvt_uid(ii) + 1])
+                          .PWM_OUT(pwm_out)
                       );
         end
     end
