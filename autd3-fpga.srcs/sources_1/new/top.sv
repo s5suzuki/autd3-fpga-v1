@@ -4,7 +4,7 @@
  * Created Date: 27/03/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 15/06/2021
+ * Last Modified: 16/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -28,8 +28,8 @@ module top(
            output var FORCE_FAN,
            input var THERMO,
            output var [252:1] XDCR_OUT,
-           input var [3:0]GPIO_IN,
-           output var [3:0]GPIO_OUT
+           input var [3:0] GPIO_IN,
+           output var [3:0] GPIO_OUT
        );
 
 localparam int TRANS_NUM = 249;
@@ -37,6 +37,8 @@ localparam int SYS_CLK_FREQ = 20400000;
 localparam int ULTRASOUND_FREQ = 40000;
 localparam int SYNC0_FREQ = 2000;
 localparam int ULTRASOUND_CNT_CYCLE = SYS_CLK_FREQ/ULTRASOUND_FREQ;
+
+localparam int DELAY_DEPTH = 8;
 
 logic sys_clk;
 logic reset;
@@ -51,7 +53,7 @@ logic [8:0] time_cnt;
 logic [15:0] mod_clk_cycle;
 logic [15:0] mod_clk_div;
 logic [63:0] mod_clk_sync_time;
-logic [14:0] mod_idx;
+logic [15:0] mod_idx;
 logic [7:0] mod;
 
 logic [15:0] seq_clk_cycle;
@@ -96,7 +98,6 @@ mem_manager mem_manager(
 
 config_manager config_manager(
                    .CLK(sys_clk),
-                   .RST(reset),
                    .CONFIG_BUS(config_bus.slave_port),
                    .SYNC(sync0_edge),
                    .MOD_CLK_INIT(mod_clk_init),
@@ -120,7 +121,6 @@ synchronizer#(
                 .SYNC0_FREQ(SYNC0_FREQ)
             ) synchronizer(
                 .CLK(sys_clk),
-                .RST(reset),
                 .SYNC(sync0_edge),
                 .MOD_CLK_INIT(mod_clk_init),
                 .MOD_CLK_CYCLE(mod_clk_cycle),
@@ -131,18 +131,20 @@ synchronizer#(
                 .SEQ_CLK_DIV(seq_clk_div),
                 .SEQ_CLK_SYNC_TIME_NS(seq_clk_sync_time),
                 .TIME(time_cnt),
+                .UPDATE(update),
                 .MOD_IDX(mod_idx),
                 .SEQ_IDX(seq_idx)
             );
 
 tr_cntroller#(
                 .TRANS_NUM(TRANS_NUM),
-                .ULTRASOUND_CNT_CYCLE(ULTRASOUND_CNT_CYCLE)
+                .ULTRASOUND_CNT_CYCLE(ULTRASOUND_CNT_CYCLE),
+                .DELAY_DEPTH(DELAY_DEPTH)
             ) tr_cntroller(
                 .CLK(sys_clk),
-                .RST(reset),
                 .CLK_LPF(lpf_clk),
                 .TIME(time_cnt),
+                .UPDATE(update),
                 .TR_BUS(tr_bus.slave_port),
                 .MOD(mod),
                 .SILENT(silent),

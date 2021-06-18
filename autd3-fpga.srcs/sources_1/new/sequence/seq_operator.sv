@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 20/05/2021
+ * Last Modified: 15/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -18,11 +18,10 @@ module seq_operator#(
            parameter TRANS_NUM = 249
        )(
            input var CLK,
-           input var RST,
            seq_bus_if.slave_port SEQ_BUS,
            input var [15:0] SEQ_IDX,
            input var [15:0] WAVELENGTH_UM,
-           output var [7:0] DUTY[0:TRANS_NUM-1],
+           output var [7:0] DUTY,
            output var [7:0] PHASE[0:TRANS_NUM-1]
        );
 
@@ -36,14 +35,14 @@ localparam int MULT_DIVIDER_LATENCY = 4 + 28;
 logic [$clog2(MULT_DIVIDER_LATENCY)-1:0] wait_cnt;
 
 logic fc_trig;
-logic signed [23:0] focus_x, focus_y, focus_z;
+logic signed [17:0] focus_x, focus_y, focus_z;
 logic [31:0] trans_x, trans_y;
 logic [7:0] phase_out;
 logic phase_out_valid;
 
-logic [15:0] seq_idx;
-logic [15:0] seq_idx_old;
-logic [79:0] data_out;
+logic [15:0] seq_idx = 16'd0;
+logic [15:0] seq_idx_old = 16'd0;
+logic [61:0] data_out;
 logic idx_change;
 
 logic [7:0] duty;
@@ -60,11 +59,11 @@ enum logic [1:0] {
          WAIT,
          DIV_WAIT,
          FC_DATA_IN_STREAM
-     } state_calc;
+     } state_calc = WAIT;
 
 assign idx_change = (seq_idx != seq_idx_old);
 
-assign DUTY = '{TRANS_NUM{duty}};
+assign DUTY = duty;
 assign PHASE = phase;
 
 assign SEQ_BUS.IDX = SEQ_IDX;
@@ -107,14 +106,13 @@ divider div_y(
 
 focus_calculator focus_calculator(
                      .CLK(CLK),
-                     .RST(RST),
                      .DVALID_IN(fc_trig),
                      .FOCUS_X(focus_x),
                      .FOCUS_Y(focus_y),
                      .FOCUS_Z(focus_z),
-                     .TRANS_X(trans_x[23:0]),
-                     .TRANS_Y(trans_y[23:0]),
-                     .TRANS_Z(24'sd0),
+                     .TRANS_X(trans_x[17:0]),
+                     .TRANS_Y(trans_y[17:0]),
+                     .TRANS_Z(18'sd0),
                      .PHASE(phase_out),
                      .PHASE_CALC_DONE(phase_out_valid)
                  );
@@ -125,38 +123,33 @@ always_ff @(posedge CLK) begin
 end
 
 always_ff @(posedge CLK) begin
-    if (RST) begin
-        state_calc <= WAIT;
-    end
-    else begin
-        case(state_calc)
-            WAIT: begin
+    case(state_calc)
+        WAIT: begin
+            fc_trig <= 0;
+            tr_cnt <= 0;
+            wait_cnt <= 0;
+            state_calc <= idx_change ? DIV_WAIT : WAIT;
+        end
+        DIV_WAIT: begin
+            tr_cnt <= tr_cnt + 1;
+            wait_cnt <= wait_cnt + 1;
+            if (wait_cnt == MULT_DIVIDER_LATENCY - 1) begin
+                focus_x <= data_out[17:0];
+                focus_y <= data_out[35:18];
+                focus_z <= data_out[53:36];
+                duty <= data_out[61:54];
+                fc_trig <= 1'b1;
+                state_calc <= FC_DATA_IN_STREAM;
+            end
+        end
+        FC_DATA_IN_STREAM: begin
+            tr_cnt <= tr_cnt + 1;
+            if (tr_cnt == TRANS_NUM + MULT_DIVIDER_LATENCY - 1) begin
+                state_calc <= WAIT;
                 fc_trig <= 0;
-                tr_cnt <= 0;
-                wait_cnt <= 0;
-                state_calc <= idx_change ? DIV_WAIT : WAIT;
             end
-            DIV_WAIT: begin
-                tr_cnt <= tr_cnt + 1;
-                wait_cnt <= wait_cnt + 1;
-                if (wait_cnt == MULT_DIVIDER_LATENCY - 1) begin
-                    focus_x <= data_out[23:0];
-                    focus_y <= data_out[47:24];
-                    focus_z <= data_out[71:48];
-                    duty <= data_out[79:72];
-                    fc_trig <= 1'b1;
-                    state_calc <= FC_DATA_IN_STREAM;
-                end
-            end
-            FC_DATA_IN_STREAM: begin
-                tr_cnt <= tr_cnt + 1;
-                if (tr_cnt == TRANS_NUM + MULT_DIVIDER_LATENCY - 1) begin
-                    state_calc <= WAIT;
-                    fc_trig <= 0;
-                end
-            end
-        endcase
-    end
+        end
+    endcase
 end
 
 always_ff @(posedge CLK) begin

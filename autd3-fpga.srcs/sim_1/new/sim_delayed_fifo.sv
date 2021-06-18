@@ -4,7 +4,7 @@
  * Created Date: 20/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 20/05/2021
+ * Last Modified: 18/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -31,9 +31,10 @@ logic [7:0] delay;
 logic update;
 assign update = time_cnt == (ULTRASOUND_CNT_CYCLE - 1);
 
+logic pwm, pwm_d;
+
 transducer transducer(
                .CLK(sys_clk),
-               .RST(RST),
                .CLK_LPF(lpf_clk),
                .TIME(time_cnt),
                .UPDATE(update),
@@ -41,21 +42,20 @@ transducer transducer(
                .PHASE(phase),
                .DELAY(8'h0),
                .SILENT(silent),
-               .PWM_OUT()
+               .PWM_OUT(pwm)
            );
 
-// transducer transducer_delay(
-//                .CLK(sys_clk),
-//                .RST(RST),
-//                .CLK_LPF(lpf_clk),
-//                .TIME(time_cnt),
-//                .UPDATE(update),
-//                .DUTY(duty),
-//                .PHASE(phase),
-//                .DELAY(8'd255),
-//                .SILENT(silent),
-//                .PWM_OUT()
-//            );
+transducer transducer_delay(
+               .CLK(sys_clk),
+               .CLK_LPF(lpf_clk),
+               .TIME(time_cnt),
+               .UPDATE(update),
+               .DUTY(duty),
+               .PHASE(phase),
+               .DELAY(8'd1),
+               .SILENT(silent),
+               .PWM_OUT(pwm_d)
+           );
 
 ultrasound_cnt_clk_gen ultrasound_cnt_clk_gen(
                            .clk_in1(MRCC_25P6M),

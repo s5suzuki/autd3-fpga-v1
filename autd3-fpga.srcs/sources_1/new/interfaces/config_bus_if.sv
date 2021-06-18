@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 13/05/2021
+ * Last Modified: 15/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -14,7 +14,7 @@
 interface config_bus_if();
 
 logic WE;
-logic [7:0] IDX;
+logic [5:0] IDX;
 logic [15:0] DATA_IN;
 logic [15:0] DATA_OUT;
 

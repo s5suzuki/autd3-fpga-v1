@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 13/05/2021
+ * Last Modified: 18/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -28,17 +28,13 @@ function automatic pwm;
     input [9:0] time_t;
     input [9:0] duty;
     input [9:0] phase;
-    begin
-        if (phase < (duty>>1)) begin
-            pwm = (phase + CYCLE <= time_t + (duty>>1)) | (time_t < phase + (duty+1>>1));
-        end
-        else if (phase + (duty+1>>1) > CYCLE) begin
-            pwm = (phase <= time_t + (duty>>1)) | (time_t + CYCLE < phase + (duty+1>>1));
-        end
-        else begin
-            pwm = (phase <= time_t + (duty>>1)) & (time_t < phase + (duty+1>>1));
-        end
-    end
+    logic [9:0] dl = {1'b0, duty[9:1]};
+    logic [9:0] dr = {1'b0, duty[9:1]} + duty[0];
+    logic pwm1 = phase <= time_t + dl;
+    logic pwm1o = phase + CYCLE <= time_t + dl;
+    logic pwm2 = time_t < phase + dr;
+    logic pwm2o = time_t + CYCLE < dr + phase;
+    pwm = ((phase < dl) & (pwm1o | pwm2)) | ((phase + dr > CYCLE) & (pwm1 | pwm2o)) | (pwm1 & pwm2);
 endfunction
 
 endmodule
