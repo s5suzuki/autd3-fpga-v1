@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 17/06/2021
+ * Last Modified: 18/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -13,7 +13,7 @@
 
 `timescale 1ns / 1ps
 module synchronizer#(
-           parameter int SYS_CLK_FREQ = 20400000,
+           parameter int SYS_CLK_FREQ = 20480000,
            parameter int ULTRASOUND_FREQ = 40000,
            parameter int SYNC0_FREQ = 2000,
            localparam int ULTRASOUND_CNT_CYCLE = SYS_CLK_FREQ/ULTRASOUND_FREQ,
@@ -42,7 +42,7 @@ assign TIME = time_cnt_for_ultrasound;
 assign UPDATE = SYNC | (time_cnt_for_ultrasound == ULTRASOUND_CNT_CYCLE - 1);
 
 always_ff @(posedge CLK)
-    time_cnt_for_ultrasound <= (SYNC | (time_cnt_for_ultrasound == ULTRASOUND_CNT_CYCLE - 1)) ? 0 : time_cnt_for_ultrasound + 1;
+    time_cnt_for_ultrasound <= SYNC ? 0 : time_cnt_for_ultrasound + 1;
 
 ///////////////////////////////// Reference Clock /////////////////////////////////////////
 localparam int REF_CLK_FREQ = ULTRASOUND_FREQ;

@@ -13,7 +13,7 @@
 
 `timescale 1ns / 1ps
 module transducer#(
-           parameter int ULTRASOUND_CNT_CYCLE = 510,
+           parameter int ULTRASOUND_CNT_CYCLE = 512,
            parameter int DELAY_DEPTH = 8
        )(
            input var CLK,
