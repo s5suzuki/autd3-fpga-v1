@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 18/06/2021
+ * Last Modified: 19/06/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -37,8 +37,9 @@ module tr_cntroller#(
 logic [7:0] seq_duty;
 logic [7:0] seq_phase[0:TRANS_NUM-1];
 
-logic output_en[0:TRANS_NUM-1];
+logic output_en[0:TRANS_NUM];
 logic [DELAY_DEPTH-1:0] delay[0:TRANS_NUM-1];
+logic global_en;
 
 logic [7:0] tr_buf_write_idx;
 logic [8:0] tr_bram_idx;
@@ -48,6 +49,7 @@ logic [7:0] phase_buf[0:TRANS_NUM-1];
 
 assign TR_BUS.IDX = tr_bram_idx;
 assign tr_bram_dataout = TR_BUS.DATA_OUT;
+assign global_en = output_en[TRANS_NUM];
 
 enum logic [2:0] {
          IDLE,
@@ -112,12 +114,13 @@ always_ff @(posedge CLK) begin
             tr_state <= DELAY_EN;
         end
         DELAY_EN: begin
-            output_en[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH];
-            delay[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH-1:0];
-            if (tr_buf_write_idx == TRANS_NUM - 1) begin
+            if (tr_buf_write_idx == TRANS_NUM) begin
+                output_en[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH];
                 tr_state <= IDLE;
             end
             else begin
+                output_en[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH];
+                delay[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH-1:0];
                 tr_bram_idx <= tr_bram_idx + 1;
                 tr_buf_write_idx <= tr_buf_write_idx + 1;
             end
@@ -137,7 +140,7 @@ generate begin:TRANSDUCERS_GEN
             logic [16:0] duty_modulated;
             assign duty = SEQ_MODE ? seq_duty : duty_buf[ii];
             assign phase = SEQ_MODE ? seq_phase[ii] : phase_buf[ii];
-            assign XDCR_OUT[cvt_uid(ii) + 1] = pwm_out & output_en[ii];
+            assign XDCR_OUT[cvt_uid(ii) + 1] = pwm_out & output_en[ii] & global_en;
             mult8x8 mod_mult(
                         .CLK(CLK),
                         .A(duty),
