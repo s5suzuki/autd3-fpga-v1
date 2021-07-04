@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 18/06/2021
+ * Last Modified: 04/07/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -21,6 +21,7 @@ module transducer#(
            input var [8:0] TIME,
            input var UPDATE,
            input var [7:0] DUTY,
+           input var DUTY_OFFSET,
            input var [7:0] PHASE,
            input var [DELAY_DEPTH-1:0] DELAY,
            input var SILENT,
@@ -55,6 +56,7 @@ delayed_fifo #(
 pwm_generator pwm_generator(
                   .TIME(TIME),
                   .DUTY(dutyd),
+                  .DUTY_OFFSET(DUTY_OFFSET),
                   .PHASE(phase),
                   .PWM_OUT(PWM_OUT)
               );
