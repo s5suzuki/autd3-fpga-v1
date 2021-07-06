@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 19/06/2021
+ * Last Modified: 04/07/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -37,9 +37,9 @@ module tr_cntroller#(
 logic [7:0] seq_duty;
 logic [7:0] seq_phase[0:TRANS_NUM-1];
 
-logic output_en[0:TRANS_NUM];
+logic output_en;
+logic duty_offset[0:TRANS_NUM-1];
 logic [DELAY_DEPTH-1:0] delay[0:TRANS_NUM-1];
-logic global_en;
 
 logic [7:0] tr_buf_write_idx;
 logic [8:0] tr_bram_idx;
@@ -49,7 +49,6 @@ logic [7:0] phase_buf[0:TRANS_NUM-1];
 
 assign TR_BUS.IDX = tr_bram_idx;
 assign tr_bram_dataout = TR_BUS.DATA_OUT;
-assign global_en = output_en[TRANS_NUM];
 
 enum logic [2:0] {
          IDLE,
@@ -115,11 +114,11 @@ always_ff @(posedge CLK) begin
         end
         DELAY_EN: begin
             if (tr_buf_write_idx == TRANS_NUM) begin
-                output_en[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH];
+                output_en <= tr_bram_dataout[DELAY_DEPTH];
                 tr_state <= IDLE;
             end
             else begin
-                output_en[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH];
+                duty_offset[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH];
                 delay[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH-1:0];
                 tr_bram_idx <= tr_bram_idx + 1;
                 tr_buf_write_idx <= tr_buf_write_idx + 1;
@@ -140,7 +139,7 @@ generate begin:TRANSDUCERS_GEN
             logic [16:0] duty_modulated;
             assign duty = SEQ_MODE ? seq_duty : duty_buf[ii];
             assign phase = SEQ_MODE ? seq_phase[ii] : phase_buf[ii];
-            assign XDCR_OUT[cvt_uid(ii) + 1] = pwm_out & output_en[ii] & global_en;
+            assign XDCR_OUT[cvt_uid(ii) + 1] = pwm_out & output_en;
             mult8x8 mod_mult(
                         .CLK(CLK),
                         .A(duty),
@@ -156,6 +155,7 @@ generate begin:TRANSDUCERS_GEN
                           .TIME(TIME),
                           .UPDATE(update),
                           .DUTY(duty_modulated[15:8]),
+                          .DUTY_OFFSET(duty_offset[ii]),
                           .PHASE(phase),
                           .DELAY(delay[ii]),
                           .SILENT(SILENT),

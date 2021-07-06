@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 18/06/2021
+ * Last Modified: 04/07/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -16,11 +16,12 @@
 module pwm_generator(
            input var [8:0] TIME,
            input var [7:0] DUTY,
+           input var DUTY_OFFSET,
            input var [7:0] PHASE,
            output var PWM_OUT
        );
 
-assign PWM_OUT = pwm(TIME, {1'b0, DUTY} + 10'd1, {PHASE, 1'b0});
+assign PWM_OUT = pwm(TIME, {1'b0, DUTY} + DUTY_OFFSET, {PHASE, 1'b0});
 
 function automatic pwm;
     input [8:0] time_t;
