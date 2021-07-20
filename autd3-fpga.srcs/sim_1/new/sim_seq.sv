@@ -79,7 +79,7 @@ synchronizer synchronizer
                  .SEQ_CLK_INIT(seq_clk_init),
                  .MOD_CLK_INIT(),
                  .SEQ_CLK_CYCLE(2),
-                 .SEQ_CLK_DIV(1),
+                 .SEQ_CLK_DIV(10),
                  .MOD_CLK_CYCLE(),
                  .MOD_CLK_DIV(),
                  .SEQ_CLK_SYNC_TIME_NS(seq_clk_sync_time),

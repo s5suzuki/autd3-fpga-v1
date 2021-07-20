@@ -212,7 +212,7 @@ always_ff @(posedge CLK) begin
         end
     end
     else begin
-        raw_buf_mode_offset <= raw_buf_mode_offset == (TRANS_NUM >> 2) ? raw_buf_mode_offset : raw_buf_mode_offset + 1;
+        raw_buf_mode_offset <= raw_buf_mode_offset == (TRANS_NUM >> 2) - 1 ? raw_buf_mode_offset : raw_buf_mode_offset + 1;
     end
 end
 ////////////////////////////////// Sequence Clock /////////////////////////////////////////
