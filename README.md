@@ -102,7 +102,7 @@ The code is written in SystemVerilog with Vivado 2021.1.
 | 　          | ︙                | ︙                                                                                   | ︙  |
 | 　          | 0xFFFF            | 63:62 = unused<br>61:54 = duty[65535]<br>53:36 = z[65535]<br>35:18 = y[65535]<br>17:0 = x[65535] | R   |
 
-* Each position is represented by an 18-bit signed fixed-point number with a unit of λ/255.
+* Each position is represented by an 18-bit signed fixed-point number with a unit of λ/256.
 
 # Author
 

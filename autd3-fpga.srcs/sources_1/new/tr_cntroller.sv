@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 04/07/2021
+ * Last Modified: 20/07/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -30,11 +30,12 @@ module tr_cntroller#(
            input var SEQ_MODE,
            input var [15:0] SEQ_IDX,
            input var [15:0] WAVELENGTH_UM,
+           input var SEQ_DATA_MODE,
            output var [252:1] XDCR_OUT,
            input var [255:0] OUTPUT_EN
        );
 
-logic [7:0] seq_duty;
+logic [7:0] seq_duty[0:TRANS_NUM-1];
 logic [7:0] seq_phase[0:TRANS_NUM-1];
 
 logic output_en;
@@ -70,6 +71,7 @@ seq_operator#(
                 .SEQ_BUS(SEQ_BUS),
                 .SEQ_IDX(SEQ_IDX),
                 .WAVELENGTH_UM(WAVELENGTH_UM),
+                .SEQ_DATA_MODE(SEQ_DATA_MODE),
                 .DUTY(seq_duty),
                 .PHASE(seq_phase)
             );
@@ -137,7 +139,7 @@ generate begin:TRANSDUCERS_GEN
             logic [7:0] duty, phase;
             logic pwm_out;
             logic [16:0] duty_modulated;
-            assign duty = SEQ_MODE ? seq_duty : duty_buf[ii];
+            assign duty = SEQ_MODE ? seq_duty[ii] : duty_buf[ii];
             assign phase = SEQ_MODE ? seq_phase[ii] : phase_buf[ii];
             assign XDCR_OUT[cvt_uid(ii) + 1] = pwm_out & output_en;
             mult8x8 mod_mult(

@@ -4,7 +4,7 @@
  * Created Date: 27/03/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 04/07/2021
+ * Last Modified: 20/07/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -109,6 +109,7 @@ config_manager config_manager(
                    .SEQ_CLK_DIV(seq_clk_div),
                    .SEQ_CLK_SYNC_TIME_NS(seq_clk_sync_time),
                    .WAVELENGTH_UM(wavelength),
+                   .SEQ_DATA_MODE(seq_data_mode),
                    .SEQ_MODE(seq_mode),
                    .SILENT(silent),
                    .FORCE_FAN(FORCE_FAN),
@@ -116,6 +117,7 @@ config_manager config_manager(
                );
 
 synchronizer#(
+                .TRANS_NUM(TRANS_NUM),
                 .SYS_CLK_FREQ(SYS_CLK_FREQ),
                 .ULTRASOUND_FREQ(ULTRASOUND_FREQ),
                 .SYNC0_FREQ(SYNC0_FREQ)
@@ -130,6 +132,7 @@ synchronizer#(
                 .SEQ_CLK_CYCLE(seq_clk_cycle),
                 .SEQ_CLK_DIV(seq_clk_div),
                 .SEQ_CLK_SYNC_TIME_NS(seq_clk_sync_time),
+                .SEQ_DATA_MODE(seq_data_mode),
                 .TIME(time_cnt),
                 .UPDATE(update),
                 .MOD_IDX(mod_idx),
@@ -152,6 +155,7 @@ tr_cntroller#(
                 .SEQ_MODE(seq_mode),
                 .SEQ_IDX(seq_idx),
                 .WAVELENGTH_UM(wavelength),
+                .SEQ_DATA_MODE(seq_data_mode),
                 .XDCR_OUT(XDCR_OUT)
             );
 
