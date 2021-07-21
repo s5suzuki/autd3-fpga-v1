@@ -1,6 +1,6 @@
 # AUTD3 FPGA firmware
 
-Version: 1.3
+Version: 1.6
 
 This repository contains the FPGA design of [AUTD3](https://hapislab.org/airborne-ultrasound-tactile-display?lang=en).
 
@@ -35,7 +35,7 @@ The code is written in SystemVerilog with Vivado 2021.1.
 
 | BRAM_SELECT | BRAM_ADDR (6bit) | DATA (16 bit)                    | R/W |
 |-------------|------------------|----------------------------------|-----|
-| 0x0         | 0x00             | 7:0 = Control flags<br>15:8 = Clock property | R/W |
+| 0x0         | 0x00             | 7:0 = Control flags<br>8 = Seq data mode (0: foci, 1: duty/phase of all transducers)<br>13:9 = unused<br>14 = Mod clk init<br>15 = Seq clk init | R/W |
 | 　          | 0x01             | 7:0 = FPGA info                         | W   |
 | 　          | 0x02             | Seq cycle                         | R   |
 | 　          | 0x03             | Seq clk division                  | R   |
@@ -63,9 +63,6 @@ The code is written in SystemVerilog with Vivado 2021.1.
     * 3: silent mode
     * 4: force fan
     * 5: seq mode
-* Clock property
-    * 0: modulation clock init
-    * 1: seq clock init
 
 ### Modulation
 
@@ -94,7 +91,7 @@ The code is written in SystemVerilog with Vivado 2021.1.
 | 　          | ︙                | ︙                  | ︙  |
 | 　          | 0x1FF              | unused              | -  |
 
-### Sequence operation
+### Sequence operation (Seq data mode == 0)
 
 | BRAM_SELECT | BRAM_ADDR (16bit) | DATA (64 bit)                                                                       | R/W |
 |-------------|-------------------|--------------------------------------------------------------------------------------|-----|
@@ -102,7 +99,20 @@ The code is written in SystemVerilog with Vivado 2021.1.
 | 　          | ︙                | ︙                                                                                   | ︙  |
 | 　          | 0xFFFF            | 63:62 = unused<br>61:54 = duty[65535]<br>53:36 = z[65535]<br>35:18 = y[65535]<br>17:0 = x[65535] | R   |
 
-* Each position is represented by an 18-bit signed fixed-point number with a unit of λ/255.
+* Each position is represented by an 18-bit signed fixed-point number with a unit of λ/256.
+
+### Sequence operation (Seq data mode == 1)
+
+| BRAM_SELECT | BRAM_ADDR (16bit) | DATA (64 bit)                                                                       | R/W |
+|-------------|-------------------|--------------------------------------------------------------------------------------|-----|
+| 0x3         | 0x0000            | 15:0 = duty[0][0]/phase[0][0]<br>︙<br>63:48 = duty[0][3]/phase[0][3]                | R   |
+| 　          | ︙                 | ︙                                                                                   | ︙   |  
+|             | 0x003E            | 15:0 = duty[0][248]/phase[0][248]<br>63:16 = unused                                 | ︙   |
+|             | 0x003F            | unused                                                                              | ︙   |
+|             | 0x0040            | 15:0 = duty[1][0]/phase[1][0]<br>︙<br>63:48 = duty[1][3]/phase[1][3]               | ︙   |
+| 　          | ︙                | ︙                                                                                   | ︙   |
+|             | 0xFFFE            | 15:0 = duty[1023][248]/phase[1023][248]<br>63:16 = unused                                 | ︙   |
+|          | 0xFFFF            | unused                                                                                | R   |
 
 # Author
 

@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 15/06/2021
+ * Last Modified: 20/07/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -25,15 +25,14 @@ module config_manager(
            output var [15:0] SEQ_CLK_DIV,
            output var [63:0] SEQ_CLK_SYNC_TIME_NS,
            output var [15:0] WAVELENGTH_UM,
+           output var SEQ_DATA_MODE,
            output var SEQ_MODE,
            output var SILENT,
            output var FORCE_FAN,
            input var THERMO
        );
 
-// CF: Control Flag
-// CP: Clock Properties
-localparam [5:0] BRAM_CF_AND_CP           = 6'h00;
+localparam [5:0] BRAM_CFP           = 6'h00; // CFP: Control Flag and Properties
 localparam [5:0] BRAM_FPGA_INFO           = 6'h01;
 localparam [5:0] BRAM_SEQ_CYCLE           = 6'h02;
 localparam [5:0] BRAM_SEQ_DIV             = 6'h03;
@@ -53,16 +52,17 @@ localparam CF_SILENT    = 3;
 localparam CF_FORCE_FAN = 4;
 localparam CF_SEQ_MODE  = 5;
 
-localparam CP_MOD_INIT_IDX  = 0;
-localparam CP_SEQ_INIT_IDX  = 1;
+localparam P_SEQ_DATA_MODE_IDX = 8;
+localparam P_MOD_INIT_IDX      = 14;
+localparam P_SEQ_INIT_IDX      = 15;
 
 logic [5:0] config_bram_addr;
 logic [15:0] config_bram_din;
 logic [15:0] config_bram_dout;
 logic config_web;
 
+logic [15:0] cfp;
 logic [7:0] ctrl_flags;
-logic [7:0] clk_props;
 logic [7:0] fpga_info;
 
 logic [15:0] mod_clk_cycle;
@@ -74,13 +74,13 @@ logic [63:0] seq_clk_sync_time;
 logic [15:0] wavelength;
 
 enum logic [4:0] {
-         READ_CF_AND_CP,
+         READ_CFP,
          WRITE_FPGA_INFO,
 
-         REQ_CP_CLEAR,
-         REQ_CP_CLEAR_WAIT0,
-         REQ_CP_CLEAR_WAIT1,
-         CP_CLEAR,
+         REQ_CFP_CLEAR,
+         REQ_CFP_CLEAR_WAIT0,
+         REQ_CFP_CLEAR_WAIT1,
+         CFP_CLEAR,
 
          REQ_READ_MOD_CLK_DIV,
          REQ_READ_MOD_CLK_SYNC_TIME_0,
@@ -100,40 +100,41 @@ enum logic [4:0] {
          READ_SEQ_CLK_SYNC_TIME_1,
          READ_SEQ_CLK_SYNC_TIME_2,
          READ_SEQ_CLK_SYNC_TIME_3
-     } state_props = READ_CF_AND_CP;
+     } state_props = READ_CFP;
 
 assign CONFIG_BUS.WE = config_web;
 assign CONFIG_BUS.IDX = config_bram_addr;
 assign CONFIG_BUS.DATA_IN = config_bram_din;
 assign config_bram_dout = CONFIG_BUS.DATA_OUT;
 
+assign ctrl_flags = cfp[7:0];
 assign SILENT = ctrl_flags[CF_SILENT];
 assign SEQ_MODE = ctrl_flags[CF_SEQ_MODE];
 assign FORCE_FAN = ctrl_flags[CF_FORCE_FAN];
 assign fpga_info = {7'd0, THERMO};
 
-assign MOD_CLK_INIT = clk_props[CP_MOD_INIT_IDX];
+assign MOD_CLK_INIT = cfp[P_MOD_INIT_IDX];
 assign MOD_CLK_CYCLE = mod_clk_cycle;
 assign MOD_CLK_DIV = mod_clk_div;
 assign MOD_CLK_SYNC_TIME_NS = mod_clk_sync_time;
-assign SEQ_CLK_INIT = clk_props[CP_SEQ_INIT_IDX];
+assign SEQ_CLK_INIT = cfp[P_SEQ_INIT_IDX];
 assign SEQ_CLK_CYCLE = seq_clk_cycle;
 assign SEQ_CLK_DIV = seq_clk_div;
 assign SEQ_CLK_SYNC_TIME_NS = seq_clk_sync_time;
 assign WAVELENGTH_UM = wavelength;
+assign SEQ_DATA_MODE = cfp[P_SEQ_DATA_MODE_IDX];
 
 always_ff @(posedge CLK) begin
     case(state_props)
-        READ_CF_AND_CP: begin
-            clk_props <= config_bram_dout[15:8];
-            ctrl_flags <= config_bram_dout[7:0];
-            if(clk_props[CP_MOD_INIT_IDX]) begin
+        READ_CFP: begin
+            cfp <= config_bram_dout;
+            if(MOD_CLK_INIT) begin
                 config_web <= 0;
                 config_bram_addr <= BRAM_MOD_CYCLE;
                 config_bram_din <= 0;
                 state_props <= REQ_READ_MOD_CLK_DIV;
             end
-            else if(clk_props[CP_SEQ_INIT_IDX]) begin
+            else if(SEQ_CLK_INIT) begin
                 config_web <= 0;
                 config_bram_addr <= BRAM_SEQ_CYCLE;
                 config_bram_din <= 0;
@@ -149,33 +150,32 @@ always_ff @(posedge CLK) begin
         WRITE_FPGA_INFO: begin
             config_web <= 0;
             config_bram_din <= 0;
-            config_bram_addr <= BRAM_CF_AND_CP;
-            state_props <= READ_CF_AND_CP;
+            config_bram_addr <= BRAM_CFP;
+            state_props <= READ_CFP;
         end
 
-        REQ_CP_CLEAR: begin
+        REQ_CFP_CLEAR: begin
             config_web <= 1;
-            config_bram_addr <= BRAM_CF_AND_CP;
-            config_bram_din <= {8'h00, ctrl_flags};
-            state_props <= REQ_CP_CLEAR_WAIT0;
+            config_bram_addr <= BRAM_CFP;
+            config_bram_din <= {2'h0, cfp[13:0]};
+            state_props <= REQ_CFP_CLEAR_WAIT0;
         end
-        REQ_CP_CLEAR_WAIT0: begin
+        REQ_CFP_CLEAR_WAIT0: begin
             config_web <= 0;
-            state_props <= REQ_CP_CLEAR_WAIT1;
+            state_props <= REQ_CFP_CLEAR_WAIT1;
         end
-        REQ_CP_CLEAR_WAIT1: begin
+        REQ_CFP_CLEAR_WAIT1: begin
             config_web <= 1;
             config_bram_addr <= BRAM_FPGA_INFO;
             config_bram_din <= {8'h00, fpga_info};
-            state_props <= CP_CLEAR;
+            state_props <= CFP_CLEAR;
         end
-        CP_CLEAR: begin
+        CFP_CLEAR: begin
             config_web <= 0;
             config_bram_din <= 0;
-            config_bram_addr <= BRAM_CF_AND_CP;
-            clk_props <= config_bram_dout[15:8];
-            ctrl_flags <= config_bram_dout[7:0];
-            state_props <= READ_CF_AND_CP;
+            config_bram_addr <= BRAM_CFP;
+            cfp <= config_bram_dout;
+            state_props <= READ_CFP;
         end
 
         // Init mod clk
@@ -213,7 +213,7 @@ always_ff @(posedge CLK) begin
         READ_MOD_CLK_SYNC_TIME_3: begin
             mod_clk_sync_time[63:48] <= config_bram_dout;
             if (SYNC) begin
-                state_props <= REQ_CP_CLEAR;
+                state_props <= REQ_CFP_CLEAR;
             end
         end
 
@@ -257,7 +257,7 @@ always_ff @(posedge CLK) begin
         READ_SEQ_CLK_SYNC_TIME_3: begin
             seq_clk_sync_time[63:48] <= config_bram_dout;
             if (SYNC) begin
-                state_props <= REQ_CP_CLEAR;
+                state_props <= REQ_CFP_CLEAR;
             end
         end
     endcase

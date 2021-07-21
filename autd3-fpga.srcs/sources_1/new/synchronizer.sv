@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 18/06/2021
+ * Last Modified: 20/07/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -13,6 +13,7 @@
 
 `timescale 1ns / 1ps
 module synchronizer#(
+           parameter int TRANS_NUM = 249,
            parameter int SYS_CLK_FREQ = 20480000,
            parameter int ULTRASOUND_FREQ = 40000,
            parameter int SYNC0_FREQ = 2000,
@@ -30,6 +31,7 @@ module synchronizer#(
            input var [15:0] MOD_CLK_DIV,
            input var [63:0] SEQ_CLK_SYNC_TIME_NS,
            input var [63:0] MOD_CLK_SYNC_TIME_NS,
+           input var SEQ_DATA_MODE,
            output var [ULTRASOUND_CNT_CYCLE_WIDTH-1:0] TIME,
            output var UPDATE,
            output var [15:0] MOD_IDX,
@@ -145,10 +147,13 @@ end
 //////////////////////////////////// Modulation ///////////////////////////////////////////
 
 ////////////////////////////////// Sequence Clock /////////////////////////////////////////
+`include "./param.vh"
+
 logic [15:0] seq_cnt;
 logic [15:0] seq_cnt_div;
+logic [15:0] raw_buf_mode_offset;
 
-assign SEQ_IDX = seq_cnt;
+assign SEQ_IDX = (SEQ_DATA_MODE == SEQ_DATA_MODE_FOCI) ? seq_cnt : {seq_cnt[9:0], 6'h0} + raw_buf_mode_offset;
 
 logic [95:0] seq_clk_sync_time_ref_unit;
 logic [47:0] seq_tcycle;
@@ -194,15 +199,20 @@ always_ff @(posedge CLK) begin
     if (SYNC & SEQ_CLK_INIT) begin
         seq_cnt <= seq_cnt_shift[15:0];
         seq_cnt_div <= seq_div_shift[15:0];
+        raw_buf_mode_offset <= 0;
     end
     else if(ref_clk_tick) begin
         if(seq_cnt_div == SEQ_CLK_DIV - 1) begin
             seq_cnt_div <= 0;
             seq_cnt <= (seq_cnt == SEQ_CLK_CYCLE - 1) ? 0 : seq_cnt + 1;
+            raw_buf_mode_offset <= 0;
         end
         else begin
             seq_cnt_div <= seq_cnt_div + 1;
         end
+    end
+    else begin
+        raw_buf_mode_offset <= raw_buf_mode_offset == (TRANS_NUM >> 2) - 1 ? raw_buf_mode_offset : raw_buf_mode_offset + 1;
     end
 end
 ////////////////////////////////// Sequence Clock /////////////////////////////////////////

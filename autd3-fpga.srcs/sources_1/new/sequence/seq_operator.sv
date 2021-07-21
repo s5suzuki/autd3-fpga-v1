@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 15/06/2021
+ * Last Modified: 20/07/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -13,7 +13,7 @@
 
 `timescale 1ns / 1ps
 
-// The unit of focus calculation is WAVELENGTH/255.
+// The unit of focus calculation is WAVELENGTH/256
 module seq_operator#(
            parameter TRANS_NUM = 249
        )(
@@ -21,15 +21,18 @@ module seq_operator#(
            seq_bus_if.slave_port SEQ_BUS,
            input var [15:0] SEQ_IDX,
            input var [15:0] WAVELENGTH_UM,
-           output var [7:0] DUTY,
+           input var SEQ_DATA_MODE,
+           output var [7:0] DUTY[0:TRANS_NUM-1],
            output var [7:0] PHASE[0:TRANS_NUM-1]
        );
 
 `include "../cvt_uid.vh"
+`include "../param.vh"
+
 localparam TRANS_NUM_X = 18;
 localparam TRANS_NUM_Y = 14;
 
-localparam [23:0] TRANS_SPACING_UNIT = 24'd2590800; // TRNAS_SPACING*255 = 10.16e3 um * 255
+localparam [23:0] TRANS_SPACING_UNIT = 24'd2600960; // TRNAS_SPACING*255 = 10.16e3 um * 256
 localparam int MULT_DIVIDER_LATENCY = 4 + 28;
 
 logic [$clog2(MULT_DIVIDER_LATENCY)-1:0] wait_cnt;
@@ -42,10 +45,10 @@ logic phase_out_valid;
 
 logic [15:0] seq_idx = 16'd0;
 logic [15:0] seq_idx_old = 16'd0;
-logic [61:0] data_out;
+logic [63:0] data_out;
 logic idx_change;
 
-logic [7:0] duty;
+logic [7:0] duty[0:TRANS_NUM-1];
 logic [7:0] phase[0:TRANS_NUM-1];
 logic [8:0] tr_cnt;
 logic [7:0] tr_cnt_uid;
@@ -58,7 +61,8 @@ logic [15:0] _unused_x, _unused_y;
 enum logic [1:0] {
          WAIT,
          DIV_WAIT,
-         FC_DATA_IN_STREAM
+         FC_DATA_IN_STREAM,
+         LOAD_DUTY_PHASE
      } state_calc = WAIT;
 
 assign idx_change = (seq_idx != seq_idx_old);
@@ -123,43 +127,72 @@ always_ff @(posedge CLK) begin
 end
 
 always_ff @(posedge CLK) begin
-    case(state_calc)
-        WAIT: begin
-            fc_trig <= 0;
-            tr_cnt <= 0;
-            wait_cnt <= 0;
-            state_calc <= idx_change ? DIV_WAIT : WAIT;
-        end
-        DIV_WAIT: begin
-            tr_cnt <= tr_cnt + 1;
-            wait_cnt <= wait_cnt + 1;
-            if (wait_cnt == MULT_DIVIDER_LATENCY - 1) begin
-                focus_x <= data_out[17:0];
-                focus_y <= data_out[35:18];
-                focus_z <= data_out[53:36];
-                duty <= data_out[61:54];
-                fc_trig <= 1'b1;
-                state_calc <= FC_DATA_IN_STREAM;
+    case(SEQ_DATA_MODE)
+        SEQ_DATA_MODE_FOCI: begin
+            if(phase_out_valid) begin
+                phase[tr_cnt_in] <= phase_out;
+                tr_cnt_in <= tr_cnt_in + 1;
             end
-        end
-        FC_DATA_IN_STREAM: begin
-            tr_cnt <= tr_cnt + 1;
-            if (tr_cnt == TRANS_NUM + MULT_DIVIDER_LATENCY - 1) begin
-                state_calc <= WAIT;
-                fc_trig <= 0;
+            else begin
+                tr_cnt_in <= 0;
             end
+
+            case(state_calc)
+                WAIT: begin
+                    if (idx_change) begin
+                        fc_trig <= 0;
+                        tr_cnt <= 0;
+                        wait_cnt <= 0;
+                        state_calc <= DIV_WAIT;
+                    end
+                end
+                DIV_WAIT: begin
+                    tr_cnt <= tr_cnt + 1;
+                    wait_cnt <= wait_cnt + 1;
+                    if (wait_cnt == MULT_DIVIDER_LATENCY - 1) begin
+                        focus_x <= data_out[17:0];
+                        focus_y <= data_out[35:18];
+                        focus_z <= data_out[53:36];
+                        duty <= '{TRANS_NUM{data_out[61:54]}};
+                        fc_trig <= 1'b1;
+                        state_calc <= FC_DATA_IN_STREAM;
+                    end
+                end
+                FC_DATA_IN_STREAM: begin
+                    tr_cnt <= tr_cnt + 1;
+                    if (tr_cnt == TRANS_NUM + MULT_DIVIDER_LATENCY - 1) begin
+                        state_calc <= WAIT;
+                        fc_trig <= 0;
+                    end
+                end
+            endcase
+        end
+        SEQ_DATA_MODE_RAW_DUTY_PHASE: begin
+            case(state_calc)
+                WAIT: begin
+                    if (idx_change) begin
+                        tr_cnt <= 0;
+                        state_calc <= LOAD_DUTY_PHASE;
+                    end
+                end
+                LOAD_DUTY_PHASE: begin
+                    if (tr_cnt < ((TRANS_NUM >> 2) << 2)) begin
+                        {duty[tr_cnt], phase[tr_cnt]} <= data_out[15:0];
+                        {duty[tr_cnt + 1], phase[tr_cnt + 1]} <= data_out[31:16];
+                        {duty[tr_cnt + 2], phase[tr_cnt + 2]} <= data_out[47:32];
+                        {duty[tr_cnt + 3], phase[tr_cnt + 3]} <= data_out[63:48];
+                        tr_cnt <= tr_cnt + 4;
+                    end
+                    else begin
+                        {duty[tr_cnt], phase[tr_cnt]} <= data_out[15:0];
+                        state_calc <= WAIT;
+                    end
+                end
+                default:
+                    state_calc <= WAIT;
+            endcase
         end
     endcase
-end
-
-always_ff @(posedge CLK) begin
-    if(phase_out_valid) begin
-        phase[tr_cnt_in] <= phase_out;
-        tr_cnt_in <= tr_cnt_in + 1;
-    end
-    else begin
-        tr_cnt_in <= 0;
-    end
 end
 
 endmodule

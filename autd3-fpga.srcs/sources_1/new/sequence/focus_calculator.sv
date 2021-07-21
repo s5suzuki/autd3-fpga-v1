@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 18/06/2021
+ * Last Modified: 20/07/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -25,6 +25,8 @@ module focus_calculator(
            output var PHASE_CALC_DONE
        );
 
+`include "../param.vh"
+
 localparam SQRT_LATENCY = 21 + 1 + 4;
 
 logic signed [18:0] focus_x, focus_y, focus_z;
@@ -44,9 +46,6 @@ logic [$clog2(SQRT_LATENCY)-1:0] wait_cnt;
 logic [7:0] input_num = 0;
 logic [7:0] output_num = 0;
 logic run = 0;
-
-logic [23:0] _unused;
-logic [7:0] reminder;
 
 sqrt_40 sqrt_40(
             .aclk(CLK),
@@ -104,7 +103,7 @@ end
 always_ff @(posedge CLK) begin
     if(run) begin
         if(DVALID_IN) begin
-            // STAGE_0
+            // STAGE 0
             dx <= trans_x - focus_x;
             dy <= trans_y - focus_y;
             dz <= trans_z - focus_z;
@@ -114,11 +113,16 @@ always_ff @(posedge CLK) begin
             input_num <= 0;
         end
 
-        // STAGE_1
+        // STAGE 1
         d2 <= {2'd0, dx2} + {2'd0, dy2} + {2'd0, dz2};
 
-        // STAGE_2
+        // STAGE 2
+`ifdef PHASE_INVERTED
+        phase <= dout[7:0];
+`else
         phase <= 8'hFF - dout[7:0];
+`endif
+
         if(wait_cnt == SQRT_LATENCY - 1) begin
             if(output_num == input_num) begin
                 phase_calc_done <= 0;
@@ -133,7 +137,7 @@ always_ff @(posedge CLK) begin
     end
     else begin
         if(DVALID_IN) begin
-            // STAGE_0
+            // STAGE 0
             dx <= trans_x - focus_x;
             dy <= trans_y - focus_y;
             dz <= trans_z - focus_z;

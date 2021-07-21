@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 04/07/2021
+ * Last Modified: 20/07/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -21,7 +21,13 @@ module pwm_generator(
            output var PWM_OUT
        );
 
+`include "../param.vh"
+
+`ifdef PHASE_INVERTED
+assign PWM_OUT = pwm(TIME, {1'b0, DUTY} + DUTY_OFFSET, {8'hFF-PHASE, 1'b0});
+`else
 assign PWM_OUT = pwm(TIME, {1'b0, DUTY} + DUTY_OFFSET, {PHASE, 1'b0});
+`endif
 
 function automatic pwm;
     input [8:0] time_t;

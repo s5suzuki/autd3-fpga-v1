@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 15/06/2021
+ * Last Modified: 20/07/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -111,7 +111,6 @@ BRAM16x512 tr_bram(
 logic seq_ena;
 logic [17:0] seq_addr;
 logic [3:0] seq_addr_offset;
-logic [1:0] _unused;
 
 assign seq_ena = (cpu_select == BRAM_SEQ_SELECT) & en;
 assign seq_addr = {seq_addr_offset, cpu_addr};
@@ -127,7 +126,7 @@ BRAM_SEQ seq_ram(
              .web(1'b0),
              .addrb(SEQ_BUS.IDX),
              .dinb(64'd0),
-             .doutb({_unused, SEQ_BUS.DATA_OUT})
+             .doutb(SEQ_BUS.DATA_OUT)
          );
 //////////////////////////////// Sequence Operation ///////////////////////////////////////
 
