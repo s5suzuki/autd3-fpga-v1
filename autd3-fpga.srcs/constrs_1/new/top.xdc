@@ -1469,6 +1469,8 @@ set_input_delay -clock [get_clocks -of_objects [get_pins ultrasound_cnt_clk_gen/
 set_input_delay -clock [get_clocks -of_objects [get_pins ultrasound_cnt_clk_gen/inst/mmcm_adv_inst/CLKOUT0]] -max 1.500 [get_ports RESET_N]
 set_input_delay -clock [get_clocks -of_objects [get_pins ultrasound_cnt_clk_gen/inst/mmcm_adv_inst/CLKOUT0]] -min 0.500 [get_ports THERMO]
 set_input_delay -clock [get_clocks -of_objects [get_pins ultrasound_cnt_clk_gen/inst/mmcm_adv_inst/CLKOUT0]] -max 1.500 [get_ports THERMO]
+set_output_delay -clock [get_clocks -of_objects [get_pins ultrasound_cnt_clk_gen/inst/mmcm_adv_inst/CLKOUT0]] -min 0.500 [get_ports GPIO_OUT*]
+set_output_delay -clock [get_clocks -of_objects [get_pins ultrasound_cnt_clk_gen/inst/mmcm_adv_inst/CLKOUT0]] -max 1.500 [get_ports GPIO_OUT*]
 set _xlnx_shared_i0 [get_ports XDCR_OUT*]
 set_output_delay -clock [get_clocks -of_objects [get_pins ultrasound_cnt_clk_gen/inst/mmcm_adv_inst/CLKOUT0]] -min 0.500 $_xlnx_shared_i0
 set_output_delay -clock [get_clocks -of_objects [get_pins ultrasound_cnt_clk_gen/inst/mmcm_adv_inst/CLKOUT0]] -max 1.500 $_xlnx_shared_i0

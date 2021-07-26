@@ -21,7 +21,7 @@ module pwm_generator(
            output var PWM_OUT
        );
 
-`include "../param.vh"
+`include "../features.vh"
 
 `ifdef PHASE_INVERTED
 assign PWM_OUT = pwm(TIME, {1'b0, DUTY} + DUTY_OFFSET, {8'hFF-PHASE, 1'b0});

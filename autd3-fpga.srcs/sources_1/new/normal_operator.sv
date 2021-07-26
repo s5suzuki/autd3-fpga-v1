@@ -11,14 +11,14 @@
  * 
  */
 
-`include "param.vh"
+`include "./features.vh"
 module normal_operator#(
            parameter int TRANS_NUM = 249,
            parameter int DELAY_DEPTH = 8
        )(
            input var CLK,
            input var UPDATE,
-           tr_bus_if.slave_port TR_BUS,
+           cpu_bus_if.slave_port CPU_BUS,
            output var [7:0] DUTY[0:TRANS_NUM-1],
            output var [7:0] PHASE[0:TRANS_NUM-1],
            output var DUTY_OFFSET[0:TRANS_NUM-1],
@@ -28,17 +28,36 @@ module normal_operator#(
            output var OUTPUT_EN
        );
 
-logic [7:0] tr_buf_write_idx;
+`include "./param.vh"
+
 logic [8:0] tr_bram_idx;
 logic [15:0] tr_bram_dataout;
+
+////////////////////////////////// BRAM //////////////////////////////////
+logic tr_ena;
+assign tr_ena = (CPU_BUS.BRAM_SELECT == `BRAM_TR_SELECT) & CPU_BUS.EN;
+
+BRAM16x512 tr_bram(
+               .clka(CPU_BUS.BUS_CLK),
+               .ena(tr_ena),
+               .wea(CPU_BUS.WE),
+               .addra(CPU_BUS.BRAM_ADDR[8:0]),
+               .dina(CPU_BUS.DATA_IN),
+               .douta(),
+               .clkb(CLK),
+               .web(1'b0),
+               .addrb(tr_bram_idx),
+               .dinb(16'h0000),
+               .doutb(tr_bram_dataout)
+           );
+////////////////////////////////// BRAM //////////////////////////////////
+
+logic [7:0] tr_buf_write_idx;
 logic [7:0] duty_buf[0:TRANS_NUM-1];
 logic [7:0] phase_buf[0:TRANS_NUM-1];
 
 logic output_en;
 logic duty_offset[0:TRANS_NUM-1];
-
-assign TR_BUS.IDX = tr_bram_idx;
-assign tr_bram_dataout = TR_BUS.DATA_OUT;
 
 assign DUTY = duty_buf;
 assign PHASE = phase_buf;

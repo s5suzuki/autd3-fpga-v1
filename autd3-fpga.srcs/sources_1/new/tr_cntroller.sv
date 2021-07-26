@@ -12,7 +12,7 @@
  */
 
 `timescale 1ns / 1ps
-`include "param.vh"
+`include "features.vh"
 module tr_cntroller#(
            parameter int TRANS_NUM = 249,
            parameter int ULTRASOUND_CNT_CYCLE = 512,
@@ -23,14 +23,22 @@ module tr_cntroller#(
            input var CLK_LPF,
            input var [8:0] TIME,
            input var UPDATE,
-           tr_bus_if.slave_port TR_BUS,
-           input var [7:0] MOD,
+           cpu_bus_if.slave_port CPU_BUS,
+`ifdef ENABLE_MODULATION
+           mod_sync_if.slave_port MOD_SYNC,
+`endif
+`ifdef ENABLE_SEQUENCE
+           seq_sync_if.slave_port SEQ_SYNC,
+`endif
+`ifdef ENABLE_SILENT
            input var SILENT,
-           seq_bus_if.slave_port SEQ_BUS,
-           input var SEQ_MODE,
-           input var [15:0] SEQ_IDX,
-           input var [15:0] WAVELENGTH_UM,
-           input var SEQ_DATA_MODE,
+`endif
+`ifdef ENABLE_SYNC_DBG
+           output var [15:0] MOD_CLK_CYCLE,
+           output var [15:0] MOD_IDX,
+           output var [15:0] SEQ_CLK_CYCLE,
+           output var [15:0] SEQ_IDX,
+`endif
            output var [252:1] XDCR_OUT
        );
 
@@ -50,7 +58,7 @@ normal_operator#(
                ) normal_operator(
                    .CLK(CLK),
                    .UPDATE(update),
-                   .TR_BUS(TR_BUS),
+                   .CPU_BUS(CPU_BUS),
                    .DUTY(normal_duty),
                    .PHASE(normal_phase),
                    .DUTY_OFFSET(duty_offset),
@@ -71,15 +79,17 @@ seq_operator#(
                 .TRANS_NUM(TRANS_NUM)
             ) seq_operator(
                 .CLK(CLK),
-                .SEQ_BUS(SEQ_BUS),
+                .CPU_BUS(CPU_BUS),
+                .SEQ_SYNC(SEQ_SYNC),
+`ifdef ENABLE_SYNC_DBG
+                .SEQ_CLK_CYCLE(SEQ_CLK_CYCLE),
                 .SEQ_IDX(SEQ_IDX),
-                .WAVELENGTH_UM(WAVELENGTH_UM),
-                .SEQ_DATA_MODE(SEQ_DATA_MODE),
+`endif
                 .DUTY(seq_duty),
                 .PHASE(seq_phase)
             );
-assign duty_raw = SEQ_MODE ? seq_duty : normal_duty;
-assign phase_raw = SEQ_MODE ? seq_phase : normal_phase;
+assign duty_raw = SEQ_SYNC.SEQ_MODE ? seq_duty : normal_duty;
+assign phase_raw = SEQ_SYNC.SEQ_MODE ? seq_phase : normal_phase;
 `else
 assign duty_raw = normal_duty;
 assign phase_raw = normal_phase;
@@ -87,24 +97,25 @@ assign phase_raw = normal_phase;
 ///////////////////////// Sequence Modulation //////////////////////////
 
 ///////////////////////// Amplitude Modulation /////////////////////////
-logic [8:0] mod;
-assign mod = {1'b0, MOD} + 9'd1;
 logic [7:0] duty_modulated[0:TRANS_NUM-1];
 
-generate begin:TRANSDUCERS_MOD
-        genvar ii;
-        for(ii = 0; ii < TRANS_NUM; ii++) begin
-            logic [16:0] dm;
-            mult8x8 mod_mult(
-                        .CLK(CLK),
-                        .A(duty_raw[ii]),
-                        .B(mod),
-                        .P(dm)
-                    );
-            assign duty_modulated[ii] = dm[15:8];
-        end
-    end
-endgenerate
+`ifdef ENABLE_MODULATION
+modulator#(
+             .TRANS_NUM(TRANS_NUM)
+         ) modulator(
+             .CLK(CLK),
+             .CPU_BUS(CPU_BUS),
+             .MOD_SYNC(MOD_SYNC),
+`ifdef ENABLE_SYNC_DBG
+             .MOD_CLK_CYCLE(MOD_CLK_CYCLE),
+             .MOD_IDX(MOD_IDX),
+`endif
+             .DUTY(duty_raw),
+             .DUTY_MODULATED(duty_modulated)
+         );
+`else
+assign duty_modulated = duty_raw;
+`endif
 ///////////////////////// Amplitude Modulation /////////////////////////
 
 ///////////////////////////// Silent Mode //////////////////////////////
@@ -112,15 +123,19 @@ logic [7:0] duty_silent[0:TRANS_NUM-1];
 logic [7:0] phase_silent[0:TRANS_NUM-1];
 
 `ifdef ENABLE_SILENT
+logic [7:0] ds[0:TRANS_NUM-1];
+logic [7:0] ps[0:TRANS_NUM-1];
 silent_lpf_v2#(
                  .TRANS_NUM(TRANS_NUM)
              ) silent_lpf_v2(
                  .CLK(CLK_LPF),
                  .DUTY(duty_modulated),
                  .PHASE(phase_raw),
-                 .DUTYS(duty_silent),
-                 .PHASES(phase_silent)
+                 .DUTYS(ds),
+                 .PHASES(ps)
              );
+assign duty_silent = SILENT ? ds : duty_modulated;
+assign phase_silent = SILENT ? ps : phase_raw;
 `else
 assign duty_silent = duty_modulated;
 assign phase_silent = phase_raw;
@@ -134,24 +149,20 @@ logic [7:0] duty_delayed[0:TRANS_NUM-1];
 generate begin:TRANSDUCERS_DELAY
         genvar ii;
         for(ii = 0; ii < TRANS_NUM; ii++) begin
-            logic [7:0] ddi;
-            logic [7:0] ddo;
-            assign ddi = SILENT ? duty_silent[ii] : duty_modulated[ii];
             delayed_fifo #(
                              .DEPTH(DELAY_DEPTH)
                          ) delayed_fifo(
                              .CLK(CLK),
                              .UPDATE(update),
                              .DELAY(delay[ii]),
-                             .DATA_IN(ddi),
-                             .DATA_OUT(ddo)
+                             .DATA_IN(duty_silent[ii]),
+                             .DATA_OUT(duty_delayed[ii])
                          );
-            assign duty_delayed[ii] = ddo;
         end
     end
 endgenerate
 `else
-assign duty_delayed = SILENT ? duty_silent : duty_modulated;
+assign duty_delayed = duty_silent;
 `endif
 ///////////////////////////// Delay output /////////////////////////////
 
@@ -172,7 +183,7 @@ generate begin:TRANSDUCERS_GEN
                           );
             always_ff @(posedge CLK) begin
                 duty <= update ? duty_delayed[ii] : duty;
-                phase <= update ? (SILENT ? phase_silent[ii] : phase_raw[ii]) : phase;
+                phase <= update ? phase_silent[ii] : phase;
             end
         end
     end

@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 20/07/2021
+ * Last Modified: 26/07/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -12,27 +12,54 @@
  */
 
 `timescale 1ns / 1ps
+`include "./features.vh"
 module config_manager(
            input var CLK,
-           config_bus_if.slave_port CONFIG_BUS,
            input var SYNC,
-           output var MOD_CLK_INIT,
-           output var [15:0] MOD_CLK_CYCLE,
-           output var [15:0] MOD_CLK_DIV,
-           output var [63:0] MOD_CLK_SYNC_TIME_NS,
-           output var SEQ_CLK_INIT,
-           output var [15:0] SEQ_CLK_CYCLE,
-           output var [15:0] SEQ_CLK_DIV,
-           output var [63:0] SEQ_CLK_SYNC_TIME_NS,
-           output var [15:0] WAVELENGTH_UM,
-           output var SEQ_DATA_MODE,
-           output var SEQ_MODE,
+           cpu_bus_if.slave_port CPU_BUS,
+`ifdef ENABLE_MODULATION
+           mod_sync_if.master_port MOD_SYNC,
+`endif
+`ifdef ENABLE_SEQUENCE
+           seq_sync_if.master_port SEQ_SYNC,
+`endif
+`ifdef ENABLE_SILENT
            output var SILENT,
+`endif
            output var FORCE_FAN,
            input var THERMO
        );
 
-localparam [5:0] BRAM_CFP           = 6'h00; // CFP: Control Flag and Properties
+`include "./param.vh"
+
+logic [5:0] config_bram_addr;
+logic [15:0] config_bram_din;
+logic [15:0] config_bram_dout;
+logic config_web;
+
+////////////////////////////////// BRAM //////////////////////////////////
+logic config_ena;
+assign config_ena = (CPU_BUS.BRAM_SELECT == `BRAM_CONFIG_SELECT) & CPU_BUS.EN;
+
+logic [15:0] cpu_data_out;
+assign CPU_BUS.DATA_OUT = cpu_data_out;
+
+BRAM_CONFIG config_bram(
+                .clka(CPU_BUS.BUS_CLK),
+                .ena(config_ena),
+                .wea(CPU_BUS.WE),
+                .addra(CPU_BUS.BRAM_ADDR[5:0]),
+                .dina(CPU_BUS.DATA_IN),
+                .douta(cpu_data_out),
+                .clkb(CLK),
+                .web(config_web),
+                .addrb(config_bram_addr),
+                .dinb(config_bram_din),
+                .doutb(config_bram_dout)
+            );
+////////////////////////////////// BRAM //////////////////////////////////
+
+localparam [5:0] BRAM_CFP                 = 6'h00; // CFP: Control Flag and Properties
 localparam [5:0] BRAM_FPGA_INFO           = 6'h01;
 localparam [5:0] BRAM_SEQ_CYCLE           = 6'h02;
 localparam [5:0] BRAM_SEQ_DIV             = 6'h03;
@@ -55,11 +82,6 @@ localparam CF_SEQ_MODE  = 5;
 localparam P_SEQ_DATA_MODE_IDX = 8;
 localparam P_MOD_INIT_IDX      = 14;
 localparam P_SEQ_INIT_IDX      = 15;
-
-logic [5:0] config_bram_addr;
-logic [15:0] config_bram_din;
-logic [15:0] config_bram_dout;
-logic config_web;
 
 logic [15:0] cfp;
 logic [7:0] ctrl_flags;
@@ -102,39 +124,40 @@ enum logic [4:0] {
          READ_SEQ_CLK_SYNC_TIME_3
      } state_props = READ_CFP;
 
-assign CONFIG_BUS.WE = config_web;
-assign CONFIG_BUS.IDX = config_bram_addr;
-assign CONFIG_BUS.DATA_IN = config_bram_din;
-assign config_bram_dout = CONFIG_BUS.DATA_OUT;
-
 assign ctrl_flags = cfp[7:0];
+`ifdef ENABLE_SILENT
 assign SILENT = ctrl_flags[CF_SILENT];
-assign SEQ_MODE = ctrl_flags[CF_SEQ_MODE];
+`endif
 assign FORCE_FAN = ctrl_flags[CF_FORCE_FAN];
 assign fpga_info = {7'd0, THERMO};
 
-assign MOD_CLK_INIT = cfp[P_MOD_INIT_IDX];
-assign MOD_CLK_CYCLE = mod_clk_cycle;
-assign MOD_CLK_DIV = mod_clk_div;
-assign MOD_CLK_SYNC_TIME_NS = mod_clk_sync_time;
-assign SEQ_CLK_INIT = cfp[P_SEQ_INIT_IDX];
-assign SEQ_CLK_CYCLE = seq_clk_cycle;
-assign SEQ_CLK_DIV = seq_clk_div;
-assign SEQ_CLK_SYNC_TIME_NS = seq_clk_sync_time;
-assign WAVELENGTH_UM = wavelength;
-assign SEQ_DATA_MODE = cfp[P_SEQ_DATA_MODE_IDX];
+`ifdef ENABLE_MODULATION
+assign MOD_SYNC.MOD_CLK_INIT = cfp[P_MOD_INIT_IDX];
+assign MOD_SYNC.MOD_CLK_CYCLE = mod_clk_cycle;
+assign MOD_SYNC.MOD_CLK_DIV = mod_clk_div;
+assign MOD_SYNC.MOD_CLK_SYNC_TIME_NS = mod_clk_sync_time;
+`endif
+`ifdef ENABLE_SEQUENCE
+assign SEQ_SYNC.SEQ_CLK_INIT = cfp[P_SEQ_INIT_IDX];
+assign SEQ_SYNC.SEQ_CLK_CYCLE = seq_clk_cycle;
+assign SEQ_SYNC.SEQ_CLK_DIV = seq_clk_div;
+assign SEQ_SYNC.SEQ_CLK_SYNC_TIME_NS = seq_clk_sync_time;
+assign SEQ_SYNC.WAVELENGTH_UM = wavelength;
+assign SEQ_SYNC.SEQ_MODE = ctrl_flags[CF_SEQ_MODE];
+assign SEQ_SYNC.SEQ_DATA_MODE = cfp[P_SEQ_DATA_MODE_IDX];
+`endif
 
 always_ff @(posedge CLK) begin
     case(state_props)
         READ_CFP: begin
             cfp <= config_bram_dout;
-            if(MOD_CLK_INIT) begin
+            if(cfp[P_MOD_INIT_IDX]) begin
                 config_web <= 0;
                 config_bram_addr <= BRAM_MOD_CYCLE;
                 config_bram_din <= 0;
                 state_props <= REQ_READ_MOD_CLK_DIV;
             end
-            else if(SEQ_CLK_INIT) begin
+            else if(cfp[P_SEQ_INIT_IDX]) begin
                 config_web <= 0;
                 config_bram_addr <= BRAM_SEQ_CYCLE;
                 config_bram_din <= 0;

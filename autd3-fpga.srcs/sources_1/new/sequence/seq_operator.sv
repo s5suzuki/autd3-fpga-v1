@@ -12,16 +12,21 @@
  */
 
 `timescale 1ns / 1ps
+`include "../features.vh"
 
 // The unit of focus calculation is WAVELENGTH/256
 module seq_operator#(
-           parameter TRANS_NUM = 249
+           parameter TRANS_NUM = 249,
+           parameter int REF_CLK_FREQ = 40000,
+           localparam [31:0] REF_CLK_CYCLE_NS = 1000000000/REF_CLK_FREQ
        )(
            input var CLK,
-           seq_bus_if.slave_port SEQ_BUS,
-           input var [15:0] SEQ_IDX,
-           input var [15:0] WAVELENGTH_UM,
-           input var SEQ_DATA_MODE,
+           cpu_bus_if.slave_port CPU_BUS,
+           seq_sync_if.slave_port SEQ_SYNC,
+`ifdef ENABLE_SYNC_DBG
+           output var [15:0] SEQ_CLK_CYCLE,
+           output var [15:0] SEQ_IDX,
+`endif
            output var [7:0] DUTY[0:TRANS_NUM-1],
            output var [7:0] PHASE[0:TRANS_NUM-1]
        );
@@ -29,8 +34,118 @@ module seq_operator#(
 `include "../cvt_uid.vh"
 `include "../param.vh"
 
-localparam SEQ_DATA_MODE_FOCI           = 0;
-localparam SEQ_DATA_MODE_RAW_DUTY_PHASE = 1;
+logic [15:0] seq_idx;
+logic [63:0] data_out;
+
+////////////////////////////////// BRAM //////////////////////////////////
+logic config_ena, seq_ena;
+logic [17:0] seq_addr;
+logic [3:0] seq_addr_offset;
+
+assign config_ena = (CPU_BUS.BRAM_SELECT == `BRAM_CONFIG_SELECT) & CPU_BUS.EN;
+assign seq_ena = (CPU_BUS.BRAM_SELECT == `BRAM_SEQ_SELECT) & CPU_BUS.EN;
+assign seq_addr = {seq_addr_offset, CPU_BUS.BRAM_ADDR};
+
+BRAM_SEQ seq_ram(
+             .clka(CPU_BUS.BUS_CLK),
+             .ena(seq_ena),
+             .wea(CPU_BUS.WE),
+             .addra(seq_addr),
+             .dina(CPU_BUS.DATA_IN),
+             .douta(),
+             .clkb(CLK),
+             .web(1'b0),
+             .addrb(seq_idx),
+             .dinb(64'd0),
+             .doutb(data_out)
+         );
+
+logic [2:0] config_we_edge = 3'b000;
+
+always_ff @(posedge CPU_BUS.BUS_CLK) begin
+    config_we_edge <= {config_we_edge[1:0], (CPU_BUS.WE & config_ena)};
+    if(config_we_edge == 3'b011) begin
+        case(CPU_BUS.BRAM_ADDR)
+            `SEQ_BRAM_ADDR_OFFSET_ADDR:
+                seq_addr_offset <= CPU_BUS.DATA_IN[3:0];
+        endcase
+    end
+end
+////////////////////////////////// BRAM //////////////////////////////////
+
+////////////////////////////////// SYNC //////////////////////////////////
+logic [15:0] seq_cnt;
+logic [15:0] seq_cnt_div;
+logic [15:0] raw_buf_mode_offset;
+
+assign seq_idx = (SEQ_SYNC.SEQ_DATA_MODE == `SEQ_DATA_MODE_FOCI) ? seq_cnt : {seq_cnt[9:0], 6'h0} + raw_buf_mode_offset;
+
+logic [95:0] seq_clk_sync_time_ref_unit;
+logic [47:0] seq_tcycle;
+logic [95:0] seq_shift;
+logic [63:0] seq_cnt_shift;
+logic [31:0] seq_div_shift;
+
+divider64 div_ref_unit_seq(
+              .s_axis_dividend_tdata(SEQ_SYNC.SEQ_CLK_SYNC_TIME_NS),
+              .s_axis_dividend_tvalid(1'b1),
+              .s_axis_divisor_tdata(REF_CLK_CYCLE_NS),
+              .s_axis_divisor_tvalid(1'b1),
+              .aclk(CLK),
+              .m_axis_dout_tdata(seq_clk_sync_time_ref_unit),
+              .m_axis_dout_tvalid()
+          );
+mult_24 mult_tcycle(
+            .CLK(CLK),
+            .A({8'd0, SEQ_SYNC.SEQ_CLK_CYCLE}),
+            .B({8'd0, SEQ_SYNC.SEQ_CLK_DIV}),
+            .P(seq_tcycle)
+        );
+divider64 sync_shift_rem(
+              .s_axis_dividend_tdata(seq_clk_sync_time_ref_unit[95:32]),
+              .s_axis_dividend_tvalid(1'b1),
+              .s_axis_divisor_tdata(seq_tcycle[31:0]),
+              .s_axis_divisor_tvalid(1'b1),
+              .aclk(CLK),
+              .m_axis_dout_tdata(seq_shift),
+              .m_axis_dout_tvalid()
+          );
+divider64 sync_shift_div_rem(
+              .s_axis_dividend_tdata({32'd0, seq_shift[31:0]}),
+              .s_axis_dividend_tvalid(1'b1),
+              .s_axis_divisor_tdata({16'd0, SEQ_SYNC.SEQ_CLK_DIV}),
+              .s_axis_divisor_tvalid(1'b1),
+              .aclk(CLK),
+              .m_axis_dout_tdata({seq_cnt_shift, seq_div_shift}),
+              .m_axis_dout_tvalid()
+          );
+
+always_ff @(posedge CLK) begin
+    if (SEQ_SYNC.SYNC & SEQ_SYNC.SEQ_CLK_INIT) begin
+        seq_cnt <= seq_cnt_shift[15:0];
+        seq_cnt_div <= seq_div_shift[15:0];
+        raw_buf_mode_offset <= 0;
+    end
+    else if(SEQ_SYNC.REF_CLK_TICK) begin
+        if(seq_cnt_div == SEQ_SYNC.SEQ_CLK_DIV - 1) begin
+            seq_cnt_div <= 0;
+            seq_cnt <= (seq_cnt == SEQ_SYNC.SEQ_CLK_CYCLE - 1) ? 0 : seq_cnt + 1;
+            raw_buf_mode_offset <= 0;
+        end
+        else begin
+            seq_cnt_div <= seq_cnt_div + 1;
+        end
+    end
+    else begin
+        raw_buf_mode_offset <= raw_buf_mode_offset == (TRANS_NUM >> 2) - 1 ? raw_buf_mode_offset : raw_buf_mode_offset + 1;
+    end
+end
+
+`ifdef ENABLE_SYNC_DBG
+assign SEQ_IDX = seq_idx;
+assign SEQ_CLK_CYCLE = SEQ_SYNC.SEQ_CLK_CYCLE;
+`endif
+////////////////////////////////// SYNC //////////////////////////////////
 
 localparam TRANS_NUM_X = 18;
 localparam TRANS_NUM_Y = 14;
@@ -46,9 +161,7 @@ logic [31:0] trans_x, trans_y;
 logic [7:0] phase_out;
 logic phase_out_valid;
 
-logic [15:0] seq_idx = 16'd0;
 logic [15:0] seq_idx_old = 16'd0;
-logic [63:0] data_out;
 logic idx_change;
 
 logic [7:0] duty[0:TRANS_NUM-1];
@@ -73,9 +186,6 @@ assign idx_change = (seq_idx != seq_idx_old);
 assign DUTY = duty;
 assign PHASE = phase;
 
-assign SEQ_BUS.IDX = SEQ_IDX;
-assign data_out = SEQ_BUS.DATA_OUT;
-
 assign tr_cnt_uid = cvt_uid(tr_cnt[7:0]);
 assign tr_cnt_x = tr_cnt_uid % TRANS_NUM_X;
 assign tr_cnt_y = tr_cnt_uid / TRANS_NUM_X;
@@ -95,7 +205,7 @@ mult_24 mult_24_tr_y(
 divider div_x(
             .s_axis_dividend_tdata(tr_x_u[31:0]),
             .s_axis_dividend_tvalid(1'b1),
-            .s_axis_divisor_tdata(WAVELENGTH_UM),
+            .s_axis_divisor_tdata(SEQ_SYNC.WAVELENGTH_UM),
             .s_axis_divisor_tvalid(1'b1),
             .aclk(CLK),
             .m_axis_dout_tdata({trans_x, _unused_x}),
@@ -104,7 +214,7 @@ divider div_x(
 divider div_y(
             .s_axis_dividend_tdata(tr_y_u[31:0]),
             .s_axis_dividend_tvalid(1'b1),
-            .s_axis_divisor_tdata(WAVELENGTH_UM),
+            .s_axis_divisor_tdata(SEQ_SYNC.WAVELENGTH_UM),
             .s_axis_divisor_tvalid(1'b1),
             .aclk(CLK),
             .m_axis_dout_tdata({trans_y, _unused_y}),
@@ -125,13 +235,12 @@ focus_calculator focus_calculator(
                  );
 
 always_ff @(posedge CLK) begin
-    seq_idx <= SEQ_IDX;
     seq_idx_old <= seq_idx;
 end
 
 always_ff @(posedge CLK) begin
-    case(SEQ_DATA_MODE)
-        SEQ_DATA_MODE_FOCI: begin
+    case(SEQ_SYNC.SEQ_DATA_MODE)
+        `SEQ_DATA_MODE_FOCI: begin
             if(phase_out_valid) begin
                 phase[tr_cnt_in] <= phase_out;
                 tr_cnt_in <= tr_cnt_in + 1;
@@ -170,7 +279,7 @@ always_ff @(posedge CLK) begin
                 end
             endcase
         end
-        SEQ_DATA_MODE_RAW_DUTY_PHASE: begin
+        `SEQ_DATA_MODE_RAW_DUTY_PHASE: begin
             case(state_calc)
                 WAIT: begin
                     if (idx_change) begin

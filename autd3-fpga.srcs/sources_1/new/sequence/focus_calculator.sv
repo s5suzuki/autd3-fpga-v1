@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 20/07/2021
+ * Last Modified: 26/07/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -25,7 +25,7 @@ module focus_calculator(
            output var PHASE_CALC_DONE
        );
 
-`include "../param.vh"
+`include "../features.vh"
 
 localparam SQRT_LATENCY = 21 + 1 + 4;
 
@@ -118,6 +118,7 @@ always_ff @(posedge CLK) begin
 
         // STAGE 2
 `ifdef PHASE_INVERTED
+
         phase <= dout[7:0];
 `else
         phase <= 8'hFF - dout[7:0];
