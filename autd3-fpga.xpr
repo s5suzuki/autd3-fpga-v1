@@ -61,20 +61,20 @@
     <Option Name="IPUserFilesDir" Val="$PPRDIR/../autd3-library-firmware/fpga/autd3-fpga.ip_user_files"/>
     <Option Name="IPStaticSourceDir" Val="$PPRDIR/../autd3-library-firmware/fpga/autd3-fpga.ip_user_files/ipstatic"/>
     <Option Name="EnableBDX" Val="FALSE"/>
-    <Option Name="WTXSimLaunchSim" Val="788"/>
+    <Option Name="WTXSimLaunchSim" Val="793"/>
     <Option Name="WTModelSimLaunchSim" Val="0"/>
     <Option Name="WTQuestaLaunchSim" Val="0"/>
     <Option Name="WTIesLaunchSim" Val="0"/>
     <Option Name="WTVcsLaunchSim" Val="0"/>
     <Option Name="WTRivieraLaunchSim" Val="0"/>
     <Option Name="WTActivehdlLaunchSim" Val="0"/>
-    <Option Name="WTXSimExportSim" Val="125"/>
-    <Option Name="WTModelSimExportSim" Val="125"/>
-    <Option Name="WTQuestaExportSim" Val="125"/>
-    <Option Name="WTIesExportSim" Val="125"/>
-    <Option Name="WTVcsExportSim" Val="125"/>
-    <Option Name="WTRivieraExportSim" Val="125"/>
-    <Option Name="WTActivehdlExportSim" Val="125"/>
+    <Option Name="WTXSimExportSim" Val="129"/>
+    <Option Name="WTModelSimExportSim" Val="129"/>
+    <Option Name="WTQuestaExportSim" Val="129"/>
+    <Option Name="WTIesExportSim" Val="129"/>
+    <Option Name="WTVcsExportSim" Val="129"/>
+    <Option Name="WTRivieraExportSim" Val="129"/>
+    <Option Name="WTActivehdlExportSim" Val="129"/>
     <Option Name="GenerateIPUpgradeLog" Val="TRUE"/>
     <Option Name="XSimRadix" Val="hex"/>
     <Option Name="XSimTimeUnit" Val="ns"/>
@@ -526,10 +526,10 @@
         <Step Id="synth_design">
           <Option Id="ResourceSharing">2</Option>
           <Option Id="NoCombineLuts">1</Option>
-          <Option Id="KeepEquivalentRegisters">1</Option>
           <Option Id="ShregMinSize">5</Option>
           <Option Id="Directive">7</Option>
           <Option Id="FsmExtraction">1</Option>
+          <Option Id="KeepEquivalentRegisters">1</Option>
         </Step>
       </Strategy>
       <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2021"/>
