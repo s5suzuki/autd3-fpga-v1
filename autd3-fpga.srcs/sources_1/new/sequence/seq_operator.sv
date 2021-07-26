@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 26/07/2021
+ * Last Modified: 27/07/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -34,13 +34,13 @@ module seq_operator#(
 `include "../cvt_uid.vh"
 `include "../param.vh"
 
-logic [15:0] seq_idx;
+logic [16:0] seq_idx;
 logic [63:0] data_out;
 
 ////////////////////////////////// BRAM //////////////////////////////////
 logic config_ena, seq_ena;
 logic [17:0] seq_addr;
-logic [3:0] seq_addr_offset;
+logic [4:0] seq_addr_offset;
 
 assign config_ena = (CPU_BUS.BRAM_SELECT == `BRAM_CONFIG_SELECT) & CPU_BUS.EN;
 assign seq_ena = (CPU_BUS.BRAM_SELECT == `BRAM_SEQ_SELECT) & CPU_BUS.EN;
@@ -67,7 +67,7 @@ always_ff @(posedge CPU_BUS.BUS_CLK) begin
     if(config_we_edge == 3'b011) begin
         case(CPU_BUS.BRAM_ADDR)
             `SEQ_BRAM_ADDR_OFFSET_ADDR:
-                seq_addr_offset <= CPU_BUS.DATA_IN[3:0];
+                seq_addr_offset <= CPU_BUS.DATA_IN[4:0];
         endcase
     end
 end
@@ -78,7 +78,7 @@ logic [15:0] seq_cnt;
 logic [15:0] seq_cnt_div;
 logic [15:0] raw_buf_mode_offset;
 
-assign seq_idx = (SEQ_SYNC.SEQ_DATA_MODE == `SEQ_DATA_MODE_FOCI) ? seq_cnt : {seq_cnt[9:0], 6'h0} + raw_buf_mode_offset;
+assign seq_idx = (SEQ_SYNC.SEQ_DATA_MODE == `SEQ_DATA_MODE_FOCI) ? {1'b0, seq_cnt} : {seq_cnt[10:0], 6'h0} + raw_buf_mode_offset;
 
 logic [95:0] seq_clk_sync_time_ref_unit;
 logic [47:0] seq_tcycle;
@@ -142,7 +142,7 @@ always_ff @(posedge CLK) begin
 end
 
 `ifdef ENABLE_SYNC_DBG
-assign SEQ_IDX = seq_idx;
+assign SEQ_IDX = seq_cnt;
 assign SEQ_CLK_CYCLE = SEQ_SYNC.SEQ_CLK_CYCLE;
 `endif
 ////////////////////////////////// SYNC //////////////////////////////////
