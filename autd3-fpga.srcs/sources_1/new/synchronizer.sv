@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 20/07/2021
+ * Last Modified: 26/07/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -37,6 +37,9 @@ module synchronizer#(
            output var [15:0] MOD_IDX,
            output var [15:0] SEQ_IDX
        );
+
+localparam SEQ_DATA_MODE_FOCI           = 0;
+localparam SEQ_DATA_MODE_RAW_DUTY_PHASE = 1;
 
 logic [ULTRASOUND_CNT_CYCLE_WIDTH-1:0] time_cnt_for_ultrasound;
 

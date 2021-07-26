@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 20/07/2021
+ * Last Modified: 26/07/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -12,7 +12,7 @@
  */
 
 `timescale 1ns / 1ps
-
+`include "param.vh"
 module tr_cntroller#(
            parameter int TRANS_NUM = 249,
            parameter int ULTRASOUND_CNT_CYCLE = 512,
@@ -31,39 +31,42 @@ module tr_cntroller#(
            input var [15:0] SEQ_IDX,
            input var [15:0] WAVELENGTH_UM,
            input var SEQ_DATA_MODE,
-           output var [252:1] XDCR_OUT,
-           input var [255:0] OUTPUT_EN
+           output var [252:1] XDCR_OUT
        );
-
-logic [7:0] seq_duty[0:TRANS_NUM-1];
-logic [7:0] seq_phase[0:TRANS_NUM-1];
-
-logic output_en;
-logic duty_offset[0:TRANS_NUM-1];
-logic [DELAY_DEPTH-1:0] delay[0:TRANS_NUM-1];
-
-logic [7:0] tr_buf_write_idx;
-logic [8:0] tr_bram_idx;
-logic [15:0] tr_bram_dataout;
-logic [7:0] duty_buf[0:TRANS_NUM-1];
-logic [7:0] phase_buf[0:TRANS_NUM-1];
-
-assign TR_BUS.IDX = tr_bram_idx;
-assign tr_bram_dataout = TR_BUS.DATA_OUT;
-
-enum logic [2:0] {
-         IDLE,
-         DUTY_PHASE_WAIT_0,
-         DUTY_PHASE_WAIT_1,
-         DUTY_PHASE,
-         DELAY_EN_WAIT_0,
-         DELAY_EN_WAIT_1,
-         DELAY_EN
-     } tr_state = IDLE;
 
 logic update;
 BUFG bufg(.O(update), .I(UPDATE));
 
+logic [7:0] normal_duty[0:TRANS_NUM-1];
+logic [7:0] normal_phase[0:TRANS_NUM-1];
+logic duty_offset[0:TRANS_NUM-1];
+`ifdef ENABLE_DELAY
+logic [7:0] delay[0:TRANS_NUM-1];
+`endif
+logic output_en;
+
+normal_operator#(
+                   .TRANS_NUM(TRANS_NUM)
+               ) normal_operator(
+                   .CLK(CLK),
+                   .UPDATE(update),
+                   .TR_BUS(TR_BUS),
+                   .DUTY(normal_duty),
+                   .PHASE(normal_phase),
+                   .DUTY_OFFSET(duty_offset),
+`ifdef ENABLE_DELAY
+                   .DELAY(delay),
+`endif
+                   .OUTPUT_EN(output_en)
+               );
+
+///////////////////////// Sequence Modulation //////////////////////////
+logic [7:0] duty_raw[0:TRANS_NUM-1];
+logic [7:0] phase_raw[0:TRANS_NUM-1];
+
+`ifdef ENABLE_SEQUENCE
+logic [7:0] seq_duty[0:TRANS_NUM-1];
+logic [7:0] seq_phase[0:TRANS_NUM-1];
 seq_operator#(
                 .TRANS_NUM(TRANS_NUM)
             ) seq_operator(
@@ -75,94 +78,102 @@ seq_operator#(
                 .DUTY(seq_duty),
                 .PHASE(seq_phase)
             );
+assign duty_raw = SEQ_MODE ? seq_duty : normal_duty;
+assign phase_raw = SEQ_MODE ? seq_phase : normal_phase;
+`else
+assign duty_raw = normal_duty;
+assign phase_raw = normal_phase;
+`endif
+///////////////////////// Sequence Modulation //////////////////////////
 
-always_ff @(posedge CLK) begin
-    case(tr_state)
-        IDLE: begin
-            if (update) begin
-                tr_bram_idx <= 9'd0;
-                tr_state <= DUTY_PHASE_WAIT_0;
-            end
-        end
-        DUTY_PHASE_WAIT_0: begin
-            tr_bram_idx <= tr_bram_idx + 1;
-            tr_state <= DUTY_PHASE_WAIT_1;
-        end
-        DUTY_PHASE_WAIT_1: begin
-            tr_bram_idx <= tr_bram_idx + 1;
-            tr_buf_write_idx <= 0;
-            tr_state <= DUTY_PHASE;
-        end
-        DUTY_PHASE: begin
-            duty_buf[tr_buf_write_idx] <= tr_bram_dataout[15:8];
-            phase_buf[tr_buf_write_idx] <= tr_bram_dataout[7:0];
-            if (tr_buf_write_idx == TRANS_NUM - 1) begin
-                tr_bram_idx <= 9'h100;
-                tr_state <= DELAY_EN_WAIT_0;
-            end
-            else begin
-                tr_bram_idx <= tr_bram_idx + 1;
-                tr_buf_write_idx <= tr_buf_write_idx + 1;
-            end
-        end
-        DELAY_EN_WAIT_0: begin
-            tr_bram_idx <= tr_bram_idx + 1;
-            tr_state <= DELAY_EN_WAIT_1;
-        end
-        DELAY_EN_WAIT_1: begin
-            tr_bram_idx <= tr_bram_idx + 1;
-            tr_buf_write_idx <= 0;
-            tr_state <= DELAY_EN;
-        end
-        DELAY_EN: begin
-            if (tr_buf_write_idx == TRANS_NUM) begin
-                output_en <= tr_bram_dataout[DELAY_DEPTH];
-                tr_state <= IDLE;
-            end
-            else begin
-                duty_offset[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH];
-                delay[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH-1:0];
-                tr_bram_idx <= tr_bram_idx + 1;
-                tr_buf_write_idx <= tr_buf_write_idx + 1;
-            end
-        end
-    endcase
-end
-
+///////////////////////// Amplitude Modulation /////////////////////////
 logic [8:0] mod;
 assign mod = {1'b0, MOD} + 9'd1;
+logic [7:0] duty_modulated[0:TRANS_NUM-1];
+
+generate begin:TRANSDUCERS_MOD
+        genvar ii;
+        for(ii = 0; ii < TRANS_NUM; ii++) begin
+            logic [16:0] dm;
+            mult8x8 mod_mult(
+                        .CLK(CLK),
+                        .A(duty_raw[ii]),
+                        .B(mod),
+                        .P(dm)
+                    );
+            assign duty_modulated[ii] = dm[15:8];
+        end
+    end
+endgenerate
+///////////////////////// Amplitude Modulation /////////////////////////
+
+///////////////////////////// Silent Mode //////////////////////////////
+logic [7:0] duty_silent[0:TRANS_NUM-1];
+logic [7:0] phase_silent[0:TRANS_NUM-1];
+
+`ifdef ENABLE_SILENT
+silent_lpf_v2#(
+                 .TRANS_NUM(TRANS_NUM)
+             ) silent_lpf_v2(
+                 .CLK(CLK_LPF),
+                 .DUTY(duty_modulated),
+                 .PHASE(phase_raw),
+                 .DUTYS(duty_silent),
+                 .PHASES(phase_silent)
+             );
+`else
+assign duty_silent = duty_modulated;
+assign phase_silent = phase_raw;
+`endif
+///////////////////////////// Silent Mode //////////////////////////////
+
+///////////////////////////// Delay output /////////////////////////////
+logic [7:0] duty_delayed[0:TRANS_NUM-1];
+
+`ifdef ENABLE_DELAY
+generate begin:TRANSDUCERS_DELAY
+        genvar ii;
+        for(ii = 0; ii < TRANS_NUM; ii++) begin
+            logic [7:0] ddi;
+            logic [7:0] ddo;
+            assign ddi = SILENT ? duty_silent[ii] : duty_modulated[ii];
+            delayed_fifo #(
+                             .DEPTH(DELAY_DEPTH)
+                         ) delayed_fifo(
+                             .CLK(CLK),
+                             .UPDATE(update),
+                             .DELAY(delay[ii]),
+                             .DATA_IN(ddi),
+                             .DATA_OUT(ddo)
+                         );
+            assign duty_delayed[ii] = ddo;
+        end
+    end
+endgenerate
+`else
+assign duty_delayed = SILENT ? duty_silent : duty_modulated;
+`endif
+///////////////////////////// Delay output /////////////////////////////
 
 `include "cvt_uid.vh"
 generate begin:TRANSDUCERS_GEN
         genvar ii;
         for(ii = 0; ii < TRANS_NUM; ii++) begin
-            logic [7:0] duty, phase;
+            logic [7:0] duty;
+            logic [7:0] phase;
             logic pwm_out;
-            logic [16:0] duty_modulated;
-            assign duty = SEQ_MODE ? seq_duty[ii] : duty_buf[ii];
-            assign phase = SEQ_MODE ? seq_phase[ii] : phase_buf[ii];
             assign XDCR_OUT[cvt_uid(ii) + 1] = pwm_out & output_en;
-            mult8x8 mod_mult(
-                        .CLK(CLK),
-                        .A(duty),
-                        .B(mod),
-                        .P(duty_modulated)
-                    );
-            transducer#(
-                          .ULTRASOUND_CNT_CYCLE(ULTRASOUND_CNT_CYCLE),
-                          .DELAY_DEPTH(DELAY_DEPTH)
-                      ) tr(
-                          .CLK(CLK),
-                          .CLK_LPF(CLK_LPF),
-                          .TIME(TIME),
-                          .UPDATE(update),
-                          .DUTY(duty_modulated[15:8]),
-                          .DUTY_OFFSET(duty_offset[ii]),
-                          .PHASE(phase),
-                          .DELAY(delay[ii]),
-                          .SILENT(SILENT),
-                          .PWM_OUT(pwm_out)
-                      );
+            pwm_generator pwm_generator(
+                              .TIME(TIME),
+                              .DUTY(duty),
+                              .PHASE(phase),
+                              .DUTY_OFFSET(duty_offset[ii]),
+                              .PWM_OUT(pwm_out)
+                          );
+            always_ff @(posedge CLK) begin
+                duty <= update ? duty_delayed[ii] : duty;
+                phase <= update ? (SILENT ? phase_silent[ii] : phase_raw[ii]) : phase;
+            end
         end
     end
 endgenerate

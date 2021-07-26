@@ -22,8 +22,6 @@ module silent_lpf_v2#(
            output var [7:0] PHASES[0:TRANS_NUM-1]
        );
 
-logic enin;
-logic enin_rst;
 logic [7:0] chin = 0;
 logic [7:0] chout;
 
@@ -47,9 +45,7 @@ lpf_silent lpf(
                .event_s_data_chanid_incorrect()
            );
 
-
-always_ff @(posedge CLK) begin
-    // if (enin & ~enin_rst) begin
+always_ff @(posedge CLK) begin 
     chin <= chin + 1;
     if (chin < TRANS_NUM) begin
         din <= {DUTY[chin], PHASE[chin]};
@@ -57,7 +53,6 @@ always_ff @(posedge CLK) begin
     else begin
         din <= 0;
     end
-    // end
 end
 
 always_ff @(negedge CLK) begin
@@ -65,10 +60,6 @@ always_ff @(negedge CLK) begin
         dout1[chout] <= clamp(dout[31:16]);
         dout2[chout] <= dout[7:0];
     end
-end
-
-always_ff @(posedge CLK) begin
-    enin_rst <= enin;
 end
 
 function automatic [7:0] clamp;

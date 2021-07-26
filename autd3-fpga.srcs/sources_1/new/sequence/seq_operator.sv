@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 20/07/2021
+ * Last Modified: 26/07/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -28,6 +28,9 @@ module seq_operator#(
 
 `include "../cvt_uid.vh"
 `include "../param.vh"
+
+localparam SEQ_DATA_MODE_FOCI           = 0;
+localparam SEQ_DATA_MODE_RAW_DUTY_PHASE = 1;
 
 localparam TRANS_NUM_X = 18;
 localparam TRANS_NUM_Y = 14;
