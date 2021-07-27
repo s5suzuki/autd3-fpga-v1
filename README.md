@@ -1,6 +1,6 @@
 # AUTD3 FPGA firmware
 
-Version: 1.6
+Version: 1.7
 
 This repository contains the FPGA design of [AUTD3](https://hapislab.org/airborne-ultrasound-tactile-display?lang=en).
 
@@ -111,8 +111,8 @@ The code is written in SystemVerilog with Vivado 2021.1.
 |             | 0x003F            | unused                                                                              | ︙   |
 |             | 0x0040            | 15:0 = duty[1][0]/phase[1][0]<br>︙<br>63:48 = duty[1][3]/phase[1][3]               | ︙   |
 | 　          | ︙                | ︙                                                                                   | ︙   |
-|             | 0xFFFE            | 15:0 = duty[1023][248]/phase[1023][248]<br>63:16 = unused                                 | ︙   |
-|          | 0xFFFF            | unused                                                                                | R   |
+|             | 0x1FFFE            | 15:0 = duty[2047][248]/phase[2047][248]<br>63:16 = unused                                 | ︙   |
+|          | 0x1FFFF            | unused                                                                                | R   |
 
 # Author
 

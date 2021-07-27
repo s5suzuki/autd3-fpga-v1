@@ -4,7 +4,7 @@
  * Created Date: 27/03/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 20/07/2021
+ * Last Modified: 26/07/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -32,6 +32,8 @@ module top(
            output var [3:0] GPIO_OUT
        );
 
+`include "./features.vh"
+
 localparam int TRANS_NUM = 249;
 localparam int SYS_CLK_FREQ = 20480000;
 localparam int ULTRASOUND_FREQ = 40000;
@@ -49,18 +51,14 @@ logic sync0_edge;
 logic [15:0] cpu_data_out;
 
 logic [8:0] time_cnt;
+logic ref_clk_tick;
 
+`ifdef ENABLE_SYNC_DBG
 logic [15:0] mod_clk_cycle;
-logic [15:0] mod_clk_div;
-logic [63:0] mod_clk_sync_time;
 logic [15:0] mod_idx;
-logic [7:0] mod;
-
 logic [15:0] seq_clk_cycle;
-logic [15:0] seq_clk_div;
 logic [15:0] seq_idx;
-logic [15:0] wavelength;
-logic [63:0] seq_clk_sync_time;
+`endif
 
 assign reset = ~RESET_N;
 assign CPU_DATA  = (~CPU_CS1_N && ~CPU_RD_N && CPU_RDWR) ? cpu_data_out : 16'bz;
@@ -82,36 +80,31 @@ assign cpu_bus.BRAM_ADDR = CPU_ADDR[14:1];
 assign cpu_bus.DATA_IN = CPU_DATA;
 assign cpu_data_out = cpu_bus.DATA_OUT;
 
-tr_bus_if tr_bus();
-config_bus_if config_bus();
-seq_bus_if seq_bus();
+`ifdef ENABLE_MODULATION
+mod_sync_if mod_sync();
+assign mod_sync.REF_CLK_TICK = ref_clk_tick;
+assign mod_sync.SYNC = sync0_edge;
+`endif
 
-mem_manager mem_manager(
-                .CLK(sys_clk),
-                .CPU_BUS(cpu_bus.slave_port),
-                .TR_BUS(tr_bus.master_port),
-                .CONFIG_BUS(config_bus.master_port),
-                .SEQ_BUS(seq_bus.master_port),
-                .MOD_IDX(mod_idx),
-                .MOD(mod)
-            );
+`ifdef ENABLE_SEQUENCE
+seq_sync_if seq_sync();
+assign seq_sync.REF_CLK_TICK = ref_clk_tick;
+assign seq_sync.SYNC = sync0_edge;
+`endif
 
 config_manager config_manager(
                    .CLK(sys_clk),
-                   .CONFIG_BUS(config_bus.slave_port),
                    .SYNC(sync0_edge),
-                   .MOD_CLK_INIT(mod_clk_init),
-                   .MOD_CLK_CYCLE(mod_clk_cycle),
-                   .MOD_CLK_DIV(mod_clk_div),
-                   .MOD_CLK_SYNC_TIME_NS(mod_clk_sync_time),
-                   .SEQ_CLK_INIT(seq_clk_init),
-                   .SEQ_CLK_CYCLE(seq_clk_cycle),
-                   .SEQ_CLK_DIV(seq_clk_div),
-                   .SEQ_CLK_SYNC_TIME_NS(seq_clk_sync_time),
-                   .WAVELENGTH_UM(wavelength),
-                   .SEQ_DATA_MODE(seq_data_mode),
-                   .SEQ_MODE(seq_mode),
+                   .CPU_BUS(cpu_bus.slave_port),
+`ifdef ENABLE_MODULATION
+                   .MOD_SYNC(mod_sync.master_port),
+`endif
+`ifdef ENABLE_SEQUENCE
+                   .SEQ_SYNC(seq_sync.master_port),
+`endif
+`ifdef ENABLE_SILENT
                    .SILENT(silent),
+`endif
                    .FORCE_FAN(FORCE_FAN),
                    .THERMO(THERMO)
                );
@@ -124,19 +117,9 @@ synchronizer#(
             ) synchronizer(
                 .CLK(sys_clk),
                 .SYNC(sync0_edge),
-                .MOD_CLK_INIT(mod_clk_init),
-                .MOD_CLK_CYCLE(mod_clk_cycle),
-                .MOD_CLK_DIV(mod_clk_div),
-                .MOD_CLK_SYNC_TIME_NS(mod_clk_sync_time),
-                .SEQ_CLK_INIT(seq_clk_init),
-                .SEQ_CLK_CYCLE(seq_clk_cycle),
-                .SEQ_CLK_DIV(seq_clk_div),
-                .SEQ_CLK_SYNC_TIME_NS(seq_clk_sync_time),
-                .SEQ_DATA_MODE(seq_data_mode),
                 .TIME(time_cnt),
-                .UPDATE(update),
-                .MOD_IDX(mod_idx),
-                .SEQ_IDX(seq_idx)
+                .REF_CLK_TICK(ref_clk_tick),
+                .UPDATE(update)
             );
 
 tr_cntroller#(
@@ -148,21 +131,29 @@ tr_cntroller#(
                 .CLK_LPF(lpf_clk),
                 .TIME(time_cnt),
                 .UPDATE(update),
-                .TR_BUS(tr_bus.slave_port),
-                .MOD(mod),
+                .CPU_BUS(cpu_bus.slave_port),
+`ifdef ENABLE_MODULATION
+                .MOD_SYNC(mod_sync.slave_port),
+`endif
+`ifdef ENABLE_SEQUENCE
+                .SEQ_SYNC(seq_sync.slave_port),
+`endif
+`ifdef ENABLE_SILENT
                 .SILENT(silent),
-                .SEQ_BUS(seq_bus.slave_port),
-                .SEQ_MODE(seq_mode),
+`endif
+`ifdef ENABLE_SYNC_DBG
+                .MOD_CLK_CYCLE(mod_clk_cycle),
+                .MOD_IDX(mod_idx),
+                .SEQ_CLK_CYCLE(seq_clk_cycle),
                 .SEQ_IDX(seq_idx),
-                .WAVELENGTH_UM(wavelength),
-                .SEQ_DATA_MODE(seq_data_mode),
+`endif
                 .XDCR_OUT(XDCR_OUT)
             );
 
 always_ff @(posedge sys_clk)
     sync0 <= {sync0[1:0], CAT_SYNC0};
 
-// SYNC DBG OUT
+`ifdef ENABLE_SYNC_DBG
 logic dbg_0, dbg_0_rst;
 logic dbg_1, dbg_1_rst;
 logic dbg_2, dbg_2_rst;
@@ -196,5 +187,6 @@ always_ff @(posedge sys_clk) begin
         gpo_3 <= (dbg_3 & ~dbg_3_rst) ? ~gpo_3 : gpo_3;
     end
 end
+`endif
 
 endmodule

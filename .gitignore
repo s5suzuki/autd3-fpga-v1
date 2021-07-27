@@ -15,4 +15,5 @@
 !README.md
 !LICENSE
 !/generate_bram_init_coe.ps1
+!/clear.ps1
 !/fpga_configuration_script.tcl
