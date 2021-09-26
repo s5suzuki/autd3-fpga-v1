@@ -4,7 +4,7 @@
  * Created Date: 20/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 18/06/2021
+ * Last Modified: 26/09/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -14,7 +14,7 @@
 `timescale 1ns / 1ps
 module sim_delayed_fifo();
 
-localparam int ULTRASOUND_CNT_CYCLE = 510;
+localparam int ULTRASOUND_CNT_CYCLE = 512;
 
 logic MRCC_25P6M;
 logic RST;
@@ -22,46 +22,36 @@ logic RST;
 logic sys_clk;
 logic [8:0] time_cnt;
 
-logic silent = 1'b0;
-
 logic [7:0] duty;
 logic [7:0] phase;
-logic [7:0] delay;
 
 logic update;
 assign update = time_cnt == (ULTRASOUND_CNT_CYCLE - 1);
 
-logic pwm, pwm_d;
+logic [7:0] duty_out_1, duty_out_2;
+logic [7:0] phase_out_1, phase_out_2;
 
-transducer transducer(
-               .CLK(sys_clk),
-               .CLK_LPF(lpf_clk),
-               .TIME(time_cnt),
-               .UPDATE(update),
-               .DUTY(duty),
-               .PHASE(phase),
-               .DELAY(8'h0),
-               .SILENT(silent),
-               .PWM_OUT(pwm)
-           );
+delayed_fifo delayed_fifo_1(
+                 .CLK(sys_clk),
+                 .UPDATE(update),
+                 .DELAY(8'h0),
+                 .DATA_IN(duty),
+                 .DATA_OUT(duty_out_1)
+             );
 
-transducer transducer_delay(
-               .CLK(sys_clk),
-               .CLK_LPF(lpf_clk),
-               .TIME(time_cnt),
-               .UPDATE(update),
-               .DUTY(duty),
-               .PHASE(phase),
-               .DELAY(8'd1),
-               .SILENT(silent),
-               .PWM_OUT(pwm_d)
-           );
+delayed_fifo delayed_fifo_2(
+                 .CLK(sys_clk),
+                 .UPDATE(update),
+                 .DELAY(8'h1),
+                 .DATA_IN(duty),
+                 .DATA_OUT(duty_out_2)
+             );
 
 ultrasound_cnt_clk_gen ultrasound_cnt_clk_gen(
                            .clk_in1(MRCC_25P6M),
                            .reset(RST),
                            .clk_out1(sys_clk),
-                           .clk_out2(lpf_clk)
+                           .clk_out2()
                        );
 
 initial begin
@@ -88,5 +78,10 @@ end
 
 always @(posedge sys_clk)
     time_cnt <= (RST | (time_cnt == (ULTRASOUND_CNT_CYCLE-1))) ? 0 : time_cnt + 1;
+
+always_ff @(posedge sys_clk) begin
+    phase_out_1 <= update ? phase : phase_out_1;
+    phase_out_2 <= update ? phase : phase_out_2;
+end
 
 endmodule

@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 26/07/2021
+ * Last Modified: 26/09/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -144,6 +144,7 @@ assign phase_silent = phase_raw;
 
 ///////////////////////////// Delay output /////////////////////////////
 logic [7:0] duty_delayed[0:TRANS_NUM-1];
+logic [7:0] phase_delayed[0:TRANS_NUM-1];
 
 `ifdef ENABLE_DELAY
 generate begin:TRANSDUCERS_DELAY
@@ -162,29 +163,29 @@ generate begin:TRANSDUCERS_DELAY
     end
 endgenerate
 `else
-assign duty_delayed = duty_silent;
+always_ff @(posedge CLK) begin
+    duty_delayed <= update ? duty_silent : duty_delayed;
+end
 `endif
+
+always_ff @(posedge CLK) begin
+    phase_delayed <= update ? phase_silent : phase_delayed;
+end
 ///////////////////////////// Delay output /////////////////////////////
 
 `include "cvt_uid.vh"
 generate begin:TRANSDUCERS_GEN
         genvar ii;
         for(ii = 0; ii < TRANS_NUM; ii++) begin
-            logic [7:0] duty;
-            logic [7:0] phase;
             logic pwm_out;
             assign XDCR_OUT[cvt_uid(ii) + 1] = pwm_out & output_en;
             pwm_generator pwm_generator(
                               .TIME(TIME),
-                              .DUTY(duty),
-                              .PHASE(phase),
+                              .DUTY(duty_delayed[ii]),
+                              .PHASE(phase_delayed[ii]),
                               .DUTY_OFFSET(duty_offset[ii]),
                               .PWM_OUT(pwm_out)
                           );
-            always_ff @(posedge CLK) begin
-                duty <= update ? duty_delayed[ii] : duty;
-                phase <= update ? phase_silent[ii] : phase;
-            end
         end
     end
 endgenerate
