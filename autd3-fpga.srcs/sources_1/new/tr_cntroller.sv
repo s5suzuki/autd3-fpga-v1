@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 27/09/2021
+ * Last Modified: 28/09/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -176,16 +176,9 @@ end
 ///////////////////////////// Delay output /////////////////////////////
 
 logic balance = 0;
-logic [4:0] balance_cnt = 0;
 always_ff @(posedge CLK) begin
     if (output_balance) begin
-        if (balance_cnt == 5'd19) begin
-            balance <= ~balance;
-            balance_cnt <= 0;
-        end
-        else begin
-            balance_cnt <= balance_cnt + 1;
-        end
+        balance <= ~balance;
     end
     else begin
         balance <= 0;
