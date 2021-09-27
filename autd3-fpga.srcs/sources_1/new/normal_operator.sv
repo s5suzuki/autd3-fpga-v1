@@ -4,7 +4,7 @@
  * Created Date: 26/07/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 26/07/2021
+ * Last Modified: 27/09/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -25,7 +25,8 @@ module normal_operator#(
 `ifdef ENABLE_DELAY
            output var [7:0] DELAY[0:TRANS_NUM-1],
 `endif
-           output var OUTPUT_EN
+           output var OUTPUT_EN,
+           output var OUTPUT_BALANCE
        );
 
 `include "./param.vh"
@@ -57,12 +58,14 @@ logic [7:0] duty_buf[0:TRANS_NUM-1];
 logic [7:0] phase_buf[0:TRANS_NUM-1];
 
 logic output_en;
+logic output_balance;
 logic duty_offset[0:TRANS_NUM-1];
 
 assign DUTY = duty_buf;
 assign PHASE = phase_buf;
 assign DUTY_OFFSET = duty_offset;
 assign OUTPUT_EN = output_en;
+assign OUTPUT_BALANCE = output_balance;
 
 `ifdef ENABLE_DELAY
 logic [DELAY_DEPTH-1:0] delay[0:TRANS_NUM-1];
@@ -119,7 +122,8 @@ always_ff @(posedge CLK) begin
         end
         DELAY_OFFSET: begin
             if (tr_buf_write_idx == TRANS_NUM) begin
-                output_en <= tr_bram_dataout[DELAY_DEPTH];
+                output_en <= tr_bram_dataout[0];
+                output_balance <= tr_bram_dataout[1];
                 tr_state <= IDLE;
             end
             else begin

@@ -86,7 +86,7 @@ The code is written in SystemVerilog with Vivado 2021.1.
 |             | 0x100              | 15:9 = unused<br>8 = duty offset[0]<br>7:0 = delay[0]           | R   |
 | 　          | ︙                | ︙                  | ︙  |
 | 　          | 0x0F8              | 15:9 = unused<br>8 = duty offset[248]<br>7:0 = delay[248]         | R   |
-| 　          | 0x1F9              | 8 = output enable              | -  |
+| 　          | 0x1F9              | 1: output balance<br>0 = output enable              | -  |
 | 　          | 0x1FA              | unused              | -  |
 | 　          | ︙                | ︙                  | ︙  |
 | 　          | 0x1FF              | unused              | -  |

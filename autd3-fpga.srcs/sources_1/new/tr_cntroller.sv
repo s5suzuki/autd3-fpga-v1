@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 26/09/2021
+ * Last Modified: 27/09/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -52,6 +52,7 @@ logic duty_offset[0:TRANS_NUM-1];
 logic [7:0] delay[0:TRANS_NUM-1];
 `endif
 logic output_en;
+logic output_balance;
 
 normal_operator#(
                    .TRANS_NUM(TRANS_NUM)
@@ -65,7 +66,8 @@ normal_operator#(
 `ifdef ENABLE_DELAY
                    .DELAY(delay),
 `endif
-                   .OUTPUT_EN(output_en)
+                   .OUTPUT_EN(output_en),
+                   .OUTPUT_BALANCE(output_balance)
                );
 
 ///////////////////////// Sequence Modulation //////////////////////////
@@ -173,12 +175,30 @@ always_ff @(posedge CLK) begin
 end
 ///////////////////////////// Delay output /////////////////////////////
 
+logic balance = 0;
+logic [4:0] balance_cnt = 0;
+always_ff @(posedge CLK) begin
+    if (output_balance) begin
+        if (balance_cnt == 5'd19) begin
+            balance <= ~balance;
+            balance_cnt <= 0;
+        end
+        else begin
+            balance_cnt <= balance_cnt + 1;
+        end
+    end
+    else begin
+        balance <= 0;
+    end
+end
+
 `include "cvt_uid.vh"
 generate begin:TRANSDUCERS_GEN
         genvar ii;
         for(ii = 0; ii < TRANS_NUM; ii++) begin
             logic pwm_out;
-            assign XDCR_OUT[cvt_uid(ii) + 1] = pwm_out & output_en;
+            logic tr_out;
+            assign XDCR_OUT[cvt_uid(ii) + 1] = tr_out;
             pwm_generator pwm_generator(
                               .TIME(TIME),
                               .DUTY(duty_delayed[ii]),
@@ -186,6 +206,9 @@ generate begin:TRANSDUCERS_GEN
                               .DUTY_OFFSET(duty_offset[ii]),
                               .PWM_OUT(pwm_out)
                           );
+            always_ff @(posedge CLK) begin
+                tr_out <= output_en ? pwm_out : balance;
+            end
         end
     end
 endgenerate
