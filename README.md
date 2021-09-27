@@ -1,6 +1,6 @@
 # AUTD3 FPGA firmware
 
-Version: 1.7
+Version: 1.8
 
 This repository contains the FPGA design of [AUTD3](https://hapislab.org/airborne-ultrasound-tactile-display?lang=en).
 
