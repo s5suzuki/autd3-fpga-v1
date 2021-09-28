@@ -39,6 +39,8 @@ module tr_cntroller#(
            output var [15:0] SEQ_CLK_CYCLE,
            output var [15:0] SEQ_IDX,
 `endif
+           input var OUTPUT_EN,
+           input var OUTPUT_BALANCE,
            output var [252:1] XDCR_OUT
        );
 
@@ -51,8 +53,6 @@ logic duty_offset[0:TRANS_NUM-1];
 `ifdef ENABLE_DELAY
 logic [7:0] delay[0:TRANS_NUM-1];
 `endif
-logic output_en;
-logic output_balance;
 
 normal_operator#(
                    .TRANS_NUM(TRANS_NUM)
@@ -62,12 +62,10 @@ normal_operator#(
                    .CPU_BUS(CPU_BUS),
                    .DUTY(normal_duty),
                    .PHASE(normal_phase),
-                   .DUTY_OFFSET(duty_offset),
 `ifdef ENABLE_DELAY
                    .DELAY(delay),
 `endif
-                   .OUTPUT_EN(output_en),
-                   .OUTPUT_BALANCE(output_balance)
+                   .DUTY_OFFSET(duty_offset)
                );
 
 ///////////////////////// Sequence Modulation //////////////////////////
@@ -90,8 +88,8 @@ seq_operator#(
                 .DUTY(seq_duty),
                 .PHASE(seq_phase)
             );
-assign duty_raw = SEQ_SYNC.SEQ_MODE ? seq_duty : normal_duty;
-assign phase_raw = SEQ_SYNC.SEQ_MODE ? seq_phase : normal_phase;
+assign duty_raw = SEQ_SYNC.OP_MODE ? seq_duty : normal_duty;
+assign phase_raw = SEQ_SYNC.OP_MODE ? seq_phase : normal_phase;
 `else
 assign duty_raw = normal_duty;
 assign phase_raw = normal_phase;
@@ -177,7 +175,7 @@ end
 
 logic balance = 0;
 always_ff @(posedge CLK) begin
-    if (output_balance) begin
+    if (OUTPUT_BALANCE) begin
         balance <= ~balance;
     end
     else begin
@@ -200,7 +198,7 @@ generate begin:TRANSDUCERS_GEN
                               .PWM_OUT(pwm_out)
                           );
             always_ff @(posedge CLK) begin
-                tr_out <= output_en ? pwm_out : balance;
+                tr_out <= OUTPUT_EN ? pwm_out : balance;
             end
         end
     end

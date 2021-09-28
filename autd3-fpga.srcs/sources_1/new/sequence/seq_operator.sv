@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 27/07/2021
+ * Last Modified: 28/09/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -78,7 +78,7 @@ logic [15:0] seq_cnt;
 logic [15:0] seq_cnt_div;
 logic [15:0] raw_buf_mode_offset;
 
-assign seq_idx = (SEQ_SYNC.SEQ_DATA_MODE == `SEQ_DATA_MODE_FOCI) ? {1'b0, seq_cnt} : {seq_cnt[10:0], 6'h0} + raw_buf_mode_offset;
+assign seq_idx = (SEQ_SYNC.SEQ_MODE == `SEQ_MODE_FOCI) ? {1'b0, seq_cnt} : {seq_cnt[10:0], 6'h0} + raw_buf_mode_offset;
 
 logic [95:0] seq_clk_sync_time_ref_unit;
 logic [47:0] seq_tcycle;
@@ -97,7 +97,7 @@ divider64 div_ref_unit_seq(
           );
 mult_24 mult_tcycle(
             .CLK(CLK),
-            .A({8'd0, SEQ_SYNC.SEQ_CLK_CYCLE}),
+            .A({8'd0, SEQ_SYNC.SEQ_CLK_CYCLE} + 24'd1),
             .B({8'd0, SEQ_SYNC.SEQ_CLK_DIV}),
             .P(seq_tcycle)
         );
@@ -129,7 +129,7 @@ always_ff @(posedge CLK) begin
     else if(SEQ_SYNC.REF_CLK_TICK) begin
         if(seq_cnt_div == SEQ_SYNC.SEQ_CLK_DIV - 1) begin
             seq_cnt_div <= 0;
-            seq_cnt <= (seq_cnt == SEQ_SYNC.SEQ_CLK_CYCLE - 1) ? 0 : seq_cnt + 1;
+            seq_cnt <= (seq_cnt == SEQ_SYNC.SEQ_CLK_CYCLE) ? 0 : seq_cnt + 1;
             raw_buf_mode_offset <= 0;
         end
         else begin
@@ -239,8 +239,8 @@ always_ff @(posedge CLK) begin
 end
 
 always_ff @(posedge CLK) begin
-    case(SEQ_SYNC.SEQ_DATA_MODE)
-        `SEQ_DATA_MODE_FOCI: begin
+    case(SEQ_SYNC.SEQ_MODE)
+        `SEQ_MODE_FOCI: begin
             if(phase_out_valid) begin
                 phase[tr_cnt_in] <= phase_out;
                 tr_cnt_in <= tr_cnt_in + 1;
@@ -279,7 +279,7 @@ always_ff @(posedge CLK) begin
                 end
             endcase
         end
-        `SEQ_DATA_MODE_RAW_DUTY_PHASE: begin
+        `SEQ_MODE_RAW_DUTY_PHASE: begin
             case(state_calc)
                 WAIT: begin
                     if (idx_change) begin

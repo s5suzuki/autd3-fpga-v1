@@ -4,7 +4,7 @@
  * Created Date: 26/07/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 26/07/2021
+ * Last Modified: 28/09/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -20,10 +20,10 @@ logic REF_CLK_TICK;
 logic SEQ_CLK_INIT;
 logic SYNC;
 logic [15:0] WAVELENGTH_UM;
+logic OP_MODE;
 logic SEQ_MODE;
-logic SEQ_DATA_MODE;
 
-modport master_port(output SEQ_CLK_CYCLE, output SEQ_CLK_DIV, output SEQ_CLK_SYNC_TIME_NS, output SEQ_CLK_INIT, output WAVELENGTH_UM, output SEQ_MODE, output SEQ_DATA_MODE);
-modport slave_port(input SEQ_CLK_CYCLE, input SEQ_CLK_DIV, input SEQ_CLK_SYNC_TIME_NS, input SEQ_CLK_INIT, input WAVELENGTH_UM, input SEQ_MODE, input SEQ_DATA_MODE, input REF_CLK_TICK, input SYNC);
+modport master_port(output SEQ_CLK_CYCLE, output SEQ_CLK_DIV, output SEQ_CLK_SYNC_TIME_NS, output SEQ_CLK_INIT, output WAVELENGTH_UM, output OP_MODE, output SEQ_MODE);
+modport slave_port(input SEQ_CLK_CYCLE, input SEQ_CLK_DIV, input SEQ_CLK_SYNC_TIME_NS, input SEQ_CLK_INIT, input WAVELENGTH_UM, input OP_MODE, input SEQ_MODE, input REF_CLK_TICK, input SYNC);
 
 endinterface
