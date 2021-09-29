@@ -4,7 +4,7 @@
  * Created Date: 25/07/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 28/09/2021
+ * Last Modified: 29/09/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -38,6 +38,10 @@ logic [7:0] phase1[0:TRANS_NUM-1];
 logic [7:0] dutys1[0:TRANS_NUM-1];
 logic [7:0] phases1[0:TRANS_NUM-1];
 
+logic [7:0] p0_raw, p0_lpf;
+assign p0_raw = phase1[0];
+assign p0_lpf = phases1[0];
+
 silent_lpf_v2#(
                  .TRANS_NUM(TRANS_NUM)
              ) silent_lpf_v2(
@@ -55,9 +59,9 @@ initial begin
     phase1 = '{TRANS_NUM{8'h00}};
     #1000;
     RST = 0;
-    #100000;
+    #(2.5*1000*1000);
     duty1[0] = 8'hFF;
-    phase1[0] = 8'hFF;
+    phase1[0] = 8'h80;
     duty1[1] = 8'haa;
     phase1[1] = 8'hbb;
     duty1[TRANS_NUM-1] = 8'h88;
