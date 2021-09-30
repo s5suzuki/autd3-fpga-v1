@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 28/09/2021
+ * Last Modified: 30/09/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -17,6 +17,7 @@ module config_manager(
            input var CLK,
            input var SYNC,
            cpu_bus_if.slave_port CPU_BUS,
+           output var [15:0] DATA_OUT,
 `ifdef ENABLE_MODULATION
            mod_sync_if.master_port MOD_SYNC,
 `endif
@@ -44,7 +45,7 @@ logic config_ena;
 assign config_ena = (CPU_BUS.BRAM_SELECT == `BRAM_CONFIG_SELECT) & CPU_BUS.EN;
 
 logic [15:0] cpu_data_out;
-assign CPU_BUS.DATA_OUT = cpu_data_out;
+assign DATA_OUT = cpu_data_out;
 
 BRAM_CONFIG config_bram(
                 .clka(CPU_BUS.BUS_CLK),
@@ -152,7 +153,7 @@ assign SEQ_SYNC.SEQ_CLK_DIV = seq_clk_div;
 assign SEQ_SYNC.SEQ_CLK_SYNC_TIME_NS = seq_clk_sync_time;
 assign SEQ_SYNC.WAVELENGTH_UM = wavelength;
 assign SEQ_SYNC.OP_MODE = ctrl_flags[CF_OP_MODE];
-assign SEQ_SYNC.SEQ_MODE = cfp[CF_SEQ_MODE];
+assign SEQ_SYNC.SEQ_MODE = ctrl_flags[CF_SEQ_MODE];
 `endif
 
 always_ff @(posedge CLK) begin

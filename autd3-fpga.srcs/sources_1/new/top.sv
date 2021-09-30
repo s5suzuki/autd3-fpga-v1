@@ -4,7 +4,7 @@
  * Created Date: 27/03/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 28/09/2021
+ * Last Modified: 30/09/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -78,7 +78,6 @@ assign cpu_bus.WE = ~CPU_WE0_N;
 assign cpu_bus.BRAM_SELECT = CPU_ADDR[16:15];
 assign cpu_bus.BRAM_ADDR = CPU_ADDR[14:1];
 assign cpu_bus.DATA_IN = CPU_DATA;
-assign cpu_data_out = cpu_bus.DATA_OUT;
 
 `ifdef ENABLE_MODULATION
 mod_sync_if mod_sync();
@@ -96,6 +95,7 @@ config_manager config_manager(
                    .CLK(sys_clk),
                    .SYNC(sync0_edge),
                    .CPU_BUS(cpu_bus.slave_port),
+                   .DATA_OUT(cpu_data_out),
 `ifdef ENABLE_MODULATION
                    .MOD_SYNC(mod_sync.master_port),
 `endif
