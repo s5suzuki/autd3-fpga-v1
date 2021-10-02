@@ -4,7 +4,7 @@
  * Created Date: 27/03/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 26/07/2021
+ * Last Modified: 30/09/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -78,7 +78,6 @@ assign cpu_bus.WE = ~CPU_WE0_N;
 assign cpu_bus.BRAM_SELECT = CPU_ADDR[16:15];
 assign cpu_bus.BRAM_ADDR = CPU_ADDR[14:1];
 assign cpu_bus.DATA_IN = CPU_DATA;
-assign cpu_data_out = cpu_bus.DATA_OUT;
 
 `ifdef ENABLE_MODULATION
 mod_sync_if mod_sync();
@@ -96,6 +95,7 @@ config_manager config_manager(
                    .CLK(sys_clk),
                    .SYNC(sync0_edge),
                    .CPU_BUS(cpu_bus.slave_port),
+                   .DATA_OUT(cpu_data_out),
 `ifdef ENABLE_MODULATION
                    .MOD_SYNC(mod_sync.master_port),
 `endif
@@ -106,7 +106,9 @@ config_manager config_manager(
                    .SILENT(silent),
 `endif
                    .FORCE_FAN(FORCE_FAN),
-                   .THERMO(THERMO)
+                   .THERMO(THERMO),
+                   .OUTPUT_EN(output_en),
+                   .OUTPUT_BALANCE(output_balance)
                );
 
 synchronizer#(
@@ -147,6 +149,8 @@ tr_cntroller#(
                 .SEQ_CLK_CYCLE(seq_clk_cycle),
                 .SEQ_IDX(seq_idx),
 `endif
+                .OUTPUT_EN(output_en),
+                .OUTPUT_BALANCE(output_balance),
                 .XDCR_OUT(XDCR_OUT)
             );
 
@@ -173,8 +177,8 @@ always_ff @(posedge sys_clk) begin
         gpo_3 <= 0;
     end
     else begin
-        dbg_0 <= mod_idx == mod_clk_cycle - 1;
-        dbg_1 <= seq_idx == seq_clk_cycle - 1;
+        dbg_0 <= mod_idx == mod_clk_cycle;
+        dbg_1 <= seq_idx == seq_clk_cycle;
         dbg_2 <= sync0_edge;
         dbg_3 <= time_cnt == (ULTRASOUND_CNT_CYCLE >> 1);
         dbg_0_rst <= dbg_0;

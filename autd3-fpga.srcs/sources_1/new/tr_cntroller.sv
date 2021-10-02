@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 26/07/2021
+ * Last Modified: 28/09/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -39,6 +39,8 @@ module tr_cntroller#(
            output var [15:0] SEQ_CLK_CYCLE,
            output var [15:0] SEQ_IDX,
 `endif
+           input var OUTPUT_EN,
+           input var OUTPUT_BALANCE,
            output var [252:1] XDCR_OUT
        );
 
@@ -51,7 +53,6 @@ logic duty_offset[0:TRANS_NUM-1];
 `ifdef ENABLE_DELAY
 logic [7:0] delay[0:TRANS_NUM-1];
 `endif
-logic output_en;
 
 normal_operator#(
                    .TRANS_NUM(TRANS_NUM)
@@ -61,11 +62,10 @@ normal_operator#(
                    .CPU_BUS(CPU_BUS),
                    .DUTY(normal_duty),
                    .PHASE(normal_phase),
-                   .DUTY_OFFSET(duty_offset),
 `ifdef ENABLE_DELAY
                    .DELAY(delay),
 `endif
-                   .OUTPUT_EN(output_en)
+                   .DUTY_OFFSET(duty_offset)
                );
 
 ///////////////////////// Sequence Modulation //////////////////////////
@@ -88,8 +88,8 @@ seq_operator#(
                 .DUTY(seq_duty),
                 .PHASE(seq_phase)
             );
-assign duty_raw = SEQ_SYNC.SEQ_MODE ? seq_duty : normal_duty;
-assign phase_raw = SEQ_SYNC.SEQ_MODE ? seq_phase : normal_phase;
+assign duty_raw = SEQ_SYNC.OP_MODE ? seq_duty : normal_duty;
+assign phase_raw = SEQ_SYNC.OP_MODE ? seq_phase : normal_phase;
 `else
 assign duty_raw = normal_duty;
 assign phase_raw = normal_phase;
@@ -144,6 +144,7 @@ assign phase_silent = phase_raw;
 
 ///////////////////////////// Delay output /////////////////////////////
 logic [7:0] duty_delayed[0:TRANS_NUM-1];
+logic [7:0] phase_delayed[0:TRANS_NUM-1];
 
 `ifdef ENABLE_DELAY
 generate begin:TRANSDUCERS_DELAY
@@ -162,28 +163,42 @@ generate begin:TRANSDUCERS_DELAY
     end
 endgenerate
 `else
-assign duty_delayed = duty_silent;
+always_ff @(posedge CLK) begin
+    duty_delayed <= update ? duty_silent : duty_delayed;
+end
 `endif
+
+always_ff @(posedge CLK) begin
+    phase_delayed <= update ? phase_silent : phase_delayed;
+end
 ///////////////////////////// Delay output /////////////////////////////
+
+logic balance = 0;
+always_ff @(posedge CLK) begin
+    if (OUTPUT_BALANCE) begin
+        balance <= ~balance;
+    end
+    else begin
+        balance <= 0;
+    end
+end
 
 `include "cvt_uid.vh"
 generate begin:TRANSDUCERS_GEN
         genvar ii;
         for(ii = 0; ii < TRANS_NUM; ii++) begin
-            logic [7:0] duty;
-            logic [7:0] phase;
             logic pwm_out;
-            assign XDCR_OUT[cvt_uid(ii) + 1] = pwm_out & output_en;
+            logic tr_out;
+            assign XDCR_OUT[cvt_uid(ii) + 1] = tr_out;
             pwm_generator pwm_generator(
                               .TIME(TIME),
-                              .DUTY(duty),
-                              .PHASE(phase),
+                              .DUTY(duty_delayed[ii]),
+                              .PHASE(phase_delayed[ii]),
                               .DUTY_OFFSET(duty_offset[ii]),
                               .PWM_OUT(pwm_out)
                           );
             always_ff @(posedge CLK) begin
-                duty <= update ? duty_delayed[ii] : duty;
-                phase <= update ? phase_silent[ii] : phase;
+                tr_out <= OUTPUT_EN ? pwm_out : balance;
             end
         end
     end

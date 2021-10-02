@@ -4,7 +4,7 @@
  * Created Date: 26/07/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 26/07/2021
+ * Last Modified: 28/09/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -21,11 +21,10 @@ module normal_operator#(
            cpu_bus_if.slave_port CPU_BUS,
            output var [7:0] DUTY[0:TRANS_NUM-1],
            output var [7:0] PHASE[0:TRANS_NUM-1],
-           output var DUTY_OFFSET[0:TRANS_NUM-1],
 `ifdef ENABLE_DELAY
            output var [7:0] DELAY[0:TRANS_NUM-1],
 `endif
-           output var OUTPUT_EN
+           output var DUTY_OFFSET[0:TRANS_NUM-1]
        );
 
 `include "./param.vh"
@@ -56,13 +55,11 @@ logic [7:0] tr_buf_write_idx;
 logic [7:0] duty_buf[0:TRANS_NUM-1];
 logic [7:0] phase_buf[0:TRANS_NUM-1];
 
-logic output_en;
 logic duty_offset[0:TRANS_NUM-1];
 
 assign DUTY = duty_buf;
 assign PHASE = phase_buf;
 assign DUTY_OFFSET = duty_offset;
-assign OUTPUT_EN = output_en;
 
 `ifdef ENABLE_DELAY
 logic [DELAY_DEPTH-1:0] delay[0:TRANS_NUM-1];
@@ -118,20 +115,15 @@ always_ff @(posedge CLK) begin
             tr_state <= DELAY_OFFSET;
         end
         DELAY_OFFSET: begin
-            if (tr_buf_write_idx == TRANS_NUM) begin
-                output_en <= tr_bram_dataout[DELAY_DEPTH];
-                tr_state <= IDLE;
-            end
-            else begin
-                duty_offset[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH];
+            duty_offset[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH];
 `ifdef ENABLE_DELAY
 
-                delay[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH-1:0];
+            delay[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH-1:0];
 `endif
 
-                tr_bram_idx <= tr_bram_idx + 1;
-                tr_buf_write_idx <= tr_buf_write_idx + 1;
-            end
+            tr_bram_idx <= tr_bram_idx + 1;
+            tr_buf_write_idx <= tr_buf_write_idx + 1;
+            tr_state <= (tr_buf_write_idx == TRANS_NUM - 1) ? IDLE : tr_state;
         end
     endcase
 end

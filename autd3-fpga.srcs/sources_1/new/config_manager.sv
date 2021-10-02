@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 26/07/2021
+ * Last Modified: 30/09/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -17,6 +17,7 @@ module config_manager(
            input var CLK,
            input var SYNC,
            cpu_bus_if.slave_port CPU_BUS,
+           output var [15:0] DATA_OUT,
 `ifdef ENABLE_MODULATION
            mod_sync_if.master_port MOD_SYNC,
 `endif
@@ -27,7 +28,9 @@ module config_manager(
            output var SILENT,
 `endif
            output var FORCE_FAN,
-           input var THERMO
+           input var THERMO,
+           output var OUTPUT_EN,
+           output var OUTPUT_BALANCE
        );
 
 `include "./param.vh"
@@ -42,7 +45,7 @@ logic config_ena;
 assign config_ena = (CPU_BUS.BRAM_SELECT == `BRAM_CONFIG_SELECT) & CPU_BUS.EN;
 
 logic [15:0] cpu_data_out;
-assign CPU_BUS.DATA_OUT = cpu_data_out;
+assign DATA_OUT = cpu_data_out;
 
 BRAM_CONFIG config_bram(
                 .clka(CPU_BUS.BUS_CLK),
@@ -75,11 +78,13 @@ localparam [5:0] BRAM_MOD_SYNC_TIME_1     = 6'h10;
 localparam [5:0] BRAM_MOD_SYNC_TIME_2     = 6'h11;
 localparam [5:0] BRAM_MOD_SYNC_TIME_3     = 6'h12;
 
-localparam CF_SILENT    = 3;
-localparam CF_FORCE_FAN = 4;
-localparam CF_SEQ_MODE  = 5;
+localparam CF_OUTPUT_ENABLE  = 0;
+localparam CF_OUTPUT_BALANCE = 1;
+localparam CF_SILENT         = 3;
+localparam CF_FORCE_FAN      = 4;
+localparam CF_OP_MODE        = 5;
+localparam CF_SEQ_MODE       = 6;
 
-localparam P_SEQ_DATA_MODE_IDX = 8;
 localparam P_MOD_INIT_IDX      = 14;
 localparam P_SEQ_INIT_IDX      = 15;
 
@@ -125,6 +130,10 @@ enum logic [4:0] {
      } state_props = READ_CFP;
 
 assign ctrl_flags = cfp[7:0];
+
+assign OUTPUT_EN = ctrl_flags[CF_OUTPUT_ENABLE];
+assign OUTPUT_BALANCE = ctrl_flags[CF_OUTPUT_BALANCE];
+
 `ifdef ENABLE_SILENT
 assign SILENT = ctrl_flags[CF_SILENT];
 `endif
@@ -143,8 +152,8 @@ assign SEQ_SYNC.SEQ_CLK_CYCLE = seq_clk_cycle;
 assign SEQ_SYNC.SEQ_CLK_DIV = seq_clk_div;
 assign SEQ_SYNC.SEQ_CLK_SYNC_TIME_NS = seq_clk_sync_time;
 assign SEQ_SYNC.WAVELENGTH_UM = wavelength;
+assign SEQ_SYNC.OP_MODE = ctrl_flags[CF_OP_MODE];
 assign SEQ_SYNC.SEQ_MODE = ctrl_flags[CF_SEQ_MODE];
-assign SEQ_SYNC.SEQ_DATA_MODE = cfp[P_SEQ_DATA_MODE_IDX];
 `endif
 
 always_ff @(posedge CLK) begin

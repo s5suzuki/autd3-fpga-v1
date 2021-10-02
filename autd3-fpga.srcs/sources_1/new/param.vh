@@ -6,5 +6,5 @@
 `define MOD_BRAM_ADDR_OFFSET_ADDR (14'h0006)
 `define SEQ_BRAM_ADDR_OFFSET_ADDR (14'h0007)
 
-`define SEQ_DATA_MODE_FOCI           (0)
-`define SEQ_DATA_MODE_RAW_DUTY_PHASE (1)
+`define SEQ_MODE_FOCI           (0)
+`define SEQ_MODE_RAW_DUTY_PHASE (1)

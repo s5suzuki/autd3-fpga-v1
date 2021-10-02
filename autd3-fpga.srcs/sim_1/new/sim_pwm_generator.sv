@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 18/06/2021
+ * Last Modified: 28/09/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -39,6 +39,7 @@ pwm_generator pwm_generator(
                   .TIME(time_cnt),
                   .DUTY(duty),
                   .PHASE(phase),
+                  .DUTY_OFFSET(1),
                   .PWM_OUT(pwm_out)
               );
 
