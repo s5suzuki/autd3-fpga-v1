@@ -4,7 +4,7 @@
  * Created Date: 26/07/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 28/09/2021
+ * Last Modified: 12/10/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -13,8 +13,7 @@
 
 `include "./features.vh"
 module normal_operator#(
-           parameter int TRANS_NUM = 249,
-           parameter int DELAY_DEPTH = 8
+           parameter int TRANS_NUM = 249
        )(
            input var CLK,
            input var UPDATE,
@@ -62,7 +61,7 @@ assign PHASE = phase_buf;
 assign DUTY_OFFSET = duty_offset;
 
 `ifdef ENABLE_DELAY
-logic [DELAY_DEPTH-1:0] delay[0:TRANS_NUM-1];
+logic [7:0] delay[0:TRANS_NUM-1];
 assign DELAY = delay;
 `endif
 
@@ -115,10 +114,10 @@ always_ff @(posedge CLK) begin
             tr_state <= DELAY_OFFSET;
         end
         DELAY_OFFSET: begin
-            duty_offset[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH];
+            duty_offset[tr_buf_write_idx] <= tr_bram_dataout[8];
 `ifdef ENABLE_DELAY
 
-            delay[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH-1:0];
+            delay[tr_buf_write_idx] <= tr_bram_dataout[7:0];
 `endif
 
             tr_bram_idx <= tr_bram_idx + 1;

@@ -4,7 +4,7 @@
  * Created Date: 27/03/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 30/09/2021
+ * Last Modified: 12/10/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -39,8 +39,6 @@ localparam int SYS_CLK_FREQ = 20480000;
 localparam int ULTRASOUND_FREQ = 40000;
 localparam int SYNC0_FREQ = 2000;
 localparam int ULTRASOUND_CNT_CYCLE = SYS_CLK_FREQ/ULTRASOUND_FREQ;
-
-localparam int DELAY_DEPTH = 8;
 
 logic sys_clk;
 logic reset;
@@ -126,8 +124,7 @@ synchronizer#(
 
 tr_cntroller#(
                 .TRANS_NUM(TRANS_NUM),
-                .ULTRASOUND_CNT_CYCLE(ULTRASOUND_CNT_CYCLE),
-                .DELAY_DEPTH(DELAY_DEPTH)
+                .ULTRASOUND_CNT_CYCLE(ULTRASOUND_CNT_CYCLE)
             ) tr_cntroller(
                 .CLK(sys_clk),
                 .CLK_LPF(lpf_clk),
