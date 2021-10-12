@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 30/09/2021
+ * Last Modified: 12/10/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -98,7 +98,7 @@ divider64 div_ref_unit_seq(
 mult_24 mult_tcycle(
             .CLK(CLK),
             .A({8'd0, SEQ_SYNC.SEQ_CLK_CYCLE} + 24'd1),
-            .B({8'd0, SEQ_SYNC.SEQ_CLK_DIV}),
+            .B({8'd0, SEQ_SYNC.SEQ_CLK_DIV} + 24'd1),
             .P(seq_tcycle)
         );
 divider64 sync_shift_rem(
@@ -113,7 +113,7 @@ divider64 sync_shift_rem(
 divider64 sync_shift_div_rem(
               .s_axis_dividend_tdata({32'd0, seq_shift[31:0]}),
               .s_axis_dividend_tvalid(1'b1),
-              .s_axis_divisor_tdata({16'd0, SEQ_SYNC.SEQ_CLK_DIV}),
+              .s_axis_divisor_tdata({16'd0, SEQ_SYNC.SEQ_CLK_DIV} + 32'd1),
               .s_axis_divisor_tvalid(1'b1),
               .aclk(CLK),
               .m_axis_dout_tdata({seq_cnt_shift, seq_div_shift}),
@@ -127,7 +127,7 @@ always_ff @(posedge CLK) begin
         raw_buf_mode_offset <= 0;
     end
     else if(SEQ_SYNC.REF_CLK_TICK) begin
-        if(seq_cnt_div == SEQ_SYNC.SEQ_CLK_DIV - 1) begin
+        if(seq_cnt_div == SEQ_SYNC.SEQ_CLK_DIV) begin
             seq_cnt_div <= 0;
             seq_cnt <= (seq_cnt == SEQ_SYNC.SEQ_CLK_CYCLE) ? 0 : seq_cnt + 1;
             raw_buf_mode_offset <= 0;
