@@ -72,6 +72,7 @@ end
 ////////////////////////////////// SYNC //////////////////////////////////
 logic [15:0] mod_idx_div;
 
+logic mod_clk_init, mod_clk_init_buf, mod_clk_init_buf_rst;
 logic [95:0] mod_clk_sync_time_ref_unit;
 logic [47:0] mod_tcycle;
 logic [95:0] mod_shift;
@@ -113,17 +114,24 @@ divider64 sync_shift_div_rem_mod(
           );
 
 always_ff @(posedge CLK) begin
-    if (MOD_SYNC.SYNC & MOD_SYNC.MOD_CLK_INIT) begin
+    if (MOD_SYNC.SYNC & mod_clk_init) begin
         mod_idx <= mod_idx_shift[15:0];
         mod_idx_div <= mod_div_shift[15:0];
+        mod_clk_init <= 0;
     end
-    else if(MOD_SYNC.REF_CLK_TICK) begin
-        if(mod_idx_div == MOD_SYNC.MOD_CLK_DIV) begin
-            mod_idx_div <= 0;
-            mod_idx <= (mod_idx == MOD_SYNC.MOD_CLK_CYCLE) ? 0 : mod_idx + 1;
-        end
-        else begin
-            mod_idx_div <= mod_idx_div + 1;
+    else begin
+        mod_clk_init_buf <= MOD_SYNC.MOD_CLK_INIT;
+        mod_clk_init_buf_rst <= mod_clk_init_buf;
+        mod_clk_init <= (mod_clk_init_buf & ~mod_clk_init_buf_rst) ? 1 : mod_clk_init;
+
+        if(MOD_SYNC.REF_CLK_TICK) begin
+            if(mod_idx_div == MOD_SYNC.MOD_CLK_DIV) begin
+                mod_idx_div <= 0;
+                mod_idx <= (mod_idx == MOD_SYNC.MOD_CLK_CYCLE) ? 0 : mod_idx + 1;
+            end
+            else begin
+                mod_idx_div <= mod_idx_div + 1;
+            end
         end
     end
 end

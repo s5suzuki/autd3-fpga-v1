@@ -80,6 +80,7 @@ logic [15:0] raw_buf_mode_offset;
 
 assign seq_idx = (SEQ_SYNC.SEQ_MODE == `SEQ_MODE_FOCI) ? {1'b0, seq_cnt} : {seq_cnt[10:0], 6'h0} + raw_buf_mode_offset;
 
+logic seq_clk_init, seq_clk_init_buf, seq_clk_init_buf_rst;
 logic [95:0] seq_clk_sync_time_ref_unit;
 logic [47:0] seq_tcycle;
 logic [95:0] seq_shift;
@@ -121,23 +122,30 @@ divider64 sync_shift_div_rem(
           );
 
 always_ff @(posedge CLK) begin
-    if (SEQ_SYNC.SYNC & SEQ_SYNC.SEQ_CLK_INIT) begin
+    if (SEQ_SYNC.SYNC & seq_clk_init) begin
         seq_cnt <= seq_cnt_shift[15:0];
         seq_cnt_div <= seq_div_shift[15:0];
         raw_buf_mode_offset <= 0;
-    end
-    else if(SEQ_SYNC.REF_CLK_TICK) begin
-        if(seq_cnt_div == SEQ_SYNC.SEQ_CLK_DIV) begin
-            seq_cnt_div <= 0;
-            seq_cnt <= (seq_cnt == SEQ_SYNC.SEQ_CLK_CYCLE) ? 0 : seq_cnt + 1;
-            raw_buf_mode_offset <= 0;
-        end
-        else begin
-            seq_cnt_div <= seq_cnt_div + 1;
-        end
+        seq_clk_init <= 0;
     end
     else begin
-        raw_buf_mode_offset <= raw_buf_mode_offset == {2'b00, TRANS_NUM[15:2]} ? raw_buf_mode_offset : raw_buf_mode_offset + 1;
+        seq_clk_init_buf <= SEQ_SYNC.SEQ_CLK_INIT;
+        seq_clk_init_buf_rst <= seq_clk_init_buf;
+        seq_clk_init <= (seq_clk_init_buf & ~seq_clk_init_buf_rst) ? 1 : seq_clk_init;
+
+        if(SEQ_SYNC.REF_CLK_TICK) begin
+            if(seq_cnt_div == SEQ_SYNC.SEQ_CLK_DIV) begin
+                seq_cnt_div <= 0;
+                seq_cnt <= (seq_cnt == SEQ_SYNC.SEQ_CLK_CYCLE) ? 0 : seq_cnt + 1;
+                raw_buf_mode_offset <= 0;
+            end
+            else begin
+                seq_cnt_div <= seq_cnt_div + 1;
+            end
+        end
+        else begin
+            raw_buf_mode_offset <= raw_buf_mode_offset == {2'b00, TRANS_NUM[15:2]} ? raw_buf_mode_offset : raw_buf_mode_offset + 1;
+        end
     end
 end
 
