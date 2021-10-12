@@ -35,7 +35,7 @@ The code is written in SystemVerilog with Vivado 2021.1.
 
 | BRAM_SELECT | BRAM_ADDR (6bit) | DATA (16 bit)                    | R/W |
 |-------------|------------------|----------------------------------|-----|
-| 0x0         | 0x00             | 7:0 = Control flags<br>13:8 = unused<br>14 = Mod clk init<br>15 = Seq clk init | R/W |
+| 0x0         | 0x00             | 7:0 = Control flags<br>15:8 = unused | R/W |
 |            | 0x01             | 7:0 = FPGA info                         | W   |
 |            | 0x02             | (Seq cycle) - 1                       | R   |
 |            | 0x03             | (Seq freq division ratio) - 1         | R   |
@@ -54,7 +54,8 @@ The code is written in SystemVerilog with Vivado 2021.1.
 |            | 0x10             | Mod clk sync time[31:16]           | R  |
 |            | 0x11             | Mod clk sync time[47:32]           | R  |
 |            | 0x12             | Mod clk sync time[63:48]           | R  |
-|            | 0x13             | unused                           | -  |
+|            | 0x13             | 0 = Mod clk init<br>1 = Seq clk init | R  |
+|            | 0x14             | unused                           | -  |
 |            | ︙               | ︙                               | ︙  |
 |            | 0x3E             | unused                           | -   |
 |            | 0x3F             | FPGA version number              | R   |
@@ -86,12 +87,14 @@ The code is written in SystemVerilog with Vivado 2021.1.
 |            | 0x0F9              | unused              | -  |
 |            | ︙                | ︙                  | ︙  |
 |            | 0x0FF              | unused              | -  |
-|             | 0x100              | 15:9 = unused<br>8 = duty offset[0]<br>6:0 = delay[0]           | R   |
+|             | 0x100              | 15:9 = unused<br>8 = duty offset[0]<br>7 = delay reset<br>6:0 = delay[0]           | R   |
 |            | ︙                | ︙                  | ︙  |
-|            | 0x0F8              | 15:9 = unused<br>8 = duty offset[248]<br>6:0 = delay[248]         | R   |
+|            | 0x0F8              | 15:9 = unused<br>8 = duty offset[248]<br>7 = delay reset<br>6:0 = delay[248]         | R   |
 |            | 0x1F9              | unused              | -  |
 |            | ︙                | ︙                  | ︙  |
 |            | 0x1FF              | unused              | -  |
+
+* The timing of delay is initialized at the rising and falling edge of delay reset.
 
 ### PointSequence operation (seq mode == 0)
 
