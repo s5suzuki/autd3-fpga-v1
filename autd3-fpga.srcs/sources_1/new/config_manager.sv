@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 12/10/2021
+ * Last Modified: 13/10/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -77,7 +77,7 @@ localparam [5:0] BRAM_MOD_SYNC_TIME_0     = 6'h0F;
 localparam [5:0] BRAM_MOD_SYNC_TIME_1     = 6'h10;
 localparam [5:0] BRAM_MOD_SYNC_TIME_2     = 6'h11;
 localparam [5:0] BRAM_MOD_SYNC_TIME_3     = 6'h12;
-localparam [5:0] BRAM_CLK_INI_FLAG        = 6'h13;
+localparam [5:0] BRAM_CLK_INIT_FLAG       = 6'h13;
 
 localparam OUTPUT_ENABLE_IDX  = 0;
 localparam OUTPUT_BALANCE_IDX = 1;
@@ -117,7 +117,7 @@ enum logic [4:0] {
          READ_SEQ_CLK_SYNC_TIME_1,
          READ_SEQ_CLK_SYNC_TIME_2,
          READ_SEQ_CLK_SYNC_TIME_3,
-         WRITE_CLK_INIT_FLAG,
+         CLEAR_CLK_INIT_FLAG,
          WRITE_FPGA_INFO
      } state_props = READ_CTRL_FLAG;
 
@@ -159,9 +159,9 @@ always_ff @(posedge CLK) begin
             state_props <= READ_CLK_INIT_FLAG;
         end
         READ_CLK_INIT_FLAG: begin
-            config_bram_addr <= BRAM_CLK_INI_FLAG;
+            config_bram_addr <= BRAM_CLK_INIT_FLAG;
 
-            // WRITE_CLK_INIT_FLAG
+            // CLEAR_CLK_INIT_FLAG
 
             state_props <= READ_MOD_CYCLE;
         end
@@ -254,10 +254,10 @@ always_ff @(posedge CLK) begin
 
             seq_clk_sync_time[15:0] <= config_bram_dout;
 
-            state_props <= WRITE_CLK_INIT_FLAG;
+            state_props <= CLEAR_CLK_INIT_FLAG;
         end
-        WRITE_CLK_INIT_FLAG: begin
-            config_bram_addr <= BRAM_CLK_INI_FLAG;
+        CLEAR_CLK_INIT_FLAG: begin
+            config_bram_addr <= BRAM_CLK_INIT_FLAG;
             if (|clk_init_flags) begin
                 config_web <= 1;
                 config_bram_din <= 16'h0000;

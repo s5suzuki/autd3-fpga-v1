@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 12/10/2021
+ * Last Modified: 13/10/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -14,7 +14,6 @@
 `timescale 1ns / 1ps
 `include "../features.vh"
 
-// The unit of focus calculation is WAVELENGTH/256
 module seq_operator#(
            parameter TRANS_NUM = 249,
            parameter int REF_CLK_FREQ = 40000,
@@ -157,6 +156,7 @@ assign SEQ_CLK_CYCLE = SEQ_SYNC.SEQ_CLK_CYCLE;
 
 localparam [7:0] TRANS_NUM_X = 18;
 
+// The unit of focus calculation is WAVELENGTH/256
 localparam [23:0] TRANS_SPACING_UNIT = 24'd2600960; // TRNAS_SPACING*256 = 10.16e3 um * 256
 localparam int MULT_DIVIDER_LATENCY = 10 + 4 + 28;
 
