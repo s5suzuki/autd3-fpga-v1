@@ -82,7 +82,7 @@ assign seq_idx = (SEQ_SYNC.SEQ_MODE == `SEQ_MODE_FOCI) ? {1'b0, seq_cnt} : {seq_
 logic seq_clk_init, seq_clk_init_buf, seq_clk_init_buf_rst;
 logic [95:0] seq_clk_sync_time_ref_unit;
 logic [47:0] seq_tcycle;
-logic [95:0] seq_shift;
+logic [111:0] seq_shift;
 logic [63:0] seq_cnt_shift;
 logic [31:0] seq_div_shift;
 
@@ -101,17 +101,17 @@ mult_24 mult_tcycle(
             .B({8'd0, SEQ_SYNC.SEQ_CLK_DIV} + 24'd1),
             .P(seq_tcycle)
         );
-divider64 sync_shift_rem(
-              .s_axis_dividend_tdata(seq_clk_sync_time_ref_unit[95:32]),
-              .s_axis_dividend_tvalid(1'b1),
-              .s_axis_divisor_tdata(seq_tcycle[31:0]),
-              .s_axis_divisor_tvalid(1'b1),
-              .aclk(CLK),
-              .m_axis_dout_tdata(seq_shift),
-              .m_axis_dout_tvalid()
-          );
+div64_48 sync_shift_rem(
+             .s_axis_dividend_tdata(seq_clk_sync_time_ref_unit[95:32]),
+             .s_axis_dividend_tvalid(1'b1),
+             .s_axis_divisor_tdata(seq_tcycle),
+             .s_axis_divisor_tvalid(1'b1),
+             .aclk(CLK),
+             .m_axis_dout_tdata(seq_shift),
+             .m_axis_dout_tvalid()
+         );
 divider64 sync_shift_div_rem(
-              .s_axis_dividend_tdata({32'd0, seq_shift[31:0]}),
+              .s_axis_dividend_tdata({16'd0, seq_shift[47:0]}),
               .s_axis_dividend_tvalid(1'b1),
               .s_axis_divisor_tdata({16'd0, SEQ_SYNC.SEQ_CLK_DIV} + 32'd1),
               .s_axis_divisor_tvalid(1'b1),
