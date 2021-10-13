@@ -4,7 +4,7 @@
  * Created Date: 20/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 12/10/2021
+ * Last Modified: 14/10/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -22,7 +22,8 @@ logic RST;
 logic sys_clk;
 logic [8:0] time_cnt;
 
-logic [7:0] delay_1, delay_2;
+logic [6:0] delay_1, delay_2;
+logic delay_rst;
 
 logic [7:0] duty;
 logic [7:0] phase;
@@ -35,6 +36,7 @@ logic [7:0] phase_out_1, phase_out_2;
 
 delayed_fifo delayed_fifo_1(
                  .CLK(sys_clk),
+                 .RST(delay_rst),
                  .UPDATE(update),
                  .DELAY(delay_1),
                  .DATA_IN({duty, phase}),
@@ -43,6 +45,7 @@ delayed_fifo delayed_fifo_1(
 
 delayed_fifo delayed_fifo_2(
                  .CLK(sys_clk),
+                 .RST(delay_rst),
                  .UPDATE(update),
                  .DELAY(delay_2),
                  .DATA_IN({duty, phase}),
@@ -61,8 +64,9 @@ initial begin
     RST = 1;
     duty = 8'h00;
     phase = 8'd0;
-    delay_1 = 8'd1;
-    delay_2 = 8'd2;
+    delay_1 = 7'd1;
+    delay_2 = 7'd2;
+    delay_rst = 0;
     #10000;
     RST = 0;
 
@@ -70,14 +74,17 @@ initial begin
     repeat (500) @(posedge sys_clk);
     phase = 8'd100;
     duty = 8'hFF;
+    delay_rst = 1;
 
     repeat (5120) @(posedge sys_clk);
-    delay_1 = 8'h80 | 8'd7;
-    delay_2 = 8'h80 | 8'd3;
+    delay_1 = 7'd7;
+    delay_2 = 7'd3;
+    delay_rst = 0;
 
     repeat (5120) @(posedge sys_clk);
-    delay_1 = 8'h00;
-    delay_2 = 8'h00;
+    delay_1 = 7'd0;
+    delay_2 = 7'd0;
+    delay_rst = 1;
 end
 
 // main clock 25.6MHz

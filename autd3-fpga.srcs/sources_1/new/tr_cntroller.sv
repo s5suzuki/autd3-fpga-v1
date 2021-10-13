@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 12/10/2021
+ * Last Modified: 14/10/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -49,7 +49,7 @@ logic [7:0] normal_duty[0:TRANS_NUM-1];
 logic [7:0] normal_phase[0:TRANS_NUM-1];
 logic duty_offset[0:TRANS_NUM-1];
 `ifdef ENABLE_DELAY
-logic [7:0] delay[0:TRANS_NUM-1];
+logic [6:0] delay[0:TRANS_NUM-1];
 `endif
 
 normal_operator#(
@@ -62,6 +62,7 @@ normal_operator#(
                    .PHASE(normal_phase),
 `ifdef ENABLE_DELAY
                    .DELAY(delay),
+                   .DELAY_RST(delay_rst),
 `endif
                    .DUTY_OFFSET(duty_offset)
                );
@@ -150,6 +151,7 @@ generate begin:TRANSDUCERS_DELAY
         for(ii = 0; ii < TRANS_NUM; ii++) begin
             delayed_fifo delayed_fifo(
                              .CLK(CLK),
+                             .RST(delay_rst),
                              .UPDATE(update),
                              .DELAY(delay[ii]),
                              .DATA_IN({duty_silent[ii], phase_silent[ii]}),
