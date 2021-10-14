@@ -4,7 +4,7 @@
  * Created Date: 18/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 26/07/2021
+ * Last Modified: 14/10/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -12,17 +12,17 @@
  */
 
 `timescale 1ns / 1ps
-module delayed_fifo#(
-           parameter int DEPTH = 8
-       )(
+module delayed_fifo(
            input var CLK,
+           input var RST,
            input var UPDATE,
-           input var [DEPTH-1:0] DELAY,
-           input var [7:0] DATA_IN,
-           output var [7:0] DATA_OUT
+           input var [6:0] DELAY,
+           input var [15:0] DATA_IN,
+           output var [15:0] DATA_OUT
        );
 
-logic [DEPTH-1:0] a = 0;
+logic [6:0] a = 0;
+logic delay_rst = 0;
 
 dist_mem_delay mem(
                    .a(a),
@@ -33,8 +33,9 @@ dist_mem_delay mem(
                );
 
 always_ff @(posedge CLK) begin
-    if(UPDATE) begin
-        a <= (a < DELAY) ? a + 1 : 0;
+    if (UPDATE) begin
+        delay_rst <= RST;
+        a <= ((DELAY <= a) | (delay_rst^RST)) ? 0 : a + 1;
     end
 end
 

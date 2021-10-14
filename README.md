@@ -1,6 +1,6 @@
 # AUTD3 FPGA firmware
 
-Version: 1.8
+Version: 1.9
 
 This repository contains the FPGA design of [AUTD3](https://hapislab.org/airborne-ultrasound-tactile-display?lang=en).
 
@@ -35,10 +35,10 @@ The code is written in SystemVerilog with Vivado 2021.1.
 
 | BRAM_SELECT | BRAM_ADDR (6bit) | DATA (16 bit)                    | R/W |
 |-------------|------------------|----------------------------------|-----|
-| 0x0         | 0x00             | 7:0 = Control flags<br>13:8 = unused<br>14 = Mod clk init<br>15 = Seq clk init | R/W |
+| 0x0         | 0x00             | 7:0 = Control flags<br>15:8 = unused | R/W |
 |            | 0x01             | 7:0 = FPGA info                         | W   |
-|            | 0x02             | Seq cycle                         | R   |
-|            | 0x03             | Seq clk division                  | R   |
+|            | 0x02             | (Seq cycle) - 1                       | R   |
+|            | 0x03             | (Seq freq division ratio) - 1         | R   |
 |            | 0x04             | -                                 | -   |
 |            | 0x05             | -                                 | -   |
 |            | 0x06             | Mod bram addr offset (1bit)       | R  |
@@ -48,13 +48,14 @@ The code is written in SystemVerilog with Vivado 2021.1.
 |            | 0x0A             | Seq clk sync time[31:16]           | R  |
 |            | 0x0B             | Seq clk sync time[47:32]           | R  |
 |            | 0x0C             | Seq clk sync time[63:48]           | R  |
-|            | 0x0D             | Modulation cycle   	             | R  |
-|            | 0x0E             | Modulation clock division         | R  |
+|            | 0x0D             | (Modulation cycle) - 1   	             | R  |
+|            | 0x0E             | (Modulation freq division ratio) - 1         | R  |
 |            | 0x0F             | Mod clk sync time[15:0]           | R  |
 |            | 0x10             | Mod clk sync time[31:16]           | R  |
 |            | 0x11             | Mod clk sync time[47:32]           | R  |
 |            | 0x12             | Mod clk sync time[63:48]           | R  |
-|            | 0x13             | unused                           | -  |
+|            | 0x13             | 0 = Mod clk init<br>1 = Seq clk init | R  |
+|            | 0x14             | unused                           | -  |
 |            | ︙               | ︙                               | ︙  |
 |            | 0x3E             | unused                           | -   |
 |            | 0x3F             | FPGA version number              | R   |
@@ -64,8 +65,8 @@ The code is written in SystemVerilog with Vivado 2021.1.
     * 1: output balance
     * 3: silent mode
     * 4: force fan
-    * 5: op mode
-    * 6: seq mode
+    * 5: op mode (0: Normal, 1: Sequence)
+    * 6: seq mode (0: PointSequence, 1: GainSequence)
 
 ### Modulation
 
@@ -86,15 +87,17 @@ The code is written in SystemVerilog with Vivado 2021.1.
 |            | 0x0F9              | unused              | -  |
 |            | ︙                | ︙                  | ︙  |
 |            | 0x0FF              | unused              | -  |
-|             | 0x100              | 15:9 = unused<br>8 = duty offset[0]<br>7:0 = delay[0]           | R   |
+|             | 0x100              | 15:9 = unused<br>8 = duty offset[0]<br>7 = delay reset<br>6:0 = delay[0]           | R   |
 |            | ︙                | ︙                  | ︙  |
-|            | 0x0F8              | 15:9 = unused<br>8 = duty offset[248]<br>7:0 = delay[248]         | R   |
-|            | 0x1F9              | 1: output balance<br>0 = output enable              | -  |
+|            | 0x0F8              | 15:9 = unused<br>8 = duty offset[248]<br>7 = delay reset<br>6:0 = delay[248]         | R   |
+|            | 0x1F9              | 15:1 = unused<br>0 = Delay reset    | R  |
 |            | 0x1FA              | unused              | -  |
 |            | ︙                | ︙                  | ︙  |
 |            | 0x1FF              | unused              | -  |
 
-### Sequence operation (seq mode == 0)
+* The timing of delay is initialized at the rising and falling edge of delay reset.
+
+### PointSequence operation (seq mode == 0)
 
 | BRAM_SELECT | BRAM_ADDR (16bit) | DATA (64 bit)                                                                       | R/W |
 |-------------|-------------------|--------------------------------------------------------------------------------------|-----|
@@ -104,7 +107,7 @@ The code is written in SystemVerilog with Vivado 2021.1.
 
 * Each position is represented by an 18-bit signed fixed-point number with a unit of λ/256.
 
-### Sequence operation (seq mode == 1)
+### GainSequence operation (seq mode == 1)
 
 | BRAM_SELECT | BRAM_ADDR (16bit) | DATA (64 bit)                                                                       | R/W |
 |-------------|-------------------|--------------------------------------------------------------------------------------|-----|

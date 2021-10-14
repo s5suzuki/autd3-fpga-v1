@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 30/09/2021
+ * Last Modified: 13/10/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -14,7 +14,6 @@
 `timescale 1ns / 1ps
 `include "../features.vh"
 
-// The unit of focus calculation is WAVELENGTH/256
 module seq_operator#(
            parameter TRANS_NUM = 249,
            parameter int REF_CLK_FREQ = 40000,
@@ -80,9 +79,10 @@ logic [15:0] raw_buf_mode_offset;
 
 assign seq_idx = (SEQ_SYNC.SEQ_MODE == `SEQ_MODE_FOCI) ? {1'b0, seq_cnt} : {seq_cnt[10:0], 6'h0} + raw_buf_mode_offset;
 
+logic seq_clk_init, seq_clk_init_buf, seq_clk_init_buf_rst;
 logic [95:0] seq_clk_sync_time_ref_unit;
 logic [47:0] seq_tcycle;
-logic [95:0] seq_shift;
+logic [111:0] seq_shift;
 logic [63:0] seq_cnt_shift;
 logic [31:0] seq_div_shift;
 
@@ -98,22 +98,22 @@ divider64 div_ref_unit_seq(
 mult_24 mult_tcycle(
             .CLK(CLK),
             .A({8'd0, SEQ_SYNC.SEQ_CLK_CYCLE} + 24'd1),
-            .B({8'd0, SEQ_SYNC.SEQ_CLK_DIV}),
+            .B({8'd0, SEQ_SYNC.SEQ_CLK_DIV} + 24'd1),
             .P(seq_tcycle)
         );
-divider64 sync_shift_rem(
-              .s_axis_dividend_tdata(seq_clk_sync_time_ref_unit[95:32]),
-              .s_axis_dividend_tvalid(1'b1),
-              .s_axis_divisor_tdata(seq_tcycle[31:0]),
-              .s_axis_divisor_tvalid(1'b1),
-              .aclk(CLK),
-              .m_axis_dout_tdata(seq_shift),
-              .m_axis_dout_tvalid()
-          );
+div64_48 sync_shift_rem(
+             .s_axis_dividend_tdata(seq_clk_sync_time_ref_unit[95:32]),
+             .s_axis_dividend_tvalid(1'b1),
+             .s_axis_divisor_tdata(seq_tcycle),
+             .s_axis_divisor_tvalid(1'b1),
+             .aclk(CLK),
+             .m_axis_dout_tdata(seq_shift),
+             .m_axis_dout_tvalid()
+         );
 divider64 sync_shift_div_rem(
-              .s_axis_dividend_tdata({32'd0, seq_shift[31:0]}),
+              .s_axis_dividend_tdata({16'd0, seq_shift[47:0]}),
               .s_axis_dividend_tvalid(1'b1),
-              .s_axis_divisor_tdata({16'd0, SEQ_SYNC.SEQ_CLK_DIV}),
+              .s_axis_divisor_tdata({16'd0, SEQ_SYNC.SEQ_CLK_DIV} + 32'd1),
               .s_axis_divisor_tvalid(1'b1),
               .aclk(CLK),
               .m_axis_dout_tdata({seq_cnt_shift, seq_div_shift}),
@@ -121,23 +121,30 @@ divider64 sync_shift_div_rem(
           );
 
 always_ff @(posedge CLK) begin
-    if (SEQ_SYNC.SYNC & SEQ_SYNC.SEQ_CLK_INIT) begin
+    if (SEQ_SYNC.SYNC & seq_clk_init) begin
         seq_cnt <= seq_cnt_shift[15:0];
         seq_cnt_div <= seq_div_shift[15:0];
         raw_buf_mode_offset <= 0;
-    end
-    else if(SEQ_SYNC.REF_CLK_TICK) begin
-        if(seq_cnt_div == SEQ_SYNC.SEQ_CLK_DIV - 1) begin
-            seq_cnt_div <= 0;
-            seq_cnt <= (seq_cnt == SEQ_SYNC.SEQ_CLK_CYCLE) ? 0 : seq_cnt + 1;
-            raw_buf_mode_offset <= 0;
-        end
-        else begin
-            seq_cnt_div <= seq_cnt_div + 1;
-        end
+        seq_clk_init <= 0;
     end
     else begin
-        raw_buf_mode_offset <= raw_buf_mode_offset == {2'b00, TRANS_NUM[15:2]} ? raw_buf_mode_offset : raw_buf_mode_offset + 1;
+        seq_clk_init_buf <= SEQ_SYNC.SEQ_CLK_INIT;
+        seq_clk_init_buf_rst <= seq_clk_init_buf;
+        seq_clk_init <= (seq_clk_init_buf & ~seq_clk_init_buf_rst) ? 1 : seq_clk_init;
+
+        if(SEQ_SYNC.REF_CLK_TICK) begin
+            if(seq_cnt_div == SEQ_SYNC.SEQ_CLK_DIV) begin
+                seq_cnt_div <= 0;
+                seq_cnt <= (seq_cnt == SEQ_SYNC.SEQ_CLK_CYCLE) ? 0 : seq_cnt + 1;
+                raw_buf_mode_offset <= 0;
+            end
+            else begin
+                seq_cnt_div <= seq_cnt_div + 1;
+            end
+        end
+        else begin
+            raw_buf_mode_offset <= raw_buf_mode_offset == {2'b00, TRANS_NUM[15:2]} ? raw_buf_mode_offset : raw_buf_mode_offset + 1;
+        end
     end
 end
 
@@ -149,6 +156,7 @@ assign SEQ_CLK_CYCLE = SEQ_SYNC.SEQ_CLK_CYCLE;
 
 localparam [7:0] TRANS_NUM_X = 18;
 
+// The unit of focus calculation is WAVELENGTH/256
 localparam [23:0] TRANS_SPACING_UNIT = 24'd2600960; // TRNAS_SPACING*256 = 10.16e3 um * 256
 localparam int MULT_DIVIDER_LATENCY = 10 + 4 + 28;
 

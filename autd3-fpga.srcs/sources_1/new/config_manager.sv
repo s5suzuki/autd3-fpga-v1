@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 30/09/2021
+ * Last Modified: 13/10/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -62,7 +62,7 @@ BRAM_CONFIG config_bram(
             );
 ////////////////////////////////// BRAM //////////////////////////////////
 
-localparam [5:0] BRAM_CFP                 = 6'h00; // CFP: Control Flag and Properties
+localparam [5:0] BRAM_CTRL_FLAG           = 6'h00;
 localparam [5:0] BRAM_FPGA_INFO           = 6'h01;
 localparam [5:0] BRAM_SEQ_CYCLE           = 6'h02;
 localparam [5:0] BRAM_SEQ_DIV             = 6'h03;
@@ -77,19 +77,20 @@ localparam [5:0] BRAM_MOD_SYNC_TIME_0     = 6'h0F;
 localparam [5:0] BRAM_MOD_SYNC_TIME_1     = 6'h10;
 localparam [5:0] BRAM_MOD_SYNC_TIME_2     = 6'h11;
 localparam [5:0] BRAM_MOD_SYNC_TIME_3     = 6'h12;
+localparam [5:0] BRAM_CLK_INIT_FLAG       = 6'h13;
 
-localparam CF_OUTPUT_ENABLE  = 0;
-localparam CF_OUTPUT_BALANCE = 1;
-localparam CF_SILENT         = 3;
-localparam CF_FORCE_FAN      = 4;
-localparam CF_OP_MODE        = 5;
-localparam CF_SEQ_MODE       = 6;
+localparam OUTPUT_ENABLE_IDX  = 0;
+localparam OUTPUT_BALANCE_IDX = 1;
+localparam SILENT_IDX         = 3;
+localparam FORCE_FAN_IDX      = 4;
+localparam OP_MODE_IDX        = 5;
+localparam SEQ_MODE_IDX       = 6;
 
-localparam P_MOD_INIT_IDX      = 14;
-localparam P_SEQ_INIT_IDX      = 15;
+localparam MOD_INIT_IDX    = 0;
+localparam SEQ_INIT_IDX    = 1;
 
-logic [15:0] cfp;
 logic [7:0] ctrl_flags;
+logic [15:0] clk_init_flags = 0;
 logic [7:0] fpga_info;
 
 logic [15:0] mod_clk_cycle;
@@ -101,196 +102,179 @@ logic [63:0] seq_clk_sync_time;
 logic [15:0] wavelength;
 
 enum logic [4:0] {
-         READ_CFP,
-         WRITE_FPGA_INFO,
-
-         REQ_CFP_CLEAR,
-         REQ_CFP_CLEAR_WAIT0,
-         REQ_CFP_CLEAR_WAIT1,
-         CFP_CLEAR,
-
-         REQ_READ_MOD_CLK_DIV,
-         REQ_READ_MOD_CLK_SYNC_TIME_0,
-         REQ_READ_MOD_CLK_SYNC_TIME_1,
-         REQ_READ_MOD_CLK_SYNC_TIME_2,
-         REQ_READ_MOD_CLK_SYNC_TIME_3,
+         READ_CTRL_FLAG,
+         READ_CLK_INIT_FLAG,
+         READ_MOD_CYCLE,
+         READ_MOD_FREQ_DIV,
+         READ_MOD_CLK_SYNC_TIME_0,
          READ_MOD_CLK_SYNC_TIME_1,
          READ_MOD_CLK_SYNC_TIME_2,
          READ_MOD_CLK_SYNC_TIME_3,
-
-         REQ_READ_SEQ_CLK_DIV,
-         REQ_READ_WAVELENGTH,
-         REQ_READ_SEQ_CLK_SYNC_TIME_0,
-         REQ_READ_SEQ_CLK_SYNC_TIME_1,
-         REQ_READ_SEQ_CLK_SYNC_TIME_2,
-         REQ_READ_SEQ_CLK_SYNC_TIME_3,
+         READ_SEQ_CYCLE,
+         READ_SEQ_FREQ_DIV,
+         READ_WAVELENGTH,
+         READ_SEQ_CLK_SYNC_TIME_0,
          READ_SEQ_CLK_SYNC_TIME_1,
          READ_SEQ_CLK_SYNC_TIME_2,
-         READ_SEQ_CLK_SYNC_TIME_3
-     } state_props = READ_CFP;
+         READ_SEQ_CLK_SYNC_TIME_3,
+         CLEAR_CLK_INIT_FLAG,
+         WRITE_FPGA_INFO
+     } state_props = READ_CTRL_FLAG;
 
-assign ctrl_flags = cfp[7:0];
-
-assign OUTPUT_EN = ctrl_flags[CF_OUTPUT_ENABLE];
-assign OUTPUT_BALANCE = ctrl_flags[CF_OUTPUT_BALANCE];
+assign OUTPUT_EN = ctrl_flags[OUTPUT_ENABLE_IDX];
+assign OUTPUT_BALANCE = ctrl_flags[OUTPUT_BALANCE_IDX];
 
 `ifdef ENABLE_SILENT
-assign SILENT = ctrl_flags[CF_SILENT];
+assign SILENT = ctrl_flags[SILENT_IDX];
 `endif
-assign FORCE_FAN = ctrl_flags[CF_FORCE_FAN];
+assign FORCE_FAN = ctrl_flags[FORCE_FAN_IDX];
 assign fpga_info = {7'd0, THERMO};
 
 `ifdef ENABLE_MODULATION
-assign MOD_SYNC.MOD_CLK_INIT = cfp[P_MOD_INIT_IDX];
+assign MOD_SYNC.MOD_CLK_INIT = clk_init_flags[MOD_INIT_IDX];
 assign MOD_SYNC.MOD_CLK_CYCLE = mod_clk_cycle;
 assign MOD_SYNC.MOD_CLK_DIV = mod_clk_div;
 assign MOD_SYNC.MOD_CLK_SYNC_TIME_NS = mod_clk_sync_time;
 `endif
 `ifdef ENABLE_SEQUENCE
-assign SEQ_SYNC.SEQ_CLK_INIT = cfp[P_SEQ_INIT_IDX];
+assign SEQ_SYNC.SEQ_CLK_INIT = clk_init_flags[SEQ_INIT_IDX];
 assign SEQ_SYNC.SEQ_CLK_CYCLE = seq_clk_cycle;
 assign SEQ_SYNC.SEQ_CLK_DIV = seq_clk_div;
 assign SEQ_SYNC.SEQ_CLK_SYNC_TIME_NS = seq_clk_sync_time;
 assign SEQ_SYNC.WAVELENGTH_UM = wavelength;
-assign SEQ_SYNC.OP_MODE = ctrl_flags[CF_OP_MODE];
-assign SEQ_SYNC.SEQ_MODE = ctrl_flags[CF_SEQ_MODE];
+assign SEQ_SYNC.OP_MODE = ctrl_flags[OP_MODE_IDX];
+assign SEQ_SYNC.SEQ_MODE = ctrl_flags[SEQ_MODE_IDX];
 `endif
 
 always_ff @(posedge CLK) begin
     case(state_props)
-        READ_CFP: begin
-            cfp <= config_bram_dout;
-            if(cfp[P_MOD_INIT_IDX]) begin
-                config_web <= 0;
-                config_bram_addr <= BRAM_MOD_CYCLE;
-                config_bram_din <= 0;
-                state_props <= REQ_READ_MOD_CLK_DIV;
-            end
-            else if(cfp[P_SEQ_INIT_IDX]) begin
-                config_web <= 0;
-                config_bram_addr <= BRAM_SEQ_CYCLE;
-                config_bram_din <= 0;
-                state_props <= REQ_READ_SEQ_CLK_DIV;
-            end
-            else begin
-                config_web <= 1;
-                config_bram_addr <= BRAM_FPGA_INFO;
-                config_bram_din <= {8'h00, fpga_info};
-                state_props <= WRITE_FPGA_INFO;
-            end
-        end
-        WRITE_FPGA_INFO: begin
-            config_web <= 0;
-            config_bram_din <= 0;
-            config_bram_addr <= BRAM_CFP;
-            state_props <= READ_CFP;
-        end
+        READ_CTRL_FLAG: begin
+            config_bram_addr <= BRAM_CTRL_FLAG;
 
-        REQ_CFP_CLEAR: begin
-            config_web <= 1;
-            config_bram_addr <= BRAM_CFP;
-            config_bram_din <= {2'h0, cfp[13:0]};
-            state_props <= REQ_CFP_CLEAR_WAIT0;
-        end
-        REQ_CFP_CLEAR_WAIT0: begin
             config_web <= 0;
-            state_props <= REQ_CFP_CLEAR_WAIT1;
-        end
-        REQ_CFP_CLEAR_WAIT1: begin
-            config_web <= 1;
-            config_bram_addr <= BRAM_FPGA_INFO;
-            config_bram_din <= {8'h00, fpga_info};
-            state_props <= CFP_CLEAR;
-        end
-        CFP_CLEAR: begin
-            config_web <= 0;
-            config_bram_din <= 0;
-            config_bram_addr <= BRAM_CFP;
-            cfp <= config_bram_dout;
-            state_props <= READ_CFP;
-        end
+            config_bram_din <= 16'h0000;
 
-        // Init mod clk
-        REQ_READ_MOD_CLK_DIV: begin
+            seq_clk_sync_time[63:48] <= config_bram_dout;
+
+            state_props <= READ_CLK_INIT_FLAG;
+        end
+        READ_CLK_INIT_FLAG: begin
+            config_bram_addr <= BRAM_CLK_INIT_FLAG;
+
+            // CLEAR_CLK_INIT_FLAG
+
+            state_props <= READ_MOD_CYCLE;
+        end
+        READ_MOD_CYCLE: begin
+            config_bram_addr <= BRAM_MOD_CYCLE;
+
+            // WRITE_FPGA_INFO
+
+            state_props <= READ_MOD_FREQ_DIV;
+        end
+        READ_MOD_FREQ_DIV: begin
             config_bram_addr <= BRAM_MOD_DIV;
-            state_props <= REQ_READ_MOD_CLK_SYNC_TIME_0;
+
+            ctrl_flags <= config_bram_dout[7:0];
+
+            state_props <= READ_MOD_CLK_SYNC_TIME_0;
         end
-        REQ_READ_MOD_CLK_SYNC_TIME_0: begin
+        READ_MOD_CLK_SYNC_TIME_0: begin
             config_bram_addr <= BRAM_MOD_SYNC_TIME_0;
-            state_props <= REQ_READ_MOD_CLK_SYNC_TIME_1;
-        end
-        REQ_READ_MOD_CLK_SYNC_TIME_1: begin
-            mod_clk_cycle <= config_bram_dout;
-            config_bram_addr <= BRAM_MOD_SYNC_TIME_1;
-            state_props <= REQ_READ_MOD_CLK_SYNC_TIME_2;
-        end
-        REQ_READ_MOD_CLK_SYNC_TIME_2: begin
-            mod_clk_div <= config_bram_dout;
-            config_bram_addr <= BRAM_MOD_SYNC_TIME_2;
-            state_props <= REQ_READ_MOD_CLK_SYNC_TIME_3;
-        end
-        REQ_READ_MOD_CLK_SYNC_TIME_3: begin
-            mod_clk_sync_time[15:0] <= config_bram_dout;
-            config_bram_addr <= BRAM_MOD_SYNC_TIME_3;
+
+            clk_init_flags <= config_bram_dout;
+
             state_props <= READ_MOD_CLK_SYNC_TIME_1;
         end
         READ_MOD_CLK_SYNC_TIME_1: begin
-            mod_clk_sync_time[31:16] <= config_bram_dout;
+            config_bram_addr <= BRAM_MOD_SYNC_TIME_1;
+
+            mod_clk_cycle <= config_bram_dout;
+
             state_props <= READ_MOD_CLK_SYNC_TIME_2;
         end
         READ_MOD_CLK_SYNC_TIME_2: begin
-            mod_clk_sync_time[47:32] <= config_bram_dout;
+            config_bram_addr <= BRAM_MOD_SYNC_TIME_2;
+
+            mod_clk_div <= config_bram_dout;
+
             state_props <= READ_MOD_CLK_SYNC_TIME_3;
         end
         READ_MOD_CLK_SYNC_TIME_3: begin
-            mod_clk_sync_time[63:48] <= config_bram_dout;
-            if (SYNC) begin
-                state_props <= REQ_CFP_CLEAR;
-            end
-        end
+            config_bram_addr <= BRAM_MOD_SYNC_TIME_3;
 
-        // Init sequence clk
-        REQ_READ_SEQ_CLK_DIV: begin
+            mod_clk_sync_time[15:0] <= config_bram_dout;
+
+            state_props <= READ_SEQ_CYCLE;
+        end
+        READ_SEQ_CYCLE: begin
+            config_bram_addr <= BRAM_SEQ_CYCLE;
+
+            mod_clk_sync_time[31:16] <= config_bram_dout;
+
+            state_props <= READ_SEQ_FREQ_DIV;
+        end
+        READ_SEQ_FREQ_DIV: begin
             config_bram_addr <= BRAM_SEQ_DIV;
-            state_props <= REQ_READ_WAVELENGTH;
+
+            mod_clk_sync_time[47:32] <= config_bram_dout;
+
+            state_props <= READ_WAVELENGTH;
         end
-        REQ_READ_WAVELENGTH: begin
+        READ_WAVELENGTH: begin
             config_bram_addr <= BRAM_WAVELENGTH;
-            state_props <= REQ_READ_SEQ_CLK_SYNC_TIME_0;
+
+            mod_clk_sync_time[63:48] <= config_bram_dout;
+
+            state_props <= READ_SEQ_CLK_SYNC_TIME_0;
         end
-        REQ_READ_SEQ_CLK_SYNC_TIME_0: begin
-            seq_clk_cycle <= config_bram_dout;
+        READ_SEQ_CLK_SYNC_TIME_0: begin
             config_bram_addr <= BRAM_SEQ_SYNC_TIME_0;
-            state_props <= REQ_READ_SEQ_CLK_SYNC_TIME_1;
-        end
-        REQ_READ_SEQ_CLK_SYNC_TIME_1: begin
-            seq_clk_div <= config_bram_dout;
-            config_bram_addr <= BRAM_SEQ_SYNC_TIME_1;
-            state_props <= REQ_READ_SEQ_CLK_SYNC_TIME_2;
-        end
-        REQ_READ_SEQ_CLK_SYNC_TIME_2: begin
-            wavelength <= config_bram_dout;
-            config_bram_addr <= BRAM_SEQ_SYNC_TIME_2;
-            state_props <= REQ_READ_SEQ_CLK_SYNC_TIME_3;
-        end
-        REQ_READ_SEQ_CLK_SYNC_TIME_3: begin
-            seq_clk_sync_time[15:0] <= config_bram_dout;
-            config_bram_addr <= BRAM_SEQ_SYNC_TIME_3;
+
+            seq_clk_cycle <= config_bram_dout;
+
             state_props <= READ_SEQ_CLK_SYNC_TIME_1;
         end
         READ_SEQ_CLK_SYNC_TIME_1: begin
-            seq_clk_sync_time[31:16] <= config_bram_dout;
+            config_bram_addr <= BRAM_SEQ_SYNC_TIME_1;
+
+            seq_clk_div <= config_bram_dout;
+
             state_props <= READ_SEQ_CLK_SYNC_TIME_2;
         end
         READ_SEQ_CLK_SYNC_TIME_2: begin
-            seq_clk_sync_time[47:32] <= config_bram_dout;
+            config_bram_addr <= BRAM_SEQ_SYNC_TIME_2;
+
+            wavelength <= config_bram_dout;
+
             state_props <= READ_SEQ_CLK_SYNC_TIME_3;
         end
         READ_SEQ_CLK_SYNC_TIME_3: begin
-            seq_clk_sync_time[63:48] <= config_bram_dout;
-            if (SYNC) begin
-                state_props <= REQ_CFP_CLEAR;
+            config_bram_addr <= BRAM_SEQ_SYNC_TIME_3;
+
+            seq_clk_sync_time[15:0] <= config_bram_dout;
+
+            state_props <= CLEAR_CLK_INIT_FLAG;
+        end
+        CLEAR_CLK_INIT_FLAG: begin
+            config_bram_addr <= BRAM_CLK_INIT_FLAG;
+            if (|clk_init_flags) begin
+                config_web <= 1;
+                config_bram_din <= 16'h0000;
             end
+
+            seq_clk_sync_time[31:16] <= config_bram_dout;
+
+            state_props <= WRITE_FPGA_INFO;
+        end
+        WRITE_FPGA_INFO: begin
+            config_bram_addr <= BRAM_FPGA_INFO;
+            config_web <= 1;
+            config_bram_din <= {8'h00, fpga_info};
+
+            seq_clk_sync_time[47:32] <= config_bram_dout;
+
+            state_props <= READ_CTRL_FLAG;
         end
     endcase
 end

@@ -4,7 +4,7 @@
  * Created Date: 26/07/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 28/09/2021
+ * Last Modified: 14/10/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -13,8 +13,7 @@
 
 `include "./features.vh"
 module normal_operator#(
-           parameter int TRANS_NUM = 249,
-           parameter int DELAY_DEPTH = 8
+           parameter int TRANS_NUM = 249
        )(
            input var CLK,
            input var UPDATE,
@@ -22,7 +21,8 @@ module normal_operator#(
            output var [7:0] DUTY[0:TRANS_NUM-1],
            output var [7:0] PHASE[0:TRANS_NUM-1],
 `ifdef ENABLE_DELAY
-           output var [7:0] DELAY[0:TRANS_NUM-1],
+           output var [6:0] DELAY[0:TRANS_NUM-1],
+           output var DELAY_RST,
 `endif
            output var DUTY_OFFSET[0:TRANS_NUM-1]
        );
@@ -62,8 +62,10 @@ assign PHASE = phase_buf;
 assign DUTY_OFFSET = duty_offset;
 
 `ifdef ENABLE_DELAY
-logic [DELAY_DEPTH-1:0] delay[0:TRANS_NUM-1];
+logic [6:0] delay[0:TRANS_NUM-1];
+logic delay_rst;
 assign DELAY = delay;
+assign DELAY_RST = delay_rst;
 `endif
 
 enum logic [2:0] {
@@ -73,7 +75,8 @@ enum logic [2:0] {
          DUTY_PHASE,
          DELAY_OFFSET_WAIT_0,
          DELAY_OFFSET_WAIT_1,
-         DELAY_OFFSET
+         DELAY_OFFSET,
+         DELAY_RESET
      } tr_state = IDLE;
 
 always_ff @(posedge CLK) begin
@@ -115,15 +118,22 @@ always_ff @(posedge CLK) begin
             tr_state <= DELAY_OFFSET;
         end
         DELAY_OFFSET: begin
-            duty_offset[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH];
+            duty_offset[tr_buf_write_idx] <= tr_bram_dataout[8];
 `ifdef ENABLE_DELAY
 
-            delay[tr_buf_write_idx] <= tr_bram_dataout[DELAY_DEPTH-1:0];
+            delay[tr_buf_write_idx] <= tr_bram_dataout[6:0];
 `endif
 
             tr_bram_idx <= tr_bram_idx + 1;
             tr_buf_write_idx <= tr_buf_write_idx + 1;
-            tr_state <= (tr_buf_write_idx == TRANS_NUM - 1) ? IDLE : tr_state;
+            tr_state <= (tr_buf_write_idx == TRANS_NUM - 1) ? DELAY_RESET : tr_state;
+        end
+        DELAY_RESET: begin
+`ifdef ENABLE_DELAY
+            delay_rst <= tr_bram_dataout[0];
+`endif
+
+            tr_state <= IDLE;
         end
     endcase
 end

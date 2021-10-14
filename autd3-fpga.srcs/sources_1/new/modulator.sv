@@ -4,7 +4,7 @@
  * Created Date: 26/07/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 28/09/2021
+ * Last Modified: 13/10/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -72,9 +72,10 @@ end
 ////////////////////////////////// SYNC //////////////////////////////////
 logic [15:0] mod_idx_div;
 
+logic mod_clk_init, mod_clk_init_buf, mod_clk_init_buf_rst;
 logic [95:0] mod_clk_sync_time_ref_unit;
 logic [47:0] mod_tcycle;
-logic [95:0] mod_shift;
+logic [111:0] mod_shift;
 logic [63:0] mod_idx_shift;
 logic [31:0] mod_div_shift;
 
@@ -90,22 +91,22 @@ divider64 div_ref_unit_mod(
 mult_24 mult_tcycle_mod(
             .CLK(CLK),
             .A({8'd0, MOD_SYNC.MOD_CLK_CYCLE} + 24'd1),
-            .B({8'd0, MOD_SYNC.MOD_CLK_DIV}),
+            .B({8'd0, MOD_SYNC.MOD_CLK_DIV} + 24'd1),
             .P(mod_tcycle)
         );
-divider64 sync_shift_rem_mod(
-              .s_axis_dividend_tdata(mod_clk_sync_time_ref_unit[95:32]),
-              .s_axis_dividend_tvalid(1'b1),
-              .s_axis_divisor_tdata(mod_tcycle[31:0]),
-              .s_axis_divisor_tvalid(1'b1),
-              .aclk(CLK),
-              .m_axis_dout_tdata(mod_shift),
-              .m_axis_dout_tvalid()
-          );
+div64_48 sync_shift_rem_mod(
+             .s_axis_dividend_tdata(mod_clk_sync_time_ref_unit[95:32]),
+             .s_axis_dividend_tvalid(1'b1),
+             .s_axis_divisor_tdata(mod_tcycle),
+             .s_axis_divisor_tvalid(1'b1),
+             .aclk(CLK),
+             .m_axis_dout_tdata(mod_shift),
+             .m_axis_dout_tvalid()
+         );
 divider64 sync_shift_div_rem_mod(
-              .s_axis_dividend_tdata({32'd0, mod_shift[31:0]}),
+              .s_axis_dividend_tdata({16'd0, mod_shift[47:0]}),
               .s_axis_dividend_tvalid(1'b1),
-              .s_axis_divisor_tdata({16'd0, MOD_SYNC.MOD_CLK_DIV}),
+              .s_axis_divisor_tdata({16'd0, MOD_SYNC.MOD_CLK_DIV} + 32'd1),
               .s_axis_divisor_tvalid(1'b1),
               .aclk(CLK),
               .m_axis_dout_tdata({mod_idx_shift, mod_div_shift}),
@@ -113,17 +114,24 @@ divider64 sync_shift_div_rem_mod(
           );
 
 always_ff @(posedge CLK) begin
-    if (MOD_SYNC.SYNC & MOD_SYNC.MOD_CLK_INIT) begin
+    if (MOD_SYNC.SYNC & mod_clk_init) begin
         mod_idx <= mod_idx_shift[15:0];
         mod_idx_div <= mod_div_shift[15:0];
+        mod_clk_init <= 0;
     end
-    else if(MOD_SYNC.REF_CLK_TICK) begin
-        if(mod_idx_div == MOD_SYNC.MOD_CLK_DIV - 1) begin
-            mod_idx_div <= 0;
-            mod_idx <= (mod_idx == MOD_SYNC.MOD_CLK_CYCLE) ? 0 : mod_idx + 1;
-        end
-        else begin
-            mod_idx_div <= mod_idx_div + 1;
+    else begin
+        mod_clk_init_buf <= MOD_SYNC.MOD_CLK_INIT;
+        mod_clk_init_buf_rst <= mod_clk_init_buf;
+        mod_clk_init <= (mod_clk_init_buf & ~mod_clk_init_buf_rst) ? 1 : mod_clk_init;
+
+        if(MOD_SYNC.REF_CLK_TICK) begin
+            if(mod_idx_div == MOD_SYNC.MOD_CLK_DIV) begin
+                mod_idx_div <= 0;
+                mod_idx <= (mod_idx == MOD_SYNC.MOD_CLK_CYCLE) ? 0 : mod_idx + 1;
+            end
+            else begin
+                mod_idx_div <= mod_idx_div + 1;
+            end
         end
     end
 end

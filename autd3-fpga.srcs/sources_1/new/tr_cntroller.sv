@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 28/09/2021
+ * Last Modified: 14/10/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -15,10 +15,8 @@
 `include "features.vh"
 module tr_cntroller#(
            parameter int TRANS_NUM = 249,
-           parameter int ULTRASOUND_CNT_CYCLE = 512,
-           parameter int DELAY_DEPTH = 8
-       )
-       (
+           parameter int ULTRASOUND_CNT_CYCLE = 512
+       ) (
            input var CLK,
            input var CLK_LPF,
            input var [8:0] TIME,
@@ -51,7 +49,7 @@ logic [7:0] normal_duty[0:TRANS_NUM-1];
 logic [7:0] normal_phase[0:TRANS_NUM-1];
 logic duty_offset[0:TRANS_NUM-1];
 `ifdef ENABLE_DELAY
-logic [7:0] delay[0:TRANS_NUM-1];
+logic [6:0] delay[0:TRANS_NUM-1];
 `endif
 
 normal_operator#(
@@ -64,6 +62,7 @@ normal_operator#(
                    .PHASE(normal_phase),
 `ifdef ENABLE_DELAY
                    .DELAY(delay),
+                   .DELAY_RST(delay_rst),
 `endif
                    .DUTY_OFFSET(duty_offset)
                );
@@ -150,14 +149,13 @@ logic [7:0] phase_delayed[0:TRANS_NUM-1];
 generate begin:TRANSDUCERS_DELAY
         genvar ii;
         for(ii = 0; ii < TRANS_NUM; ii++) begin
-            delayed_fifo #(
-                             .DEPTH(DELAY_DEPTH)
-                         ) delayed_fifo(
+            delayed_fifo delayed_fifo(
                              .CLK(CLK),
+                             .RST(delay_rst),
                              .UPDATE(update),
                              .DELAY(delay[ii]),
-                             .DATA_IN(duty_silent[ii]),
-                             .DATA_OUT(duty_delayed[ii])
+                             .DATA_IN({duty_silent[ii], phase_silent[ii]}),
+                             .DATA_OUT({duty_delayed[ii], phase_delayed[ii]})
                          );
         end
     end
@@ -165,12 +163,9 @@ endgenerate
 `else
 always_ff @(posedge CLK) begin
     duty_delayed <= update ? duty_silent : duty_delayed;
-end
-`endif
-
-always_ff @(posedge CLK) begin
     phase_delayed <= update ? phase_silent : phase_delayed;
 end
+`endif
 ///////////////////////////// Delay output /////////////////////////////
 
 logic balance = 0;
