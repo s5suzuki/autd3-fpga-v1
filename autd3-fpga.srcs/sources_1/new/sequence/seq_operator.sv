@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 13/10/2021
+ * Last Modified: 05/12/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -38,7 +38,7 @@ logic [63:0] data_out;
 
 ////////////////////////////////// BRAM //////////////////////////////////
 logic config_ena, seq_ena;
-logic [17:0] seq_addr;
+logic [18:0] seq_addr;
 logic [4:0] seq_addr_offset;
 
 assign config_ena = (CPU_BUS.BRAM_SELECT == `BRAM_CONFIG_SELECT) & CPU_BUS.EN;

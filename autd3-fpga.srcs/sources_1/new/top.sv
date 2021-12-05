@@ -4,7 +4,7 @@
  * Created Date: 27/03/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 12/10/2021
+ * Last Modified: 05/12/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -66,7 +66,8 @@ ultrasound_cnt_clk_gen ultrasound_cnt_clk_gen(
                            .clk_in1(MRCC_25P6M),
                            .reset(reset),
                            .clk_out1(sys_clk),
-                           .clk_out2(lpf_clk)
+                           .clk_out2(lpf_clk),
+                           .clk_out3(mf_clk)
                        );
 
 cpu_bus_if cpu_bus();
@@ -128,6 +129,7 @@ tr_cntroller#(
             ) tr_cntroller(
                 .CLK(sys_clk),
                 .CLK_LPF(lpf_clk),
+                .CLK_MF(mf_clk),
                 .TIME(time_cnt),
                 .UPDATE(update),
                 .CPU_BUS(cpu_bus.slave_port),

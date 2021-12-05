@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 13/10/2021
+ * Last Modified: 05/12/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -89,7 +89,7 @@ localparam SEQ_MODE_IDX       = 6;
 localparam MOD_INIT_IDX    = 0;
 localparam SEQ_INIT_IDX    = 1;
 
-logic [7:0] ctrl_flags;
+logic [6:0] ctrl_flags;
 logic [15:0] clk_init_flags = 0;
 logic [7:0] fpga_info;
 
@@ -175,7 +175,7 @@ always_ff @(posedge CLK) begin
         READ_MOD_FREQ_DIV: begin
             config_bram_addr <= BRAM_MOD_DIV;
 
-            ctrl_flags <= config_bram_dout[7:0];
+            ctrl_flags <= config_bram_dout[6:0];
 
             state_props <= READ_MOD_CLK_SYNC_TIME_0;
         end

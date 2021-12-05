@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 14/10/2021
+ * Last Modified: 05/12/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -19,6 +19,7 @@ module tr_cntroller#(
        ) (
            input var CLK,
            input var CLK_LPF,
+           input var CLK_MF,
            input var [8:0] TIME,
            input var UPDATE,
            cpu_bus_if.slave_port CPU_BUS,
@@ -128,6 +129,7 @@ silent_lpf_v2#(
                  .TRANS_NUM(TRANS_NUM)
              ) silent_lpf_v2(
                  .CLK(CLK_LPF),
+                 .CLK_MF(CLK_MF),
                  .DUTY(duty_modulated),
                  .PHASE(phase_raw),
                  .DUTYS(ds),
