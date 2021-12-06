@@ -8,16 +8,19 @@ The code is written in SystemVerilog with Vivado 2021.2.
 
 ## Restore Vivado project
 
-First, open *PowerShell* and run `generate_bram_init_coe.ps1` script to generate `init.coe`.
+Run `build.ps1` on *PowerShell*.
+
+Or, open *PowerShell* and run `generate_bram_init_coe.ps1` script to generate `init.coe`.
 ```
 .\generate_bram_init_coe.ps1 -version_num 20
 ```
-
 Then, open *Vivado Tcl Shell* and execute following commands.
 ```
 cd [path to this repository]
 vivado -mode batch -source autd3-fpga.tcl
 ```
+
+If successful, `autd3-fpga.xpr` file will be generated. 
 
 # Connection
 
