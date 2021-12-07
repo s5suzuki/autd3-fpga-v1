@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 26/07/2021
+ * Last Modified: 07/12/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -54,16 +54,16 @@ assign REF_CLK_TICK = (ref_clk_cnt != ref_clk_cnt_watch);
 
 always_ff @(posedge CLK) begin
     if(SYNC) begin
-        ref_clk_cnt <= 0;
-        ref_clk_divider <= 0;
+        ref_clk_cnt <= '0;
+        ref_clk_divider <= '0;
     end
     else begin
         if(ref_clk_divider == REF_CLK_DIVIDER_CYCLE - 1) begin
-            ref_clk_divider <= 0;
-            ref_clk_cnt <= (ref_clk_cnt == REF_CLK_CYCLE - 1) ? 0 : ref_clk_cnt + 1;
+            ref_clk_divider <= '0;
+            ref_clk_cnt <= (ref_clk_cnt == REF_CLK_CYCLE - 1) ? '0 : ref_clk_cnt + 1'b1;
         end
         else begin
-            ref_clk_divider <= ref_clk_divider + 1;
+            ref_clk_divider <= ref_clk_divider + 1'b1;
         end
     end
 end

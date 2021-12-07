@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 05/12/2021
+ * Last Modified: 07/12/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -12,21 +12,18 @@
  */
 
 `timescale 1ns / 1ps
-`include "./features.vh"
-module config_manager(
+module config_manager#(
+           parameter string ENABLE_SILENT = "TRUE",
+           parameter string ENABLE_MODULATION = "TRUE",
+           parameter string ENABLE_SEQUENCE = "TRUE"
+       )(
            input var CLK,
            input var SYNC,
            cpu_bus_if.slave_port CPU_BUS,
            output var [15:0] DATA_OUT,
-`ifdef ENABLE_MODULATION
            mod_sync_if.master_port MOD_SYNC,
-`endif
-`ifdef ENABLE_SEQUENCE
            seq_sync_if.master_port SEQ_SYNC,
-`endif
-`ifdef ENABLE_SILENT
            output var SILENT,
-`endif
            output var FORCE_FAN,
            input var THERMO,
            output var OUTPUT_EN,
@@ -79,18 +76,18 @@ localparam [5:0] BRAM_MOD_SYNC_TIME_2     = 6'h11;
 localparam [5:0] BRAM_MOD_SYNC_TIME_3     = 6'h12;
 localparam [5:0] BRAM_CLK_INIT_FLAG       = 6'h13;
 
-localparam OUTPUT_ENABLE_IDX  = 0;
-localparam OUTPUT_BALANCE_IDX = 1;
-localparam SILENT_IDX         = 3;
-localparam FORCE_FAN_IDX      = 4;
-localparam OP_MODE_IDX        = 5;
-localparam SEQ_MODE_IDX       = 6;
+localparam int OUTPUT_ENABLE_IDX  = 0;
+localparam int OUTPUT_BALANCE_IDX = 1;
+localparam int SILENT_IDX         = 3;
+localparam int FORCE_FAN_IDX      = 4;
+localparam int OP_MODE_IDX        = 5;
+localparam int SEQ_MODE_IDX       = 6;
 
-localparam MOD_INIT_IDX    = 0;
-localparam SEQ_INIT_IDX    = 1;
+localparam MOD_INIT_IDX    = '0;
+localparam SEQ_INIT_IDX    = 1'b1;
 
 logic [6:0] ctrl_flags;
-logic [15:0] clk_init_flags = 0;
+logic [15:0] clk_init_flags = '0;
 logic [7:0] fpga_info;
 
 logic [15:0] mod_clk_cycle;
@@ -124,35 +121,35 @@ enum logic [4:0] {
 assign OUTPUT_EN = ctrl_flags[OUTPUT_ENABLE_IDX];
 assign OUTPUT_BALANCE = ctrl_flags[OUTPUT_BALANCE_IDX];
 
-`ifdef ENABLE_SILENT
-assign SILENT = ctrl_flags[SILENT_IDX];
-`endif
+if (ENABLE_SILENT == "TRUE") begin
+    assign SILENT = ctrl_flags[SILENT_IDX];
+end
 assign FORCE_FAN = ctrl_flags[FORCE_FAN_IDX];
 assign fpga_info = {7'd0, THERMO};
 
-`ifdef ENABLE_MODULATION
-assign MOD_SYNC.MOD_CLK_INIT = clk_init_flags[MOD_INIT_IDX];
-assign MOD_SYNC.MOD_CLK_CYCLE = mod_clk_cycle;
-assign MOD_SYNC.MOD_CLK_DIV = mod_clk_div;
-assign MOD_SYNC.MOD_CLK_SYNC_TIME_NS = mod_clk_sync_time;
-`endif
-`ifdef ENABLE_SEQUENCE
-assign SEQ_SYNC.SEQ_CLK_INIT = clk_init_flags[SEQ_INIT_IDX];
-assign SEQ_SYNC.SEQ_CLK_CYCLE = seq_clk_cycle;
-assign SEQ_SYNC.SEQ_CLK_DIV = seq_clk_div;
-assign SEQ_SYNC.SEQ_CLK_SYNC_TIME_NS = seq_clk_sync_time;
-assign SEQ_SYNC.WAVELENGTH_UM = wavelength;
-assign SEQ_SYNC.OP_MODE = ctrl_flags[OP_MODE_IDX];
-assign SEQ_SYNC.SEQ_MODE = ctrl_flags[SEQ_MODE_IDX];
-`endif
+if (ENABLE_MODULATION == "TRUE") begin
+    assign MOD_SYNC.MOD_CLK_INIT = clk_init_flags[MOD_INIT_IDX];
+    assign MOD_SYNC.MOD_CLK_CYCLE = mod_clk_cycle;
+    assign MOD_SYNC.MOD_CLK_DIV = mod_clk_div;
+    assign MOD_SYNC.MOD_CLK_SYNC_TIME_NS = mod_clk_sync_time;
+end
+if (ENABLE_SEQUENCE == "TRUE") begin
+    assign SEQ_SYNC.SEQ_CLK_INIT = clk_init_flags[SEQ_INIT_IDX];
+    assign SEQ_SYNC.SEQ_CLK_CYCLE = seq_clk_cycle;
+    assign SEQ_SYNC.SEQ_CLK_DIV = seq_clk_div;
+    assign SEQ_SYNC.SEQ_CLK_SYNC_TIME_NS = seq_clk_sync_time;
+    assign SEQ_SYNC.WAVELENGTH_UM = wavelength;
+    assign SEQ_SYNC.OP_MODE = ctrl_flags[OP_MODE_IDX];
+    assign SEQ_SYNC.SEQ_MODE = ctrl_flags[SEQ_MODE_IDX];
+end
 
 always_ff @(posedge CLK) begin
     case(state_props)
         READ_CTRL_FLAG: begin
             config_bram_addr <= BRAM_CTRL_FLAG;
 
-            config_web <= 0;
-            config_bram_din <= 16'h0000;
+            config_web <= '0;
+            config_bram_din <= '0;
 
             seq_clk_sync_time[63:48] <= config_bram_dout;
 
@@ -259,8 +256,8 @@ always_ff @(posedge CLK) begin
         CLEAR_CLK_INIT_FLAG: begin
             config_bram_addr <= BRAM_CLK_INIT_FLAG;
             if (|clk_init_flags) begin
-                config_web <= 1;
-                config_bram_din <= 16'h0000;
+                config_web <= 1'b1;
+                config_bram_din <= '0;
             end
 
             seq_clk_sync_time[31:16] <= config_bram_dout;
@@ -269,7 +266,7 @@ always_ff @(posedge CLK) begin
         end
         WRITE_FPGA_INFO: begin
             config_bram_addr <= BRAM_FPGA_INFO;
-            config_web <= 1;
+            config_web <= 1'b1;
             config_bram_din <= {8'h00, fpga_info};
 
             seq_clk_sync_time[47:32] <= config_bram_dout;

@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 26/07/2021
+ * Last Modified: 07/12/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -12,7 +12,9 @@
  */
 
 `timescale 1ns / 1ps
-module focus_calculator(
+module focus_calculator#(
+           parameter string PHASE_INVERTED = "TRUE"
+       )(
            input var CLK,
            input var DVALID_IN,
            input var signed [17:0] FOCUS_X,
@@ -25,9 +27,7 @@ module focus_calculator(
            output var PHASE_CALC_DONE
        );
 
-`include "../features.vh"
-
-localparam SQRT_LATENCY = 21 + 1 + 4;
+localparam int SQRT_LATENCY = 21 + 1 + 4;
 
 logic signed [18:0] focus_x, focus_y, focus_z;
 logic signed [18:0] trans_x, trans_y, trans_z;
@@ -88,14 +88,14 @@ always_ff @(posedge CLK) begin
     case(calc_mode_edge)
         2'b01: begin
             tvalid_in <= 1'b1;
-            wait_cnt <= 0;
+            wait_cnt <= '0;
         end
         2'b10: begin
-            tvalid_in <= 1'b0;
-            wait_cnt <= ~run ? 0 : (wait_cnt == SQRT_LATENCY - 1) ? SQRT_LATENCY - 1 : wait_cnt + 1;
+            tvalid_in <= '0;
+            wait_cnt <= ~run ? '0 : (wait_cnt == SQRT_LATENCY - 1) ? SQRT_LATENCY - 1 : wait_cnt + 1'b1;
         end
         default: begin
-            wait_cnt <= ~run ? 0 : (wait_cnt == SQRT_LATENCY - 1) ? SQRT_LATENCY - 1 : wait_cnt + 1;
+            wait_cnt <= ~run ? '0 : (wait_cnt == SQRT_LATENCY - 1) ? SQRT_LATENCY - 1 : wait_cnt + 1'b1;
         end
     endcase
 end
@@ -107,22 +107,14 @@ always_ff @(posedge CLK) begin
             dx <= trans_x - focus_x;
             dy <= trans_y - focus_y;
             dz <= trans_z - focus_z;
-            input_num <= input_num + 1;
+            input_num <= input_num + 1'b1;
         end
         else if(output_num == input_num) begin
-            input_num <= 0;
+            input_num <= '0;
         end
 
         // STAGE 1
         d2 <= {2'd0, dx2} + {2'd0, dy2} + {2'd0, dz2};
-
-        // STAGE 2
-`ifdef PHASE_INVERTED
-
-        phase <= dout[7:0];
-`else
-        phase <= 8'hFF - dout[7:0];
-`endif
 
         if(wait_cnt == SQRT_LATENCY - 1) begin
             if(output_num == input_num) begin
@@ -146,6 +138,15 @@ always_ff @(posedge CLK) begin
             run <= 1;
         end
     end
+end
+
+if (PHASE_INVERTED == "TRUE") begin
+    always_ff @(posedge CLK)
+        phase <= run ? dout[7:0] : phase;
+end
+else begin
+    always_ff @(posedge CLK)
+        phase <= run ? 8'hFF - dout[7:0] : phase;
 end
 
 endmodule

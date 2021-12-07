@@ -4,26 +4,24 @@
  * Created Date: 26/07/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 14/10/2021
+ * Last Modified: 07/12/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
  * 
  */
 
-`include "./features.vh"
 module normal_operator#(
-           parameter int TRANS_NUM = 249
+           parameter int TRANS_NUM = 249,
+           parameter string ENABLE_DELAY = "TRUE"
        )(
            input var CLK,
            input var UPDATE,
            cpu_bus_if.slave_port CPU_BUS,
            output var [7:0] DUTY[0:TRANS_NUM-1],
            output var [7:0] PHASE[0:TRANS_NUM-1],
-`ifdef ENABLE_DELAY
            output var [6:0] DELAY[0:TRANS_NUM-1],
            output var DELAY_RST,
-`endif
            output var DUTY_OFFSET[0:TRANS_NUM-1]
        );
 
@@ -44,9 +42,9 @@ BRAM16x512 tr_bram(
                .dina(CPU_BUS.DATA_IN),
                .douta(),
                .clkb(CLK),
-               .web(1'b0),
+               .web('0),
                .addrb(tr_bram_idx),
-               .dinb(16'h0000),
+               .dinb('0),
                .doutb(tr_bram_dataout)
            );
 ////////////////////////////////// BRAM //////////////////////////////////
@@ -60,13 +58,6 @@ logic duty_offset[0:TRANS_NUM-1];
 assign DUTY = duty_buf;
 assign PHASE = phase_buf;
 assign DUTY_OFFSET = duty_offset;
-
-`ifdef ENABLE_DELAY
-logic [6:0] delay[0:TRANS_NUM-1];
-logic delay_rst;
-assign DELAY = delay;
-assign DELAY_RST = delay_rst;
-`endif
 
 enum logic [2:0] {
          IDLE,
@@ -83,17 +74,17 @@ always_ff @(posedge CLK) begin
     case(tr_state)
         IDLE: begin
             if (UPDATE) begin
-                tr_bram_idx <= 9'd0;
+                tr_bram_idx <= '0;
                 tr_state <= DUTY_PHASE_WAIT_0;
             end
         end
         DUTY_PHASE_WAIT_0: begin
-            tr_bram_idx <= tr_bram_idx + 1;
+            tr_bram_idx <= tr_bram_idx + 1'b1;
             tr_state <= DUTY_PHASE_WAIT_1;
         end
         DUTY_PHASE_WAIT_1: begin
-            tr_bram_idx <= tr_bram_idx + 1;
-            tr_buf_write_idx <= 0;
+            tr_bram_idx <= tr_bram_idx + 1'b1;
+            tr_buf_write_idx <= '0;
             tr_state <= DUTY_PHASE;
         end
         DUTY_PHASE: begin
@@ -104,38 +95,47 @@ always_ff @(posedge CLK) begin
                 tr_state <= DELAY_OFFSET_WAIT_0;
             end
             else begin
-                tr_bram_idx <= tr_bram_idx + 1;
-                tr_buf_write_idx <= tr_buf_write_idx + 1;
+                tr_bram_idx <= tr_bram_idx + 1'b1;
+                tr_buf_write_idx <= tr_buf_write_idx + 1'b1;
             end
         end
         DELAY_OFFSET_WAIT_0: begin
-            tr_bram_idx <= tr_bram_idx + 1;
+            tr_bram_idx <= tr_bram_idx + 1'b1;
             tr_state <= DELAY_OFFSET_WAIT_1;
         end
         DELAY_OFFSET_WAIT_1: begin
-            tr_bram_idx <= tr_bram_idx + 1;
-            tr_buf_write_idx <= 0;
+            tr_bram_idx <= tr_bram_idx + 1'b1;
+            tr_buf_write_idx <= '0;
             tr_state <= DELAY_OFFSET;
         end
         DELAY_OFFSET: begin
             duty_offset[tr_buf_write_idx] <= tr_bram_dataout[8];
-`ifdef ENABLE_DELAY
-
-            delay[tr_buf_write_idx] <= tr_bram_dataout[6:0];
-`endif
-
-            tr_bram_idx <= tr_bram_idx + 1;
-            tr_buf_write_idx <= tr_buf_write_idx + 1;
+            tr_bram_idx <= tr_bram_idx + 1'b1;
+            tr_buf_write_idx <= tr_buf_write_idx + 1'b1;
             tr_state <= (tr_buf_write_idx == TRANS_NUM - 1) ? DELAY_RESET : tr_state;
         end
         DELAY_RESET: begin
-`ifdef ENABLE_DELAY
-            delay_rst <= tr_bram_dataout[0];
-`endif
-
             tr_state <= IDLE;
         end
     endcase
+end
+
+if (ENABLE_DELAY == "TRUE") begin
+    logic [6:0] delay[0:TRANS_NUM-1];
+    logic delay_rst;
+    assign DELAY = delay;
+    assign DELAY_RST = delay_rst;
+
+    always_ff @(posedge CLK) begin
+        case(tr_state)
+            DELAY_OFFSET: begin
+                delay[tr_buf_write_idx] <= tr_bram_dataout[6:0];
+            end
+            DELAY_RESET: begin
+                delay_rst <= tr_bram_dataout[0];
+            end
+        endcase
+    end
 end
 
 endmodule

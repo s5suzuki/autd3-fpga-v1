@@ -7,7 +7,7 @@ create_project -force $project_name $project_directory
 set_property PART xc7a200tfbg676-2 [current_project]
 
 set_property "default_lib"        "xil_defaultlib" [current_project]
-set_property "simulator_language" "Mixed"          [current_project]
+set_property "simulator_language" "Verilog"          [current_project]
 set_property "target_language"    "Verilog"           [current_project]
 
 
@@ -81,7 +81,6 @@ proc add_header_file {fileset_name library_name file_name} {
     set_property "library" $library_name $file_obj
 }
 add_header_file sources_1 xil_defaultlib rtl/sources_1/new/cvt_uid.vh
-add_header_file sources_1 xil_defaultlib rtl/sources_1/new/features.vh
 add_header_file sources_1 xil_defaultlib rtl/sources_1/new/param.vh
 
 import_ip rtl/sources_1/ip/addr_88/addr_88.xci

@@ -4,7 +4,7 @@
  * Created Date: 25/07/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 05/12/2021
+ * Last Modified: 07/12/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -15,7 +15,7 @@
 module sim_lpf();
 
 localparam int ULTRASOUND_CNT_CYCLE = 512;
-parameter int TRANS_NUM = 256;
+parameter int TRANS_NUM = 249;
 
 logic MRCC_25P6M;
 logic RST;
@@ -30,8 +30,7 @@ ultrasound_cnt_clk_gen ultrasound_cnt_clk_gen(
                            .clk_in1(MRCC_25P6M),
                            .reset(RST),
                            .clk_out1(sys_clk),
-                           .clk_out2(lpf_clk),
-                           .clk_out3(mf_clk)
+                           .clk_out2(lpf_clk)
                        );
 
 logic [7:0] duty1[0:TRANS_NUM-1];
@@ -47,7 +46,6 @@ silent_lpf_v2#(
                  .TRANS_NUM(TRANS_NUM)
              ) silent_lpf_v2(
                  .CLK(lpf_clk),
-                 .CLK_MF(mf_clk),
                  .DUTY(duty1),
                  .PHASE(phase1),
                  .DUTYS(dutys1),
@@ -63,16 +61,16 @@ initial begin
     RST = 0;
     #(1.0*1000*1000);
     for(int i =0; i < TRANS_NUM; i++) begin
-        duty1[i] = i[7:0];
-        phase1[i] = i[7:0];
+        duty1[i] = $urandom;
+        phase1[i] = $urandom;
     end
     #(11.5*1000*1000);
     for(int i =0; i < TRANS_NUM; i++) begin
-        if (dutys1[i] !== i[7:0]) begin
+        if (dutys1[i] !== duty1[i]) begin
             $display("ASSERTION FAILED in duty[%d]", i);
             $finish;
         end
-        if (phases1[i] !== i[7:0]) begin
+        if (phases1[i] !== phase1[i]) begin
             $display("ASSERTION FAILED in phase[%d]", i);
             $finish;
         end

@@ -4,7 +4,7 @@
  * Created Date: 26/07/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 13/10/2021
+ * Last Modified: 07/12/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -14,17 +14,16 @@
 module modulator#(
            parameter int TRANS_NUM = 249,
            parameter int REF_CLK_FREQ = 40000,
-           localparam [31:0] REF_CLK_CYCLE_NS = 1000000000/REF_CLK_FREQ
+           localparam [31:0] REF_CLK_CYCLE_NS = 1000000000/REF_CLK_FREQ,
+           parameter string ENABLE_SYNC_DBG = "TRUE"
 
        )(
            input var CLK,
            cpu_bus_if.slave_port CPU_BUS,
            mod_sync_if.slave_port MOD_SYNC,
            input var [7:0] DUTY[0:TRANS_NUM-1],
-`ifdef ENABLE_SYNC_DBG
            output var [15:0] MOD_CLK_CYCLE,
            output var [15:0] MOD_IDX,
-`endif
            output var [7:0] DUTY_MODULATED[0:TRANS_NUM-1]
        );
 
@@ -50,9 +49,9 @@ BRAM_MOD mod_bram(
              .dina(CPU_BUS.DATA_IN),
              .douta(),
              .clkb(CLK),
-             .web(1'b0),
+             .web('0),
              .addrb(mod_idx),
-             .dinb(8'h00),
+             .dinb('0),
              .doutb(mod_raw)
          );
 
@@ -117,7 +116,7 @@ always_ff @(posedge CLK) begin
     if (MOD_SYNC.SYNC & mod_clk_init) begin
         mod_idx <= mod_idx_shift[15:0];
         mod_idx_div <= mod_div_shift[15:0];
-        mod_clk_init <= 0;
+        mod_clk_init <= '0;
     end
     else begin
         mod_clk_init_buf <= MOD_SYNC.MOD_CLK_INIT;
@@ -136,28 +135,24 @@ always_ff @(posedge CLK) begin
     end
 end
 
-`ifdef ENABLE_SYNC_DBG
-assign MOD_IDX = mod_idx;
-assign MOD_CLK_CYCLE = MOD_SYNC.MOD_CLK_CYCLE;
-`endif
+if (ENABLE_SYNC_DBG == "TRUE") begin
+    assign MOD_IDX = mod_idx;
+    assign MOD_CLK_CYCLE = MOD_SYNC.MOD_CLK_CYCLE;
+end
 ////////////////////////////////// SYNC //////////////////////////////////
 
 logic [8:0] mod;
 assign mod = {1'b0, mod_raw} + 9'd1;
 
-generate begin:TRANSDUCERS_MOD
-        genvar ii;
-        for(ii = 0; ii < TRANS_NUM; ii++) begin
-            logic [16:0] dm;
-            mult8x8 mod_mult(
-                        .CLK(CLK),
-                        .A(DUTY[ii]),
-                        .B(mod),
-                        .P(dm)
-                    );
-            assign DUTY_MODULATED[ii] = dm[15:8];
-        end
-    end
-endgenerate
+for (genvar ii = 0; ii < TRANS_NUM; ii++) begin
+    logic [16:0] dm;
+    mult8x8 mod_mult(
+                .*,
+                .A(DUTY[ii]),
+                .B(mod),
+                .P(dm)
+            );
+    assign DUTY_MODULATED[ii] = dm[15:8];
+end
 
 endmodule

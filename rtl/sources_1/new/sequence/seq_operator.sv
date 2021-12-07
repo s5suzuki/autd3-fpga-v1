@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 05/12/2021
+ * Last Modified: 07/12/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -12,20 +12,18 @@
  */
 
 `timescale 1ns / 1ps
-`include "../features.vh"
-
 module seq_operator#(
            parameter TRANS_NUM = 249,
            parameter int REF_CLK_FREQ = 40000,
-           localparam [31:0] REF_CLK_CYCLE_NS = 1000000000/REF_CLK_FREQ
+           localparam [31:0] REF_CLK_CYCLE_NS = 1000000000/REF_CLK_FREQ,
+           parameter string PHASE_INVERTED = "TRUE",
+           parameter string ENABLE_SYNC_DBG = "TRUE"
        )(
            input var CLK,
            cpu_bus_if.slave_port CPU_BUS,
            seq_sync_if.slave_port SEQ_SYNC,
-`ifdef ENABLE_SYNC_DBG
            output var [15:0] SEQ_CLK_CYCLE,
            output var [15:0] SEQ_IDX,
-`endif
            output var [7:0] DUTY[0:TRANS_NUM-1],
            output var [7:0] PHASE[0:TRANS_NUM-1]
        );
@@ -53,9 +51,9 @@ BRAM_SEQ seq_ram(
              .dina(CPU_BUS.DATA_IN),
              .douta(),
              .clkb(CLK),
-             .web(1'b0),
+             .web('0),
              .addrb(seq_idx),
-             .dinb(64'd0),
+             .dinb('0),
              .doutb(data_out)
          );
 
@@ -124,8 +122,8 @@ always_ff @(posedge CLK) begin
     if (SEQ_SYNC.SYNC & seq_clk_init) begin
         seq_cnt <= seq_cnt_shift[15:0];
         seq_cnt_div <= seq_div_shift[15:0];
-        raw_buf_mode_offset <= 0;
-        seq_clk_init <= 0;
+        raw_buf_mode_offset <= '0;
+        seq_clk_init <= '0;
     end
     else begin
         seq_clk_init_buf <= SEQ_SYNC.SEQ_CLK_INIT;
@@ -134,27 +132,27 @@ always_ff @(posedge CLK) begin
 
         if(SEQ_SYNC.REF_CLK_TICK) begin
             if(seq_cnt_div == SEQ_SYNC.SEQ_CLK_DIV) begin
-                seq_cnt_div <= 0;
-                seq_cnt <= (seq_cnt == SEQ_SYNC.SEQ_CLK_CYCLE) ? 0 : seq_cnt + 1;
-                raw_buf_mode_offset <= 0;
+                seq_cnt_div <= '0;
+                seq_cnt <= (seq_cnt == SEQ_SYNC.SEQ_CLK_CYCLE) ? '0 : seq_cnt + 1'b1;
+                raw_buf_mode_offset <= '0;
             end
             else begin
-                seq_cnt_div <= seq_cnt_div + 1;
+                seq_cnt_div <= seq_cnt_div + 1'b1;
             end
         end
         else begin
-            raw_buf_mode_offset <= raw_buf_mode_offset == {2'b00, TRANS_NUM[15:2]} ? raw_buf_mode_offset : raw_buf_mode_offset + 1;
+            raw_buf_mode_offset <= raw_buf_mode_offset == {2'b00, TRANS_NUM[15:2]} ? raw_buf_mode_offset : raw_buf_mode_offset + 1'b1;
         end
     end
 end
 
-`ifdef ENABLE_SYNC_DBG
-assign SEQ_IDX = seq_cnt;
-assign SEQ_CLK_CYCLE = SEQ_SYNC.SEQ_CLK_CYCLE;
-`endif
+if (ENABLE_SYNC_DBG == "TRUE") begin
+    assign SEQ_IDX = seq_cnt;
+    assign SEQ_CLK_CYCLE = SEQ_SYNC.SEQ_CLK_CYCLE;
+end
 ////////////////////////////////// SYNC //////////////////////////////////
 
-localparam [7:0] TRANS_NUM_X = 18;
+localparam [7:0] TRANS_NUM_X = 8'd18;
 
 // The unit of focus calculation is WAVELENGTH/256
 localparam [23:0] TRANS_SPACING_UNIT = 24'd2600960; // TRNAS_SPACING*256 = 10.16e3 um * 256
@@ -168,7 +166,7 @@ logic [31:0] trans_x, trans_y;
 logic [7:0] phase_out;
 logic phase_out_valid;
 
-logic [15:0] seq_idx_old = 16'd0;
+logic [15:0] seq_idx_old = '0;
 logic idx_change;
 
 logic [7:0] duty[0:TRANS_NUM-1];
@@ -206,13 +204,13 @@ div8 div_tr(
          .m_axis_dout_tvalid()
      );
 mult_24 mult_24_tr_x(
-            .CLK(CLK),
+            .*,
             .A({16'h0000, tr_cnt_x}),
             .B(TRANS_SPACING_UNIT),
             .P(tr_x_u)
         );
 mult_24 mult_24_tr_y(
-            .CLK(CLK),
+            .*,
             .A({16'h0000, tr_cnt_y}),
             .B(TRANS_SPACING_UNIT),
             .P(tr_y_u)
@@ -236,47 +234,48 @@ divider div_y(
             .m_axis_dout_tvalid()
         );
 
-focus_calculator focus_calculator(
-                     .CLK(CLK),
+focus_calculator #(
+                     .PHASE_INVERTED(PHASE_INVERTED)
+                 ) focus_calculator(
+                     .*,
                      .DVALID_IN(fc_trig),
                      .FOCUS_X(focus_x),
                      .FOCUS_Y(focus_y),
                      .FOCUS_Z(focus_z),
                      .TRANS_X(trans_x[17:0]),
                      .TRANS_Y(trans_y[17:0]),
-                     .TRANS_Z(18'sd0),
+                     .TRANS_Z('0),
                      .PHASE(phase_out),
                      .PHASE_CALC_DONE(phase_out_valid)
                  );
 
-always_ff @(posedge CLK) begin
+always_ff @(posedge CLK)
     seq_idx_old <= seq_idx;
-end
 
 always_ff @(posedge CLK) begin
     case(SEQ_SYNC.SEQ_MODE)
         `SEQ_MODE_FOCI: begin
             if(phase_out_valid) begin
                 phase[tr_cnt_in] <= phase_out;
-                tr_cnt_in <= tr_cnt_in + 1;
+                tr_cnt_in <= tr_cnt_in + 1'b1;
             end
             else begin
-                tr_cnt_in <= 0;
+                tr_cnt_in <= '0;
             end
 
             case(state_calc)
                 WAIT: begin
                     if (idx_change) begin
-                        fc_trig <= 0;
-                        tr_cnt <= 0;
-                        wait_cnt <= 0;
+                        fc_trig <= '0;
+                        tr_cnt <= '0;
+                        wait_cnt <= '0;
                         state_calc <= DIV_WAIT;
                     end
                 end
                 DIV_WAIT: begin
-                    tr_cnt <= tr_cnt + 1;
-                    wait_cnt <= wait_cnt + 1;
-                    if (wait_cnt == MULT_DIVIDER_LATENCY - 1) begin
+                    tr_cnt <= tr_cnt + 1'b1;
+                    wait_cnt <= wait_cnt + 1'b1;
+                    if (wait_cnt == MULT_DIVIDER_LATENCY - 1'b1) begin
                         focus_x <= data_out[17:0];
                         focus_y <= data_out[35:18];
                         focus_z <= data_out[53:36];
@@ -286,10 +285,10 @@ always_ff @(posedge CLK) begin
                     end
                 end
                 FC_DATA_IN_STREAM: begin
-                    tr_cnt <= tr_cnt + 1;
+                    tr_cnt <= tr_cnt + 1'b1;
                     if (tr_cnt == TRANS_NUM + MULT_DIVIDER_LATENCY - 1) begin
                         state_calc <= WAIT;
-                        fc_trig <= 0;
+                        fc_trig <= '0;
                     end
                 end
                 default: begin
@@ -303,7 +302,7 @@ always_ff @(posedge CLK) begin
             case(state_calc)
                 WAIT: begin
                     if (idx_change) begin
-                        tr_cnt <= 0;
+                        tr_cnt <= '0;
                         state_calc <= LOAD_DUTY_PHASE_WAIT;
                     end
                 end
@@ -316,7 +315,7 @@ always_ff @(posedge CLK) begin
                         {duty[tr_cnt + 1], phase[tr_cnt + 1]} <= data_out[31:16];
                         {duty[tr_cnt + 2], phase[tr_cnt + 2]} <= data_out[47:32];
                         {duty[tr_cnt + 3], phase[tr_cnt + 3]} <= data_out[63:48];
-                        tr_cnt <= tr_cnt + 4;
+                        tr_cnt <= tr_cnt + 9'd4;
                     end
                     else begin
                         {duty[tr_cnt], phase[tr_cnt]} <= data_out[15:0];

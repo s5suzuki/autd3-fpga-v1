@@ -4,7 +4,7 @@
  * Created Date: 27/03/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 05/12/2021
+ * Last Modified: 07/12/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -32,7 +32,12 @@ module top(
            output var [3:0] GPIO_OUT
        );
 
-`include "./features.vh"
+localparam string PHASE_INVERTED = "TRUE";
+localparam string ENABLE_MODULATION = "TRUE";
+localparam string ENABLE_SILENT = "TRUE";
+localparam string ENABLE_SEQUENCE = "TRUE";
+localparam string ENABLE_DELAY = "TRUE";
+localparam string ENABLE_SYNC_DBG = "TRUE";
 
 localparam int TRANS_NUM = 249;
 localparam int SYS_CLK_FREQ = 20480000;
@@ -51,12 +56,10 @@ logic [15:0] cpu_data_out;
 logic [8:0] time_cnt;
 logic ref_clk_tick;
 
-`ifdef ENABLE_SYNC_DBG
 logic [15:0] mod_clk_cycle;
 logic [15:0] mod_idx;
 logic [15:0] seq_clk_cycle;
 logic [15:0] seq_idx;
-`endif
 
 assign reset = ~RESET_N;
 assign CPU_DATA  = (~CPU_CS1_N && ~CPU_RD_N && CPU_RDWR) ? cpu_data_out : 16'bz;
@@ -66,8 +69,7 @@ ultrasound_cnt_clk_gen ultrasound_cnt_clk_gen(
                            .clk_in1(MRCC_25P6M),
                            .reset(reset),
                            .clk_out1(sys_clk),
-                           .clk_out2(lpf_clk),
-                           .clk_out3(mf_clk)
+                           .clk_out2(lpf_clk)
                        );
 
 cpu_bus_if cpu_bus();
@@ -78,32 +80,26 @@ assign cpu_bus.BRAM_SELECT = CPU_ADDR[16:15];
 assign cpu_bus.BRAM_ADDR = CPU_ADDR[14:1];
 assign cpu_bus.DATA_IN = CPU_DATA;
 
-`ifdef ENABLE_MODULATION
 mod_sync_if mod_sync();
 assign mod_sync.REF_CLK_TICK = ref_clk_tick;
 assign mod_sync.SYNC = sync0_edge;
-`endif
 
-`ifdef ENABLE_SEQUENCE
 seq_sync_if seq_sync();
 assign seq_sync.REF_CLK_TICK = ref_clk_tick;
 assign seq_sync.SYNC = sync0_edge;
-`endif
 
-config_manager config_manager(
+config_manager #(
+                   .ENABLE_SILENT(ENABLE_SILENT),
+                   .ENABLE_MODULATION(ENABLE_MODULATION),
+                   .ENABLE_SEQUENCE(ENABLE_SEQUENCE)
+               ) config_manager(
                    .CLK(sys_clk),
                    .SYNC(sync0_edge),
                    .CPU_BUS(cpu_bus.slave_port),
                    .DATA_OUT(cpu_data_out),
-`ifdef ENABLE_MODULATION
                    .MOD_SYNC(mod_sync.master_port),
-`endif
-`ifdef ENABLE_SEQUENCE
                    .SEQ_SYNC(seq_sync.master_port),
-`endif
-`ifdef ENABLE_SILENT
                    .SILENT(silent),
-`endif
                    .FORCE_FAN(FORCE_FAN),
                    .THERMO(THERMO),
                    .OUTPUT_EN(output_en),
@@ -125,29 +121,26 @@ synchronizer#(
 
 tr_cntroller#(
                 .TRANS_NUM(TRANS_NUM),
-                .ULTRASOUND_CNT_CYCLE(ULTRASOUND_CNT_CYCLE)
+                .ULTRASOUND_CNT_CYCLE(ULTRASOUND_CNT_CYCLE),
+                .PHASE_INVERTED(PHASE_INVERTED),
+                .ENABLE_MODULATION(ENABLE_MODULATION),
+                .ENABLE_SEQUENCE(ENABLE_SEQUENCE),
+                .ENABLE_SILENT(ENABLE_SILENT),
+                .ENABLE_DELAY(ENABLE_DELAY),
+                .ENABLE_SYNC_DBG(ENABLE_SYNC_DBG)
             ) tr_cntroller(
                 .CLK(sys_clk),
                 .CLK_LPF(lpf_clk),
-                .CLK_MF(mf_clk),
                 .TIME(time_cnt),
                 .UPDATE(update),
                 .CPU_BUS(cpu_bus.slave_port),
-`ifdef ENABLE_MODULATION
                 .MOD_SYNC(mod_sync.slave_port),
-`endif
-`ifdef ENABLE_SEQUENCE
                 .SEQ_SYNC(seq_sync.slave_port),
-`endif
-`ifdef ENABLE_SILENT
                 .SILENT(silent),
-`endif
-`ifdef ENABLE_SYNC_DBG
                 .MOD_CLK_CYCLE(mod_clk_cycle),
                 .MOD_IDX(mod_idx),
                 .SEQ_CLK_CYCLE(seq_clk_cycle),
                 .SEQ_IDX(seq_idx),
-`endif
                 .OUTPUT_EN(output_en),
                 .OUTPUT_BALANCE(output_balance),
                 .XDCR_OUT(XDCR_OUT)
@@ -156,40 +149,40 @@ tr_cntroller#(
 always_ff @(posedge sys_clk)
     sync0 <= {sync0[1:0], CAT_SYNC0};
 
-`ifdef ENABLE_SYNC_DBG
-logic dbg_0, dbg_0_rst;
-logic dbg_1, dbg_1_rst;
-logic dbg_2, dbg_2_rst;
-logic dbg_3, dbg_3_rst;
-logic gpo_0;
-logic gpo_1;
-logic gpo_2;
-logic gpo_3;
+if (ENABLE_SYNC_DBG == "TRUE") begin
+    logic dbg_0, dbg_0_rst;
+    logic dbg_1, dbg_1_rst;
+    logic dbg_2, dbg_2_rst;
+    logic dbg_3, dbg_3_rst;
+    logic gpo_0;
+    logic gpo_1;
+    logic gpo_2;
+    logic gpo_3;
 
-assign GPIO_OUT = {gpo_3, gpo_2, gpo_1, gpo_0};
+    assign GPIO_OUT = {gpo_3, gpo_2, gpo_1, gpo_0};
 
-always_ff @(posedge sys_clk) begin
-    if(reset) begin
-        gpo_0 <= 0;
-        gpo_1 <= 0;
-        gpo_2 <= 0;
-        gpo_3 <= 0;
-    end
-    else begin
-        dbg_0 <= mod_idx == mod_clk_cycle;
-        dbg_1 <= seq_idx == seq_clk_cycle;
-        dbg_2 <= sync0_edge;
-        dbg_3 <= time_cnt == (ULTRASOUND_CNT_CYCLE >> 1);
-        dbg_0_rst <= dbg_0;
-        dbg_1_rst <= dbg_1;
-        dbg_2_rst <= dbg_2;
-        dbg_3_rst <= dbg_3;
-        gpo_0 <= (dbg_0 & ~dbg_0_rst) ? ~gpo_0 : gpo_0;
-        gpo_1 <= (dbg_1 & ~dbg_1_rst) ? ~gpo_1 : gpo_1;
-        gpo_2 <= (dbg_2 & ~dbg_2_rst) ? ~gpo_2 : gpo_2;
-        gpo_3 <= (dbg_3 & ~dbg_3_rst) ? ~gpo_3 : gpo_3;
+    always_ff @(posedge sys_clk) begin
+        if(reset) begin
+            gpo_0 <= 0;
+            gpo_1 <= 0;
+            gpo_2 <= 0;
+            gpo_3 <= 0;
+        end
+        else begin
+            dbg_0 <= mod_idx == mod_clk_cycle;
+            dbg_1 <= seq_idx == seq_clk_cycle;
+            dbg_2 <= sync0_edge;
+            dbg_3 <= time_cnt == (ULTRASOUND_CNT_CYCLE >> 1);
+            dbg_0_rst <= dbg_0;
+            dbg_1_rst <= dbg_1;
+            dbg_2_rst <= dbg_2;
+            dbg_3_rst <= dbg_3;
+            gpo_0 <= (dbg_0 & ~dbg_0_rst) ? ~gpo_0 : gpo_0;
+            gpo_1 <= (dbg_1 & ~dbg_1_rst) ? ~gpo_1 : gpo_1;
+            gpo_2 <= (dbg_2 & ~dbg_2_rst) ? ~gpo_2 : gpo_2;
+            gpo_3 <= (dbg_3 & ~dbg_3_rst) ? ~gpo_3 : gpo_3;
+        end
     end
 end
-`endif
 
 endmodule
