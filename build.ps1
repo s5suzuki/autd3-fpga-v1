@@ -3,7 +3,7 @@
 # Created Date: 06/12/2021
 # Author: Shun Suzuki
 # -----
-# Last Modified: 06/12/2021
+# Last Modified: 07/12/2021
 # Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
 # -----
 # Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -12,8 +12,9 @@
 
 Param(
     [string]$vivado_dir = "NULL",
-    [uint16]$version_num = 0,
-    [int]$bram_width = 64
+    [Switch]$no_build_project = $false,
+    [Switch]$bitgen = $false,
+    [Switch]$config = $false
 )
 
 function ColorEcho($color, $PREFIX, $message) {
@@ -33,9 +34,6 @@ function FindVivado() {
 
 Start-Transcript "build.log" | Out-Null
 Write-Host "Vivado project build"
-
-ColorEcho "Green" "INFO" "Generationg coefficient file..."
-./generate_bram_init_coe.ps1 -version_num $version_num -bram_width $bram_width
 
 ColorEcho "Green" "INFO" "Invoking Vivado..."
 if (-not (Get-Command vivado -ea SilentlyContinue)) {
@@ -74,8 +72,21 @@ if (-not (Get-Command vivado -ea SilentlyContinue)) {
     $vivado_lib = Join-Path $vivado_dir "lib" | Join-Path -ChildPath "win64.o" 
     $env:Path = $env:Path + ";" + $vivado_bin + ";" + $vivado_lib
 }
-$command = "vivado -mode batch -source autd3-fpga.tcl"
-Invoke-Expression $command
+
+if ($no_build_project -eq $false) {
+    $command = "vivado -mode batch -source autd3-fpga.tcl"
+    Invoke-Expression $command
+}
+
+if (-not ($bitgen -eq $false)) {
+    $command = "vivado -mode batch -source bitgen.tcl"
+    Invoke-Expression $command
+}
+
+if (-not ($config -eq $false)) {
+    $command = "vivado -mode batch -source configuration.tcl"
+    Invoke-Expression $command
+}
 
 ColorEcho "Green" "INFO" "Press any key to exit..."
 Stop-Transcript | Out-Null
