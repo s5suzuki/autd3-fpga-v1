@@ -4,7 +4,7 @@
  * Created Date: 13/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 07/12/2021
+ * Last Modified: 09/12/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -73,7 +73,7 @@ end
 ////////////////////////////////// SYNC //////////////////////////////////
 logic [15:0] seq_cnt;
 logic [15:0] seq_cnt_div;
-logic [15:0] raw_buf_mode_offset;
+logic [16:0] raw_buf_mode_offset;
 
 assign seq_idx = (SEQ_SYNC.SEQ_MODE == `SEQ_MODE_FOCI) ? {1'b0, seq_cnt} : {seq_cnt[10:0], 6'h0} + raw_buf_mode_offset;
 
@@ -141,7 +141,7 @@ always_ff @(posedge CLK) begin
             end
         end
         else begin
-            raw_buf_mode_offset <= raw_buf_mode_offset == {2'b00, TRANS_NUM[15:2]} ? raw_buf_mode_offset : raw_buf_mode_offset + 1'b1;
+            raw_buf_mode_offset <= raw_buf_mode_offset == {3'b000, TRANS_NUM[15:2]} ? raw_buf_mode_offset : raw_buf_mode_offset + 1'b1;
         end
     end
 end
@@ -166,7 +166,7 @@ logic [31:0] trans_x, trans_y;
 logic [7:0] phase_out;
 logic phase_out_valid;
 
-logic [15:0] seq_idx_old = '0;
+logic [16:0] seq_idx_old = '0;
 logic idx_change;
 
 logic [7:0] duty[0:TRANS_NUM-1];
