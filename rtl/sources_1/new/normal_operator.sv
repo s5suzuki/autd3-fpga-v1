@@ -4,7 +4,7 @@
  * Created Date: 26/07/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 07/12/2021
+ * Last Modified: 09/12/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -33,6 +33,9 @@ logic [15:0] tr_bram_dataout;
 ////////////////////////////////// BRAM //////////////////////////////////
 logic tr_ena;
 assign tr_ena = (CPU_BUS.BRAM_SELECT == `BRAM_TR_SELECT) & CPU_BUS.EN;
+
+logic [4:0] _unused;
+assign _unused = CPU_BUS.BRAM_ADDR[13:9];
 
 BRAM16x512 tr_bram(
                .clka(CPU_BUS.BUS_CLK),

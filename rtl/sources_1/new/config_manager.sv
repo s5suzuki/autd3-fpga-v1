@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 07/12/2021
+ * Last Modified: 09/12/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -18,7 +18,6 @@ module config_manager#(
            parameter string ENABLE_SEQUENCE = "TRUE"
        )(
            input var CLK,
-           input var SYNC,
            cpu_bus_if.slave_port CPU_BUS,
            output var [15:0] DATA_OUT,
            mod_sync_if.master_port MOD_SYNC,

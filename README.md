@@ -132,13 +132,13 @@ If you have already generate project file and do not want to overwrite it, pass 
 
 ### GainSequence operation (seq mode == 1)
 
-| BRAM_SELECT | BRAM_ADDR (16bit) | DATA (64 bit)                                                                       | R/W |
+| BRAM_SELECT | BRAM_ADDR (17bit) | DATA (64 bit)                                                                       | R/W |
 |-------------|-------------------|--------------------------------------------------------------------------------------|-----|
-| 0x3         | 0x0000            | 15:0 = duty[0][0]/phase[0][0]<br>︙<br>63:48 = duty[0][3]/phase[0][3]                | R   |
+| 0x3         | 0x00000            | 15:0 = duty[0][0]/phase[0][0]<br>︙<br>63:48 = duty[0][3]/phase[0][3]                | R   |
 |            | ︙                 | ︙                                                                                   | ︙   |  
-|             | 0x003E            | 15:0 = duty[0][248]/phase[0][248]<br>63:16 = unused                                 | ︙   |
-|             | 0x003F            | unused                                                                              | ︙   |
-|             | 0x0040            | 15:0 = duty[1][0]/phase[1][0]<br>︙<br>63:48 = duty[1][3]/phase[1][3]               | ︙   |
+|             | 0x0003E            | 15:0 = duty[0][248]/phase[0][248]<br>63:16 = unused                                 | ︙   |
+|             | 0x0003F            | unused                                                                              | ︙   |
+|             | 0x00040            | 15:0 = duty[1][0]/phase[1][0]<br>︙<br>63:48 = duty[1][3]/phase[1][3]               | ︙   |
 |            | ︙                | ︙                                                                                   | ︙   |
 |             | 0x1FFFE            | 15:0 = duty[2047][248]/phase[2047][248]<br>63:16 = unused                                 | ︙   |
 |          | 0x1FFFF            | unused                                                                                | R   |

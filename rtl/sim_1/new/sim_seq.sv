@@ -4,7 +4,7 @@
  * Created Date: 30/09/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 30/09/2021
+ * Last Modified: 09/12/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -86,7 +86,6 @@ seq_operator #(
 
 config_manager config_manager(
                    .CLK,
-                   .SYNC(sync0_edge),
                    .CPU_BUS(cpu_bus.slave_port),
                    .DATA_OUT(cpu_data_out),
                    .MOD_SYNC(mod_sync.master_port),

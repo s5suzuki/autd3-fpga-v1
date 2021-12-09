@@ -4,7 +4,7 @@
  * Created Date: 27/03/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 07/12/2021
+ * Last Modified: 09/12/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -14,13 +14,12 @@
 `timescale 1ns / 1ps
 
 module top(
-           input var [16:0] CPU_ADDR,
+           input var [16:1] CPU_ADDR,
            inout tri [15:0] CPU_DATA,
            input var CPU_CKIO,
            input var CPU_CS1_N,
            input var RESET_N,
            input var CPU_WE0_N,
-           input var CPU_WE1_N,
            input var CPU_RD_N,
            input var CPU_RDWR,
            input var MRCC_25P6M,
@@ -28,7 +27,7 @@ module top(
            output var FORCE_FAN,
            input var THERMO,
            output var [252:1] XDCR_OUT,
-           input var [3:0] GPIO_IN,
+           //    input var [3:0] GPIO_IN,
            output var [3:0] GPIO_OUT
        );
 
@@ -94,7 +93,6 @@ config_manager #(
                    .ENABLE_SEQUENCE(ENABLE_SEQUENCE)
                ) config_manager(
                    .CLK(sys_clk),
-                   .SYNC(sync0_edge),
                    .CPU_BUS(cpu_bus.slave_port),
                    .DATA_OUT(cpu_data_out),
                    .MOD_SYNC(mod_sync.master_port),
