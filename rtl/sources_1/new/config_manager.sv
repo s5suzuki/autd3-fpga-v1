@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 09/12/2021
+ * Last Modified: 15/12/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -124,7 +124,7 @@ if (ENABLE_SILENT == "TRUE") begin
     assign SILENT = ctrl_flags[SILENT_IDX];
 end
 assign FORCE_FAN = ctrl_flags[FORCE_FAN_IDX];
-assign fpga_info = {7'd0, THERMO};
+assign fpga_info = {7'd0, THERMO | ctrl_flags[FORCE_FAN_IDX]};
 
 if (ENABLE_MODULATION == "TRUE") begin
     assign MOD_SYNC.MOD_CLK_INIT = clk_init_flags[MOD_INIT_IDX];
