@@ -1,10 +1,33 @@
 # AUTD3 FPGA firmware
 
-Version: 1.9
+Version: 1.10
 
 This repository contains the FPGA design of [AUTD3](https://hapislab.org/airborne-ultrasound-tactile-display?lang=en).
 
-The code is written in SystemVerilog with Vivado 2021.1.
+The code is written in SystemVerilog with Vivado 2021.2.
+
+## Restore Vivado project
+
+First, open *PowerShell* and run `generate_bram_init_coe.ps1` script to generate BRAM coefficient file `init.coe`.
+```
+.\generate_bram_init_coe.ps1 -version_num 20
+```
+Where `version_num` represents [firmware version number](#firmware-version-number).
+
+Then, run `build.ps1`.
+```
+.\build.ps1
+```
+If successful, Vivado project file, `autd3-fpga.xpr`, will be generated. 
+
+You can also generate bitstream file and write configuration memory by `build.ps1`.
+```
+.\build.ps1 -bitgen -config
+```
+If you have already generate project file and do not want to overwrite it, pass `-no_build_project` flag to `build.ps1`
+```
+.\build.ps1 -no_build_project -bitgen -config
+```
 
 # Connection
 
@@ -109,16 +132,38 @@ The code is written in SystemVerilog with Vivado 2021.1.
 
 ### GainSequence operation (seq mode == 1)
 
-| BRAM_SELECT | BRAM_ADDR (16bit) | DATA (64 bit)                                                                       | R/W |
+| BRAM_SELECT | BRAM_ADDR (17bit) | DATA (64 bit)                                                                       | R/W |
 |-------------|-------------------|--------------------------------------------------------------------------------------|-----|
-| 0x3         | 0x0000            | 15:0 = duty[0][0]/phase[0][0]<br>︙<br>63:48 = duty[0][3]/phase[0][3]                | R   |
+| 0x3         | 0x00000            | 15:0 = duty[0][0]/phase[0][0]<br>︙<br>63:48 = duty[0][3]/phase[0][3]                | R   |
 |            | ︙                 | ︙                                                                                   | ︙   |  
-|             | 0x003E            | 15:0 = duty[0][248]/phase[0][248]<br>63:16 = unused                                 | ︙   |
-|             | 0x003F            | unused                                                                              | ︙   |
-|             | 0x0040            | 15:0 = duty[1][0]/phase[1][0]<br>︙<br>63:48 = duty[1][3]/phase[1][3]               | ︙   |
+|             | 0x0003E            | 15:0 = duty[0][248]/phase[0][248]<br>63:16 = unused                                 | ︙   |
+|             | 0x0003F            | unused                                                                              | ︙   |
+|             | 0x00040            | 15:0 = duty[1][0]/phase[1][0]<br>︙<br>63:48 = duty[1][3]/phase[1][3]               | ︙   |
 |            | ︙                | ︙                                                                                   | ︙   |
 |             | 0x1FFFE            | 15:0 = duty[2047][248]/phase[2047][248]<br>63:16 = unused                                 | ︙   |
 |          | 0x1FFFF            | unused                                                                                | R   |
+
+
+## Firmware version number
+
+| Version number | Version | 
+|----------------|---------| 
+| 0x0000 (0)         | v0.3 or former | 
+| 0x0001 (1)         | v0.4    | 
+| 0x0002 (2)         | v0.5    | 
+| 0x0003 (3)         | v0.6    | 
+| 0x0004 (4)         | v0.7    | 
+| 0x0005 (5)         | v0.8    | 
+| 0x0006 (6)         | v0.9    | 
+| 0x000A (10)         | v1.0    | 
+| 0x000B (11)         | v1.1    | 
+| 0x000C (12)         | v1.2    | 
+| 0x000D (13)         | v1.3    | 
+| 0x0010 (16)         | v1.6    | 
+| 0x0011 (17)         | v1.7    | 
+| 0x0012 (18)         | v1.8    | 
+| 0x0013 (19)         | v1.9    | 
+| 0x0014 (20)         | v1.10    | 
 
 # Author
 
