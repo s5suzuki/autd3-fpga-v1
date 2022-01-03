@@ -32,6 +32,14 @@ if {[string equal [get_runs -quiet synth_1] ""]} {
     set_property flow     $synth_1_flow     [get_runs synth_1]
     set_property strategy $synth_1_strategy [get_runs synth_1]
 }
+set synth_2_flow     "Vivado Synthesis 2021"
+set synth_2_strategy "Vivado Synthesis Defaults"
+if {[string equal [get_runs -quiet synth_2] ""]} {
+    create_run -name synth_2 -flow $synth_2_flow -strategy $synth_2_strategy -constrset constrs_1
+} else {
+    set_property flow     $synth_2_flow     [get_runs synth_2]
+    set_property strategy $synth_2_strategy [get_runs synth_2]
+}
 current_run -synthesis [get_runs synth_1]
 
 set impl_1_flow      "Vivado Implementation 2021"
@@ -41,6 +49,14 @@ if {[string equal [get_runs -quiet impl_1] ""]} {
 } else {
     set_property flow     $impl_1_flow      [get_runs impl_1]
     set_property strategy $impl_1_strategy  [get_runs impl_1]
+}
+set impl_2_flow      "Vivado Implementation 2021"
+set impl_2_strategy  "Vivado Implementation Defaults"
+if {[string equal [get_runs -quiet impl_2] ""]} {
+    create_run -name impl_2 -flow $impl_2_flow -strategy $impl_2_strategy -constrset constrs_1 -parent_run synth_2
+} else {
+    set_property flow     $impl_2_flow      [get_runs impl_2]
+    set_property strategy $impl_2_strategy  [get_runs impl_2]
 }
 current_run -implementation [get_runs impl_1]
 
@@ -63,13 +79,16 @@ add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/interfaces/seq_sync_
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/sequence/focus_calculator.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/sequence/seq_operator.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/transducer/delayed_fifo.sv
-add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/transducer/pwm_generator.sv
+add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/transducer/pwm_gen.sv
+add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/transducer/sync_time_cnt_gen.sv
+add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/transducer/silent_lpf_v2.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/config_manager.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/modulator.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/normal_operator.sv
-add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/silent_lpf_v2.sv
+add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/silent_lpf.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/synchronizer.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/top.sv
+add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/top_v2.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/tr_cntroller.sv
 
 proc add_header_file {fileset_name library_name file_name} {
@@ -89,8 +108,12 @@ import_ip rtl/sources_1/ip/BRAM_MOD_1/BRAM_MOD.xci
 import_ip rtl/sources_1/ip/BRAM_SEQ_1/BRAM_SEQ.xci
 import_ip rtl/sources_1/ip/BRAM16x512/BRAM16x512.xci
 import_ip rtl/sources_1/ip/dist_mem_delay_1/dist_mem_delay.xci
+import_ip rtl/sources_1/ip/c_add_14_14/c_add_14_14.xci
+import_ip rtl/sources_1/ip/c_addsub_14_14/c_addsub_14_14.xci
+import_ip rtl/sources_1/ip/c_sub_14_14/c_sub_14_14.xci
 import_ip rtl/sources_1/ip/div8/div8.xci
 import_ip rtl/sources_1/ip/div64_48/div64_48.xci
+import_ip rtl/sources_1/ip/div_64_13/div_64_13.xci
 import_ip rtl/sources_1/ip/divider/divider.xci
 import_ip rtl/sources_1/ip/divider64/divider64.xci
 import_ip rtl/sources_1/ip/lpf_silent/lpf_silent.xci
@@ -110,10 +133,15 @@ proc add_sim_file {fileset_name library_name file_name} {
 }
 add_sim_file sim_1 xil_defaultlib rtl/sim_1/new/sim_delayed_fifo.sv
 add_sim_file sim_1 xil_defaultlib rtl/sim_1/new/sim_lpf.sv
-add_sim_file sim_1 xil_defaultlib rtl/sim_1/new/sim_pwm_generator.sv
+add_sim_file sim_1 xil_defaultlib rtl/sim_1/new/sim_pwm_gen.sv
 add_sim_file sim_1 xil_defaultlib rtl/sim_1/new/sim_seq.sv
+add_sim_file sim_1 xil_defaultlib rtl/sim_1/new/sim_helper.sv
 
 set_msg_config -id {Synth 8-7080} -new_severity {ADVISORY}
 set_msg_config -id {Synth 8-7129} -new_severity {ADVISORY}
 set_msg_config -id {Synth 8-5640} -new_severity {ADVISORY}
 set_msg_config -id {Synth 8-5858} -new_severity {ADVISORY}
+
+set_property top top_v2 [get_filesets sources_1]
+set_property top sim_lpf [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]

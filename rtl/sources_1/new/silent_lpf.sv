@@ -1,10 +1,10 @@
 /*
- * File: silent_lpf_v2.sv
+ * File: silent_lpf.sv
  * Project: new
  * Created Date: 25/07/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 07/12/2021
+ * Last Modified: 29/12/2021
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -16,7 +16,7 @@
 To maintain compatibility with older versions, the sampling frequency of the LPF remains to be 20 kHz.
 Since there are not enough resources to increase the sampling frequency of the LPF to 40kHz without changing the filter characteristics, the mean of two values sampled at 40kHz is used as the input of the LPF.
 */
-module silent_lpf_v2#(
+module silent_lpf#(
            parameter int TRANS_NUM = 249
        )(
            input var CLK,
