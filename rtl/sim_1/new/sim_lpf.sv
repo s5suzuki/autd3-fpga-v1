@@ -14,7 +14,7 @@
 `timescale 1ns / 1ps
 module sim_lpf();
 
-parameter int CLK_FREQ = 100000000;
+parameter int CLK_FREQ = 50000000;
 parameter int CLK_PWM_FREQ = 200000000;
 parameter int ULTRASOUND_FREQ = 40000;
 parameter int WIDTH = 13;
@@ -39,7 +39,7 @@ bit [WIDTH-1:0] PHASE[0:DEPTH-1];
 bit [WIDTH-1:0] DUTY_S[0:DEPTH-1];
 bit [WIDTH-1:0] PHASE_S[0:DEPTH-1];
 
-assign START = (TIME_CNT !== 0) & ((TIME_CNT % ULTRASOUND_CYCLE) === 0 | (TIME_CNT % ULTRASOUND_CYCLE) === 1);
+assign START = (TIME_CNT !== 0) & ((TIME_CNT % ULTRASOUND_CYCLE) < (CLK_PWM_FREQ/CLK_FREQ));
 
 silent_lpf_v2 #(
                   .WIDTH(WIDTH),
