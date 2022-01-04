@@ -19,13 +19,13 @@ parameter int ULTRASOUND_FREQ = 40000;
 parameter int ULTRASOUND_CYCLE = int'(CLK_PWM_FREQ/ULTRASOUND_FREQ);
 
 parameter int WIDTH = 13;
-parameter int DEPTH = 249;
+parameter int DEPTH = 1;
 
 bit CLK;
 bit CLK_PWM;
 bit LOCKED;
 bit [63:0] SYS_TIME;
-bit [12:0] TIME_CNT;
+bit [WIDTH-1:0] TIME_CNT;
 bit START;
 
 bit [WIDTH-1:0] CYCLE[0:DEPTH-1];
@@ -83,6 +83,8 @@ initial begin
     set(0, 1, 1);
     repeat (5) @(posedge START);
     set(0, 2, 1);
+    repeat (5) @(posedge START);
+    $finish;
 end
 
 endmodule

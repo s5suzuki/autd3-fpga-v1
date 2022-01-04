@@ -131,6 +131,9 @@ always_ff @(posedge CLK) begin
         IDLE: begin
             if (START) begin
                 cnt <= 0;
+                lr_cnt <= 0;
+                fold_cnt <= 0;
+                set_cnt <= 0;
                 state <= PROCESS;
             end
         end
@@ -147,10 +150,7 @@ always_ff @(posedge CLK) begin
             b_left <= {1'b0, duty[lr_cnt][WIDTH+1:1]};
             a_right <= s_phase;
             b_right <= s_duty_r;
-            if (cnt == ADDSUB_LATENCY) begin
-                lr_cnt <= 0;
-            end
-            else begin
+            if (cnt > ADDSUB_LATENCY) begin
                 lr_cnt <= lr_cnt + 1;
             end
 
@@ -160,36 +160,31 @@ always_ff @(posedge CLK) begin
             if (s_left[WIDTH] == 1'b1) begin
                 b_fold_left <= cycle[fold_cnt];
                 b_fold_right <= 0;
-                over_buf[fold_cnt] <= 1'b1;
             end
             else if (cycle[fold_cnt] <= s_right) begin
                 b_fold_left <= 0;
                 b_fold_right <= cycle[fold_cnt];
-                over_buf[fold_cnt] <= 1'b1;
             end
             else begin
                 b_fold_left <= 0;
                 b_fold_right <= 0;
-                over_buf[fold_cnt] <= 1'b0;
             end
-            if (lr_cnt == ADDSUB_LATENCY) begin
-                fold_cnt <= 0;
-            end
-            else begin
+            if (lr_cnt > ADDSUB_LATENCY) begin
                 fold_cnt <= fold_cnt + 1;
+                if (fold_cnt <= DEPTH - 1) begin
+                    over_buf[fold_cnt] <= (s_left[WIDTH] == 1'b1) | (cycle[fold_cnt] <= s_right);
+                end
             end
 
-            left_buf[set_cnt] <= s_fold_left[WIDTH-1:0];
-            right_buf[set_cnt] <= s_fold_right[WIDTH-1:0];
-            if (fold_cnt == ADDSUB_LATENCY) begin
-                set_cnt <= 0;
-            end
-            else begin
-                set_cnt <= set_cnt + 1;
-            end
-
-            if (set_cnt == DEPTH - 1) begin
-                state <= IDLE;
+            if (fold_cnt > ADDSUB_LATENCY) begin
+                left_buf[set_cnt] <= s_fold_left[WIDTH-1:0];
+                right_buf[set_cnt] <= s_fold_right[WIDTH-1:0];
+                if (set_cnt == DEPTH - 1) begin
+                    state <= IDLE;
+                end
+                else begin
+                    set_cnt <= set_cnt + 1;
+                end
             end
         end
     endcase
