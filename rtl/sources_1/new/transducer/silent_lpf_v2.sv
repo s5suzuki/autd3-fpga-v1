@@ -40,25 +40,18 @@ bit signed [WIDTH:0] a_duty_step, b_duty_step;
 bit signed [WIDTH:0] a_phase_step, b_phase_step;
 bit signed [WIDTH:0] a_duty, b_duty, s_duty;
 bit signed [WIDTH:0] a_phase, b_phase, s_phase;
-bit add;
-bit [$clog2(DEPTH+ADDSUB_LATENCY)-1:0] calc_cnt, calc_step_cnt, set_cnt;
+bit signed [WIDTH:0] a_phase_fold, b_phase_fold, s_phase_fold;
+bit add, add_fold;
+bit [$clog2(DEPTH+ADDSUB_LATENCY*3)-1:0] calc_cnt, calc_step_cnt, fold_cnt, set_cnt;
 
-bit [WIDTH-1:0] current_duty_buf[0:DEPTH-1];
-bit [WIDTH-1:0] current_phase_buf[0:DEPTH-1];
-
-enum bit [2:0] {
+enum bit {
          IDLE,
-         PREPARE_CALC_STEP,
-         PREPARE_CALC,
-         CALC,
-         PREPARE_FOLD_PHASE,
-         FOLD_PHASE,
-         SET_RESULT
+         PROCESS
      } state = IDLE;
 
 for (genvar i = 0; i < DEPTH; i++) begin
-    assign DUTY_S[i] = ENABLE ? current_duty_buf[i] : DUTY[i];
-    assign PHASE_S[i] = ENABLE ? current_phase_buf[i] : PHASE[i];
+    assign DUTY_S[i] = ENABLE ? current_duty[i][WIDTH-1:0] : DUTY[i];
+    assign PHASE_S[i] = ENABLE ? current_phase[i][WIDTH-1:0] : PHASE[i];
 end
 
 c_sub_14_14 c_sub_14_14_duty_step(
@@ -90,6 +83,14 @@ c_addsub_14_14 c_addsub_14_14_phase(
                    .S(s_phase)
                );
 
+c_addsub_14_14 c_addsub_14_14_phase_fold(
+                   .A(a_phase_fold),
+                   .B(b_phase_fold),
+                   .CLK(CLK),
+                   .ADD(add_fold),
+                   .S(s_phase_fold)
+               );
+
 for (genvar i = 0; i < DEPTH; i++) begin
     always_ff @(posedge CLK) begin
         case(state)
@@ -114,10 +115,10 @@ always_ff @(posedge CLK) begin
 
                 calc_step_cnt <= 0;
 
-                state <= PREPARE_CALC_STEP;
+                state <= PROCESS;
             end
         end
-        PREPARE_CALC_STEP: begin
+        PROCESS: begin
             // calculate duty/phase step
             a_duty_step <= duty[calc_step_cnt];
             b_duty_step <= current_duty[calc_step_cnt];
@@ -125,144 +126,68 @@ always_ff @(posedge CLK) begin
             b_phase_step <= current_phase[calc_step_cnt];
             calc_step_cnt <= calc_step_cnt + 1;
 
+            // calculate next duty
+            a_duty <= current_duty[calc_cnt];
+            if (duty_step[WIDTH] == 1'b0) begin
+                b_duty = (duty_step < step) ? duty_step : step;
+            end
+            else begin
+                b_duty = (step_n < duty_step) ? duty_step : step_n;
+            end
+            // calculate next phase
+            a_phase <= current_phase[calc_cnt];
+            if (phase_step[WIDTH] == 1'b0) begin
+                b_phase = (phase_step < step) ? phase_step : step;
+                add <= (phase_step <= {1'b0, cycle[calc_cnt][WIDTH:1]});
+            end
+            else begin
+                b_phase = (step_n < phase_step) ? phase_step : step_n;
+                add <= ({1'b1, cycle_n[calc_cnt][WIDTH:1]} <= phase_step);
+            end
             if (calc_step_cnt == ADDSUB_LATENCY) begin
                 calc_cnt <= 0;
-                state <= PREPARE_CALC;
-            end
-        end
-        PREPARE_CALC: begin
-            // calculate duty/phase step
-            a_duty_step <= duty[calc_step_cnt];
-            b_duty_step <= current_duty[calc_step_cnt];
-            a_phase_step <= phase[calc_step_cnt];
-            b_phase_step <= current_phase[calc_step_cnt];
-            calc_step_cnt <= calc_step_cnt + 1;
-
-            // calculate next duty
-            a_duty <= current_duty[calc_cnt];
-            if (duty_step[WIDTH] == 1'b0) begin
-                b_duty = (duty_step < step) ? duty_step : step;
-            end
-            else begin
-                b_duty = (step_n < duty_step) ? duty_step : step_n;
-            end
-            // calculate next phase
-            a_phase <= current_phase[calc_cnt];
-            if (phase_step[WIDTH] == 1'b0) begin
-                b_phase = (phase_step < step) ? phase_step : step;
-                add <= (phase_step <= {1'b0, cycle[calc_cnt][WIDTH:1]});
-            end
-            else begin
-                b_phase = (step_n < phase_step) ? phase_step : step_n;
-                add <= ({1'b1, cycle_n[calc_cnt][WIDTH:1]} <= phase_step);
-            end
-            calc_cnt <= calc_cnt + 1;
-
-            if (calc_cnt == ADDSUB_LATENCY) begin
-                set_cnt <= 0;
-                state <= CALC;
-            end
-        end
-        CALC: begin
-            // calculate duty/phase step
-            a_duty_step <= duty[calc_step_cnt];
-            b_duty_step <= current_duty[calc_step_cnt];
-            a_phase_step <= phase[calc_step_cnt];
-            b_phase_step <= current_phase[calc_step_cnt];
-            calc_step_cnt <= calc_step_cnt + 1;
-
-            // calculate next duty
-            a_duty <= current_duty[calc_cnt];
-            if (duty_step[WIDTH] == 1'b0) begin
-                b_duty = (duty_step < step) ? duty_step : step;
-            end
-            else begin
-                b_duty = (step_n < duty_step) ? duty_step : step_n;
-            end
-            // calculate next phase
-            a_phase <= current_phase[calc_cnt];
-            if (phase_step[WIDTH] == 1'b0) begin
-                b_phase = (phase_step < step) ? phase_step : step;
-                add <= (phase_step <= {1'b0, cycle[calc_cnt][WIDTH:1]});
-            end
-            else begin
-                b_phase = (step_n < phase_step) ? phase_step : step_n;
-                add <= ({1'b1, cycle_n[calc_cnt][WIDTH:1]} <= phase_step);
-            end
-
-            current_duty[set_cnt] <= s_duty;
-            current_phase[set_cnt] <= s_phase;
-            set_cnt <= set_cnt + 1;
-
-            if (set_cnt == DEPTH - 1) begin
-                calc_cnt <= 0;
-                state <= PREPARE_FOLD_PHASE;
             end
             else begin
                 calc_cnt <= calc_cnt + 1;
             end
-        end
-        PREPARE_FOLD_PHASE: begin
-            a_phase <= current_phase[calc_cnt];
-            if (current_phase[calc_cnt] >= cycle[calc_cnt]) begin
-                b_phase <= cycle[calc_cnt];
-                add <= 1'b0;
+
+            // make phase be in [0, cycle-1]
+            a_phase_fold <= s_phase;
+            if (s_phase >= cycle[fold_cnt]) begin
+                b_phase_fold <= cycle[fold_cnt];
+                add_fold <= 1'b0;
             end
-            else if (current_phase[calc_cnt][WIDTH] == 1'b1) begin
-                b_phase <= cycle[calc_cnt];
-                add <= 1'b1;
+            else if (s_phase[WIDTH] == 1'b1) begin
+                b_phase_fold <= cycle[fold_cnt];
+                add_fold <= 1'b1;
             end
             else begin
-                b_phase <= '0;
-                add <= 1'b1;
+                b_phase_fold <= '0;
+                add_fold <= 1'b1;
             end
-
-            calc_cnt <= calc_cnt + 1;
-
             if (calc_cnt == ADDSUB_LATENCY) begin
-                set_cnt <= 0;
-                state <= FOLD_PHASE;
-            end
-        end
-        FOLD_PHASE: begin
-            a_phase <= current_phase[calc_cnt];
-            if (current_phase[calc_cnt] >= cycle[calc_cnt]) begin
-                b_phase <= cycle[calc_cnt];
-                add <= 1'b0;
-            end
-            else if (current_phase[calc_cnt][WIDTH] == 1'b1) begin
-                b_phase <= cycle[calc_cnt];
-                add <= 1'b1;
+                fold_cnt <= 0;
             end
             else begin
-                b_phase <= '0;
-                add <= 1'b1;
+                fold_cnt <= fold_cnt + 1;
             end
 
-            current_phase[set_cnt] <= s_phase;
-
-            calc_cnt <= calc_cnt + 1;
-            set_cnt <= set_cnt + 1;
+            // set duty
+            current_duty[fold_cnt] <= s_duty;
+            // set phase
+            current_phase[set_cnt] <= s_phase_fold;
+            if (fold_cnt == ADDSUB_LATENCY) begin
+                set_cnt <= 0;
+            end
+            else begin
+                set_cnt <= set_cnt + 1;
+            end
 
             if (set_cnt == DEPTH - 1) begin
-                state <= SET_RESULT;
+                state <= IDLE;
             end
-        end
-        SET_RESULT: begin
-            state <= IDLE;
         end
     endcase
-end
-
-for (genvar i = 0; i < DEPTH; i++) begin
-    always_ff @(posedge CLK) begin
-        case(state)
-            SET_RESULT: begin
-                current_duty_buf[i] <= current_duty[i][WIDTH-1:0];
-                current_phase_buf[i] <= current_phase[i][WIDTH-1:0];
-            end
-        endcase
-    end
 end
 
 endmodule

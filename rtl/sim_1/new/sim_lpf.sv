@@ -39,7 +39,7 @@ bit [WIDTH-1:0] PHASE[0:DEPTH-1];
 bit [WIDTH-1:0] DUTY_S[0:DEPTH-1];
 bit [WIDTH-1:0] PHASE_S[0:DEPTH-1];
 
-assign START = (SYS_TIME !== 0) & ((SYS_TIME % ULTRASOUND_CYCLE) < (CLK_PWM_FREQ/CLK_FREQ));
+assign START = (SYS_TIME % ULTRASOUND_CYCLE) < (CLK_PWM_FREQ/CLK_FREQ);
 
 silent_lpf_v2 #(
                   .WIDTH(WIDTH),
