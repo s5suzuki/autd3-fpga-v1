@@ -73,6 +73,7 @@ proc add_verilog_file {fileset_name library_name file_name} {
     set_property "file_type" "SystemVerilog" $file_obj
     set_property "library" $library_name $file_obj
 }
+add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/common/addsub.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/interfaces/cpu_bus_if.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/interfaces/mod_sync_if.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/interfaces/seq_sync_if.sv
@@ -109,11 +110,6 @@ import_ip rtl/sources_1/ip/BRAM_MOD_1/BRAM_MOD.xci
 import_ip rtl/sources_1/ip/BRAM_SEQ_1/BRAM_SEQ.xci
 import_ip rtl/sources_1/ip/BRAM16x512/BRAM16x512.xci
 import_ip rtl/sources_1/ip/dist_mem_delay_1/dist_mem_delay.xci
-import_ip rtl/sources_1/ip/c_add_14_14/c_add_14_14.xci
-import_ip rtl/sources_1/ip/c_sub_14_14/c_sub_14_14.xci
-import_ip rtl/sources_1/ip/c_addsub_14_14/c_addsub_14_14.xci
-import_ip rtl/sources_1/ip/c_add_15_15/c_add_15_15.xci
-import_ip rtl/sources_1/ip/c_sub_15_15/c_sub_15_15.xci
 import_ip rtl/sources_1/ip/div8/div8.xci
 import_ip rtl/sources_1/ip/div64_48/div64_48.xci
 import_ip rtl/sources_1/ip/div_64_13/div_64_13.xci

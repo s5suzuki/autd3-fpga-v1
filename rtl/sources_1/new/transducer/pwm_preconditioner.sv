@@ -44,7 +44,7 @@ bit signed [WIDTH+1:0] a_fold_right, b_fold_right, s_fold_right;
 
 bit [$clog2(DEPTH+ADDSUB_LATENCY*3)-1:0] cnt, lr_cnt, fold_cnt, set_cnt;
 
-enum bit [1:0] {
+enum bit {
          IDLE,
          PROCESS
      } state = IDLE;
@@ -55,44 +55,62 @@ for (genvar i = 0; i < DEPTH; i++) begin
     assign RIGHT[i] = right_buf[i];
 end
 
-c_sub_15_15 c_sub_15_15_phase(
-                .A(a_phase),
-                .B(b_phase),
-                .CLK(CLK),
-                .S(s_phase)
-            );
-c_add_15_15 c_add_15_15_duty_r(
-                .A(a_duty_r),
-                .B(b_duty_r),
-                .CLK(CLK),
-                .S(s_duty_r)
-            );
+addsub #(
+           .WIDTH(15)
+       ) sub_phase(
+           .CLK(CLK),
+           .A(a_phase),
+           .B(b_phase),
+           .ADD(1'b0),
+           .S(s_phase)
+       );
+addsub #(
+           .WIDTH(15)
+       ) add_duty_r(
+           .CLK(CLK),
+           .A(a_duty_r),
+           .B(b_duty_r),
+           .ADD(1'b1),
+           .S(s_duty_r)
+       );
 
-c_sub_15_15 c_sub_15_15_left(
-                .A(a_left),
-                .B(b_left),
-                .CLK(CLK),
-                .S(s_left)
-            );
-c_add_15_15 c_add_15_15_right(
-                .A(a_right),
-                .B(b_right),
-                .CLK(CLK),
-                .S(s_right)
-            );
+addsub #(
+           .WIDTH(15)
+       ) sub_left(
+           .CLK(CLK),
+           .A(a_left),
+           .B(b_left),
+           .ADD(1'b0),
+           .S(s_left)
+       );
+addsub #(
+           .WIDTH(15)
+       ) add_right(
+           .CLK(CLK),
+           .A(a_right),
+           .B(b_right),
+           .ADD(1'b1),
+           .S(s_right)
+       );
 
-c_add_15_15 c_add_15_15_fold_left(
-                .A(a_fold_left),
-                .B(b_fold_left),
-                .CLK(CLK),
-                .S(s_fold_left)
-            );
-c_sub_15_15 c_sub_15_15_fold_right(
-                .A(a_fold_right),
-                .B(b_fold_right),
-                .CLK(CLK),
-                .S(s_fold_right)
-            );
+addsub #(
+           .WIDTH(15)
+       ) add_fold_left(
+           .CLK(CLK),
+           .A(a_fold_left),
+           .B(b_fold_left),
+           .ADD(1'b1),
+           .S(s_fold_left)
+       );
+addsub #(
+           .WIDTH(15)
+       ) sub_fold_right(
+           .CLK(CLK),
+           .A(a_fold_right),
+           .B(b_fold_right),
+           .ADD(1'b0),
+           .S(s_fold_right)
+       );
 
 for (genvar i = 0; i < DEPTH; i++) begin
     always_ff @(posedge CLK) begin

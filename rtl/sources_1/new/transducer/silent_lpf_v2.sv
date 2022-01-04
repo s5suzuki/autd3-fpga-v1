@@ -54,42 +54,55 @@ for (genvar i = 0; i < DEPTH; i++) begin
     assign PHASE_S[i] = ENABLE ? current_phase[i][WIDTH-1:0] : PHASE[i];
 end
 
-c_sub_14_14 c_sub_14_14_duty_step(
-                .A(a_duty_step),
-                .B(b_duty_step),
-                .CLK(CLK),
-                .S(duty_step)
-            );
+addsub #(
+           .WIDTH(14)
+       ) sub_duty_step(
+           .CLK(CLK),
+           .A(a_duty_step),
+           .B(b_duty_step),
+           .ADD(1'b0),
+           .S(duty_step)
+       );
 
-c_sub_14_14 c_sub_14_14_phase_step(
-                .A(a_phase_step),
-                .B(b_phase_step),
-                .CLK(CLK),
-                .S(phase_step)
-            );
+addsub #(
+           .WIDTH(14)
+       ) sub_phase_step(
+           .CLK(CLK),
+           .A(a_phase_step),
+           .B(b_phase_step),
+           .ADD(1'b0),
+           .S(phase_step)
+       );
 
-c_add_14_14 c_add_14_14_duty(
-                .A(a_duty),
-                .B(b_duty),
-                .CLK(CLK),
-                .S(s_duty)
-            );
+addsub #(
+           .WIDTH(14)
+       ) add_duty(
+           .CLK(CLK),
+           .A(a_duty),
+           .B(b_duty),
+           .ADD(1'b1),
+           .S(s_duty)
+       );
 
-c_addsub_14_14 c_addsub_14_14_phase(
-                   .A(a_phase),
-                   .B(b_phase),
-                   .CLK(CLK),
-                   .ADD(add),
-                   .S(s_phase)
-               );
+addsub #(
+           .WIDTH(14)
+       ) addsub_phase(
+           .CLK(CLK),
+           .A(a_phase),
+           .B(b_phase),
+           .ADD(add),
+           .S(s_phase)
+       );
 
-c_addsub_14_14 c_addsub_14_14_phase_fold(
-                   .A(a_phase_fold),
-                   .B(b_phase_fold),
-                   .CLK(CLK),
-                   .ADD(add_fold),
-                   .S(s_phase_fold)
-               );
+addsub #(
+           .WIDTH(14)
+       ) addsub_phase_fold(
+           .CLK(CLK),
+           .A(a_phase_fold),
+           .B(b_phase_fold),
+           .ADD(add_fold),
+           .S(s_phase_fold)
+       );
 
 for (genvar i = 0; i < DEPTH; i++) begin
     always_ff @(posedge CLK) begin
