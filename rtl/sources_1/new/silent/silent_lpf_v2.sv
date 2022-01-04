@@ -18,7 +18,7 @@ module silent_lpf_v2#(
        )(
            input var CLK,
            input var ENABLE,
-           input var START,
+           input var UPDATE,
            input var [WIDTH-1:0] STEP,
            input var [WIDTH-1:0] CYCLE[0:DEPTH-1],
            input var [WIDTH-1:0] DUTY[0:DEPTH-1],
@@ -55,7 +55,7 @@ for (genvar i = 0; i < DEPTH; i++) begin
 end
 
 addsub #(
-           .WIDTH(14)
+           .WIDTH(WIDTH+1)
        ) sub_duty_step(
            .CLK(CLK),
            .A(a_duty_step),
@@ -65,7 +65,7 @@ addsub #(
        );
 
 addsub #(
-           .WIDTH(14)
+           .WIDTH(WIDTH+1)
        ) sub_phase_step(
            .CLK(CLK),
            .A(a_phase_step),
@@ -75,7 +75,7 @@ addsub #(
        );
 
 addsub #(
-           .WIDTH(14)
+           .WIDTH(WIDTH+1)
        ) add_duty(
            .CLK(CLK),
            .A(a_duty),
@@ -85,7 +85,7 @@ addsub #(
        );
 
 addsub #(
-           .WIDTH(14)
+           .WIDTH(WIDTH+1)
        ) addsub_phase(
            .CLK(CLK),
            .A(a_phase),
@@ -95,7 +95,7 @@ addsub #(
        );
 
 addsub #(
-           .WIDTH(14)
+           .WIDTH(WIDTH+1)
        ) addsub_phase_fold(
            .CLK(CLK),
            .A(a_phase_fold),
@@ -108,7 +108,7 @@ for (genvar i = 0; i < DEPTH; i++) begin
     always_ff @(posedge CLK) begin
         case(state)
             IDLE: begin
-                if (START) begin
+                if (UPDATE) begin
                     cycle[i] <= {1'b0, CYCLE[i]};
                     cycle_n[i] <= -{1'b0, CYCLE[i]};
                     duty[i] <= {1'b0, DUTY[i]};
@@ -122,7 +122,7 @@ end
 always_ff @(posedge CLK) begin
     case(state)
         IDLE: begin
-            if (START) begin
+            if (UPDATE) begin
                 step <= {1'b0, STEP};
                 step_n <= -{1'b0, STEP};
 

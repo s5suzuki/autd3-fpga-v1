@@ -18,7 +18,7 @@ module pwm_preconditioner#(
            parameter int DEPTH = 249
        )(
            input var CLK,
-           input var START,
+           input var UPDATE,
            input var [WIDTH-1:0] CYCLE[0:DEPTH-1],
            input var [WIDTH-1:0] DUTY[0:DEPTH-1],
            input var [WIDTH-1:0] PHASE[0:DEPTH-1],
@@ -56,7 +56,7 @@ for (genvar i = 0; i < DEPTH; i++) begin
 end
 
 addsub #(
-           .WIDTH(15)
+           .WIDTH(WIDTH+2)
        ) sub_phase(
            .CLK(CLK),
            .A(a_phase),
@@ -65,7 +65,7 @@ addsub #(
            .S(s_phase)
        );
 addsub #(
-           .WIDTH(15)
+           .WIDTH(WIDTH+2)
        ) add_duty_r(
            .CLK(CLK),
            .A(a_duty_r),
@@ -75,7 +75,7 @@ addsub #(
        );
 
 addsub #(
-           .WIDTH(15)
+           .WIDTH(WIDTH+2)
        ) sub_left(
            .CLK(CLK),
            .A(a_left),
@@ -84,7 +84,7 @@ addsub #(
            .S(s_left)
        );
 addsub #(
-           .WIDTH(15)
+           .WIDTH(WIDTH+2)
        ) add_right(
            .CLK(CLK),
            .A(a_right),
@@ -94,7 +94,7 @@ addsub #(
        );
 
 addsub #(
-           .WIDTH(15)
+           .WIDTH(WIDTH+2)
        ) add_fold_left(
            .CLK(CLK),
            .A(a_fold_left),
@@ -103,7 +103,7 @@ addsub #(
            .S(s_fold_left)
        );
 addsub #(
-           .WIDTH(15)
+           .WIDTH(WIDTH+2)
        ) sub_fold_right(
            .CLK(CLK),
            .A(a_fold_right),
@@ -116,7 +116,7 @@ for (genvar i = 0; i < DEPTH; i++) begin
     always_ff @(posedge CLK) begin
         case(state)
             IDLE: begin
-                if (START) begin
+                if (UPDATE) begin
                     cycle[i] <= {2'b00, CYCLE[i]};
                     duty[i] <= {2'b00, DUTY[i]};
                     phase[i] <= {2'b00, PHASE[i]};
@@ -129,7 +129,7 @@ end
 always_ff @(posedge CLK) begin
     case(state)
         IDLE: begin
-            if (START) begin
+            if (UPDATE) begin
                 cnt <= 0;
                 lr_cnt <= 0;
                 fold_cnt <= 0;

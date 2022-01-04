@@ -30,10 +30,8 @@ module top_v2(
            output var [3:0] GPIO_OUT
        );
 
-localparam string PHASE_INVERTED = "TRUE";
-
+localparam int WIDTH = 13;
 localparam int TRANS_NUM = 249;
-localparam int CLK_FREQ = 200000000;
 
 bit clk;
 bit reset;
@@ -46,15 +44,8 @@ bit [12:0] phase[0:TRANS_NUM-1];
 bit [12:0] duty_s[0:TRANS_NUM-1];
 bit [12:0] phase_s[0:TRANS_NUM-1];
 bit [12:0] step;
-bit start;
-bit [12:0] t;
-
-bit over[0:TRANS_NUM-1];
-bit [12:0] left[0:TRANS_NUM-1];
-bit [12:0] right[0:TRANS_NUM-1];
 
 assign reset = ~RESET_N;
-assign start = t == 0;
 
 ultrasound_cnt_clk_gen ultrasound_cnt_clk_gen(
                            .clk_in1(MRCC_25P6M),
@@ -64,59 +55,35 @@ ultrasound_cnt_clk_gen ultrasound_cnt_clk_gen(
                            .locked()
                        );
 
-sync_time_cnt_gen sync_time_cnt_gen(
-                      .CLK(clk),
-                      .SYS_TIME(sys_time),
-                      .CYCLE(cycle[0]),
-                      .TIME_CNT(t)
-                  );
+silent #(
+           .WIDTH(WIDTH),
+           .DEPTH(TRANS_NUM)
+       ) silent(
+           .CLK(clk_l),
+           .SYS_TIME(sys_time),
+           .ENABLE(1'b1),
+           .UPDATE_CYCLE(13'd1250),
+           .STEP(step),
+           .CYCLE(cycle),
+           .DUTY(duty),
+           .PHASE(phase),
+           .DUTY_S(duty_s),
+           .PHASE_S(phase_s)
+       );
 
-silent_lpf_v2 #(
-                  .WIDTH(13),
-                  .DEPTH(TRANS_NUM)
-              ) silent_lpf_v2(
-                  .CLK(clk_l),
-                  .ENABLE(1'b1),
-                  .START(start),
-                  .STEP(step),
-                  .CYCLE(cycle),
-                  .DUTY(duty),
-                  .PHASE(phase),
-                  .DUTY_S(duty_s),
-                  .PHASE_S(phase_s)
-              );
-
-pwm_preconditioner#(
-                      .WIDTH(13),
-                      .DEPTH(TRANS_NUM)
-                  ) pwm_preconditioner(
-                      .CLK(CLK_PWM),
-                      .START(start),
-                      .CYCLE(cycle),
-                      .DUTY(duty_s),
-                      .PHASE(phase_s),
-                      .OVER(over),
-                      .LEFT(left),
-                      .RIGHT(right)
-                  );
-
-`include "cvt_uid.vh"
-for (genvar ii = 0; ii < TRANS_NUM; ii++) begin
-    bit pwm_out;
-    bit tr_out;
-    assign XDCR_OUT[cvt_uid(ii) + 1] = tr_out;
-    pwm_gen#(
-               .WIDTH(13)
-           ) pwm_gen(
+transducers#(
+               .WIDTH(WIDTH),
+               .TRANS_NUM(TRANS_NUM)
+           ) transducers(
                .CLK(clk),
-               .TIME_CNT(t),
-               .CYCLE(cycle[ii]),
-               .OVER(over[ii]),
-               .LEFT(left[ii]),
-               .RIGHT(right[ii]),
-               .PWM_OUT(tr_out)
+               .CLK_L(clk_l),
+               .SYS_TIME(sys_time),
+               .UPDATE_CYCLE(13'd1250),
+               .CYCLE(cycle),
+               .DUTY(duty_s),
+               .PHASE(phase_s),
+               .XDCR_OUT(XDCR_OUT)
            );
-end
 
 always_ff @(posedge clk) begin
     step <= 13'd100;
@@ -124,6 +91,17 @@ always_ff @(posedge clk) begin
     duty <= '{TRANS_NUM{13'd2500}};
     phase <= '{TRANS_NUM{13'd2500}};
     sys_time <= sys_time + 1;
+end
+
+bit force_fan;
+bit [3:0] gpio_out;
+
+assign FORCE_FAN = force_fan;
+assign GPIO_OUT = gpio_out;
+
+always_ff @(posedge clk) begin
+    force_fan <= 1'b0;
+    gpio_out <= 4'b0000;
 end
 
 endmodule
