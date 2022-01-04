@@ -4,7 +4,7 @@
  * Created Date: 06/12/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 03/01/2022
+ * Last Modified: 04/01/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -46,13 +46,13 @@ bit [$clog2(DEPTH+ADDSUB_LATENCY)-1:0] calc_cnt, calc_step_cnt, set_cnt;
 bit [WIDTH-1:0] current_duty_buf[0:DEPTH-1];
 bit [WIDTH-1:0] current_phase_buf[0:DEPTH-1];
 
-enum logic [2:0] {
+enum bit [2:0] {
          IDLE,
          PREPARE_CALC_STEP,
          PREPARE_CALC,
          CALC,
-         PREPARE_CLAMP,
-         CLAMP,
+         PREPARE_FOLD_PHASE,
+         FOLD_PHASE,
          SET_RESULT
      } state = IDLE;
 
@@ -196,13 +196,13 @@ always_ff @(posedge CLK) begin
 
             if (set_cnt == DEPTH - 1) begin
                 calc_cnt <= 0;
-                state <= PREPARE_CLAMP;
+                state <= PREPARE_FOLD_PHASE;
             end
             else begin
                 calc_cnt <= calc_cnt + 1;
             end
         end
-        PREPARE_CLAMP: begin
+        PREPARE_FOLD_PHASE: begin
             a_phase <= current_phase[calc_cnt];
             if (current_phase[calc_cnt] >= cycle[calc_cnt]) begin
                 b_phase <= cycle[calc_cnt];
@@ -221,10 +221,10 @@ always_ff @(posedge CLK) begin
 
             if (calc_cnt == ADDSUB_LATENCY) begin
                 set_cnt <= 0;
-                state <= CLAMP;
+                state <= FOLD_PHASE;
             end
         end
-        CLAMP: begin
+        FOLD_PHASE: begin
             a_phase <= current_phase[calc_cnt];
             if (current_phase[calc_cnt] >= cycle[calc_cnt]) begin
                 b_phase <= cycle[calc_cnt];

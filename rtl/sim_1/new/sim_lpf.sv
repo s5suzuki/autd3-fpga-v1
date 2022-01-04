@@ -4,7 +4,7 @@
  * Created Date: 25/07/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 03/01/2022
+ * Last Modified: 04/01/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -24,7 +24,7 @@ localparam int ULTRASOUND_CYCLE = int'(CLK_PWM_FREQ/ULTRASOUND_FREQ);
 
 bit CLK, CLK_PWM;
 bit LOCKED;
-bit [63:0] TIME_CNT;
+bit [63:0] SYS_TIME;
 
 sim_helper sim_helper(
                .*
@@ -39,7 +39,7 @@ bit [WIDTH-1:0] PHASE[0:DEPTH-1];
 bit [WIDTH-1:0] DUTY_S[0:DEPTH-1];
 bit [WIDTH-1:0] PHASE_S[0:DEPTH-1];
 
-assign START = (TIME_CNT !== 0) & ((TIME_CNT % ULTRASOUND_CYCLE) < (CLK_PWM_FREQ/CLK_FREQ));
+assign START = (SYS_TIME !== 0) & ((SYS_TIME % ULTRASOUND_CYCLE) < (CLK_PWM_FREQ/CLK_FREQ));
 
 silent_lpf_v2 #(
                   .WIDTH(WIDTH),

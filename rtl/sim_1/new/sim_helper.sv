@@ -4,7 +4,7 @@
  * Created Date: 24/12/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 03/01/2022
+ * Last Modified: 04/01/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -16,7 +16,7 @@ module sim_helper(
            output var CLK,
            output var CLK_PWM,
            output var LOCKED,
-           output var [63:0] TIME_CNT
+           output var [63:0] SYS_TIME
        );
 
 bit MRCC_25P6M;
@@ -24,7 +24,7 @@ bit MRCC_25P6M;
 bit clk_1, clk_2;
 bit reset;
 bit locked;
-bit [63:0] time_cnt;
+bit [63:0] sys_time;
 
 ultrasound_cnt_clk_gen ultrasound_cnt_clk_gen(
                            .clk_in1(MRCC_25P6M),
@@ -37,14 +37,14 @@ ultrasound_cnt_clk_gen ultrasound_cnt_clk_gen(
 assign CLK = clk_2;
 assign CLK_PWM = clk_1;
 assign LOCKED = locked;
-assign TIME_CNT = time_cnt;
+assign SYS_TIME = sys_time;
 
 initial begin
     MRCC_25P6M = 0;
     reset = 1;
     #1000;
     reset = 0;
-    time_cnt = 0;
+    sys_time = 1;
 end
 
 // main clock 25.6MHz
@@ -56,7 +56,7 @@ always begin
 end
 
 always @(posedge CLK_PWM) begin
-    time_cnt = time_cnt + 1;
+    sys_time = sys_time + 1;
 end
 
 endmodule
