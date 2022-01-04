@@ -4,7 +4,7 @@
  * Created Date: 01/01/2022
  * Author: Shun Suzuki
  * -----
- * Last Modified: 01/01/2022
+ * Last Modified: 04/01/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2022 Hapis Lab. All rights reserved.
@@ -29,8 +29,10 @@ assign TIME_CNT = t;
 div_64_13 div_64_13(
               .s_axis_dividend_tdata(SYS_TIME),
               .s_axis_dividend_tvalid(1'b1),
+              .s_axis_dividend_tready(),
               .s_axis_divisor_tdata({3'b000, CYCLE}),
               .s_axis_divisor_tvalid(1'b1),
+              .s_axis_divisor_tready(),
               .aclk(CLK),
               .m_axis_dout_tdata({_unused, rem}),
               .m_axis_dout_tvalid()

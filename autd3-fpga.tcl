@@ -80,6 +80,7 @@ add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/sequence/focus_calcu
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/sequence/seq_operator.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/transducer/delayed_fifo.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/transducer/pwm_gen.sv
+add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/transducer/pwm_preconditioner.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/transducer/sync_time_cnt_gen.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/transducer/silent_lpf_v2.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/config_manager.sv
@@ -109,8 +110,10 @@ import_ip rtl/sources_1/ip/BRAM_SEQ_1/BRAM_SEQ.xci
 import_ip rtl/sources_1/ip/BRAM16x512/BRAM16x512.xci
 import_ip rtl/sources_1/ip/dist_mem_delay_1/dist_mem_delay.xci
 import_ip rtl/sources_1/ip/c_add_14_14/c_add_14_14.xci
-import_ip rtl/sources_1/ip/c_addsub_14_14/c_addsub_14_14.xci
 import_ip rtl/sources_1/ip/c_sub_14_14/c_sub_14_14.xci
+import_ip rtl/sources_1/ip/c_addsub_14_14/c_addsub_14_14.xci
+import_ip rtl/sources_1/ip/c_add_15_15/c_add_15_15.xci
+import_ip rtl/sources_1/ip/c_sub_15_15/c_sub_15_15.xci
 import_ip rtl/sources_1/ip/div8/div8.xci
 import_ip rtl/sources_1/ip/div64_48/div64_48.xci
 import_ip rtl/sources_1/ip/div_64_13/div_64_13.xci

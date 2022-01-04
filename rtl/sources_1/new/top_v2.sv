@@ -4,7 +4,7 @@
  * Created Date: 24/12/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 03/01/2022
+ * Last Modified: 04/01/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -49,8 +49,12 @@ bit [12:0] step;
 bit start;
 bit [12:0] t;
 
+bit over[0:TRANS_NUM-1];
+bit [12:0] left[0:TRANS_NUM-1];
+bit [12:0] right[0:TRANS_NUM-1];
+
 assign reset = ~RESET_N;
-assign start = t === 0;
+assign start = t == 0;
 
 ultrasound_cnt_clk_gen ultrasound_cnt_clk_gen(
                            .clk_in1(MRCC_25P6M),
@@ -82,21 +86,36 @@ silent_lpf_v2 #(
                   .PHASE_S(phase_s)
               );
 
+pwm_preconditioner#(
+                      .WIDTH(13),
+                      .DEPTH(TRANS_NUM)
+                  ) pwm_preconditioner(
+                      .CLK(CLK_PWM),
+                      .START(start),
+                      .CYCLE(cycle),
+                      .DUTY(duty_s),
+                      .PHASE(phase_s),
+                      .OVER(over),
+                      .LEFT(left),
+                      .RIGHT(right)
+                  );
+
 `include "cvt_uid.vh"
 for (genvar ii = 0; ii < TRANS_NUM; ii++) begin
     bit pwm_out;
     bit tr_out;
     assign XDCR_OUT[cvt_uid(ii) + 1] = tr_out;
-    pwm_gen #(
-                .PHASE_INVERTED(PHASE_INVERTED)
-            ) pwm_gen(
-                .CLK(clk),
-                .TIME_CNT(t),
-                .CYCLE(cycle[ii]),
-                .DUTY(duty_s[ii]),
-                .PHASE(phase_s[ii]),
-                .PWM_OUT(tr_out)
-            );
+    pwm_gen#(
+               .WIDTH(13)
+           ) pwm_gen(
+               .CLK(clk),
+               .TIME_CNT(t),
+               .CYCLE(cycle[ii]),
+               .OVER(over[ii]),
+               .LEFT(left[ii]),
+               .RIGHT(right[ii]),
+               .PWM_OUT(tr_out)
+           );
 end
 
 always_ff @(posedge clk) begin
