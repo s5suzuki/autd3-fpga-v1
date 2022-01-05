@@ -4,7 +4,7 @@
  * Created Date: 24/12/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 04/01/2022
+ * Last Modified: 05/01/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -68,7 +68,8 @@ silent #(
            .DUTY(duty),
            .PHASE(phase),
            .DUTY_S(duty_s),
-           .PHASE_S(phase_s)
+           .PHASE_S(phase_s),
+           .OUT_VALID()
        );
 
 transducers#(

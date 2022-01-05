@@ -115,7 +115,7 @@ add_header_file sources_1 xil_defaultlib rtl/sources_1/new/cvt_uid.vh
 # import_ip rtl/sources_1/ip/dist_mem_delay_1/dist_mem_delay.xci
 # import_ip rtl/sources_1/ip/div8/div8.xci
 # import_ip rtl/sources_1/ip/div64_48/div64_48.xci
-# import_ip rtl/sources_1/ip/div_64_16/div_64_16.xci
+import_ip rtl/sources_1/ip/div_64_16/div_64_16.xci
 # import_ip rtl/sources_1/ip/divider/divider.xci
 # import_ip rtl/sources_1/ip/divider64/divider64.xci
 # import_ip rtl/sources_1/ip/lpf_silent/lpf_silent.xci

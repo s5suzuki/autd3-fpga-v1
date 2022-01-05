@@ -4,7 +4,7 @@
  * Created Date: 04/01/2022
  * Author: Shun Suzuki
  * -----
- * Last Modified: 04/01/2022
+ * Last Modified: 05/01/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2022 Hapis Lab. All rights reserved.
@@ -24,7 +24,8 @@ module silent#(
            input var [WIDTH-1:0] DUTY[0:DEPTH-1],
            input var [WIDTH-1:0] PHASE[0:DEPTH-1],
            output var [WIDTH-1:0] DUTY_S[0:DEPTH-1],
-           output var [WIDTH-1:0] PHASE_S[0:DEPTH-1]
+           output var [WIDTH-1:0] PHASE_S[0:DEPTH-1],
+           output var OUT_VALID
        );
 
 bit UPDATE;

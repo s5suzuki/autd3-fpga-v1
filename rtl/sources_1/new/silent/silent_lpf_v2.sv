@@ -4,7 +4,7 @@
  * Created Date: 06/12/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 04/01/2022
+ * Last Modified: 05/01/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -24,7 +24,8 @@ module silent_lpf_v2#(
            input var [WIDTH-1:0] DUTY[0:DEPTH-1],
            input var [WIDTH-1:0] PHASE[0:DEPTH-1],
            output var [WIDTH-1:0] DUTY_S[0:DEPTH-1],
-           output var [WIDTH-1:0] PHASE_S[0:DEPTH-1]
+           output var [WIDTH-1:0] PHASE_S[0:DEPTH-1],
+           output var OUT_VALID
        );
 
 localparam int ADDSUB_LATENCY = 2;
@@ -42,7 +43,8 @@ bit signed [WIDTH:0] a_duty, b_duty, s_duty;
 bit signed [WIDTH:0] a_phase, b_phase, s_phase;
 bit signed [WIDTH:0] a_phase_fold, b_phase_fold, s_phase_fold;
 bit add, add_fold;
-bit [$clog2(DEPTH+ADDSUB_LATENCY*3)-1:0] calc_cnt, calc_step_cnt, fold_cnt, set_cnt;
+bit [$clog2(DEPTH+(ADDSUB_LATENCY+1)*3)-1:0] calc_cnt, calc_step_cnt, fold_cnt, set_cnt;
+bit out_valid = 0;
 
 enum bit {
          IDLE,
@@ -53,6 +55,7 @@ for (genvar i = 0; i < DEPTH; i++) begin
     assign DUTY_S[i] = ENABLE ? current_duty[i][WIDTH-1:0] : DUTY[i];
     assign PHASE_S[i] = ENABLE ? current_phase[i][WIDTH-1:0] : PHASE[i];
 end
+assign OUT_VALID = out_valid;
 
 addsub #(
            .WIDTH(WIDTH+1)
@@ -127,6 +130,10 @@ always_ff @(posedge CLK) begin
                 step_n <= -{1'b0, STEP};
 
                 calc_step_cnt <= 0;
+                calc_cnt <= 0;
+                fold_cnt <= 0;
+                set_cnt <= 0;
+                out_valid <= 0;
 
                 state <= PROCESS;
             end
@@ -157,10 +164,7 @@ always_ff @(posedge CLK) begin
                 b_phase = (step_n < phase_step) ? phase_step : step_n;
                 add <= ({1'b1, cycle_n[calc_cnt][WIDTH:1]} <= phase_step);
             end
-            if (calc_step_cnt == ADDSUB_LATENCY) begin
-                calc_cnt <= 0;
-            end
-            else begin
+            if (calc_step_cnt > ADDSUB_LATENCY) begin
                 calc_cnt <= calc_cnt + 1;
             end
 
@@ -178,26 +182,24 @@ always_ff @(posedge CLK) begin
                 b_phase_fold <= '0;
                 add_fold <= 1'b1;
             end
-            if (calc_cnt == ADDSUB_LATENCY) begin
-                fold_cnt <= 0;
-            end
-            else begin
+            if (calc_cnt > ADDSUB_LATENCY) begin
+                // set duty
+                if (fold_cnt <= DEPTH - 1) begin
+                    current_duty[fold_cnt] <= s_duty;
+                end
+
                 fold_cnt <= fold_cnt + 1;
             end
 
-            // set duty
-            current_duty[fold_cnt] <= s_duty;
-            // set phase
-            current_phase[set_cnt] <= s_phase_fold;
-            if (fold_cnt == ADDSUB_LATENCY) begin
-                set_cnt <= 0;
-            end
-            else begin
-                set_cnt <= set_cnt + 1;
-            end
+            if (fold_cnt > ADDSUB_LATENCY) begin
+                // set phase
+                current_phase[set_cnt] <= s_phase_fold;
 
-            if (set_cnt == DEPTH - 1) begin
-                state <= IDLE;
+                set_cnt <= set_cnt + 1;
+                if (set_cnt == DEPTH - 1) begin
+                    out_valid <= 1;
+                    state <= IDLE;
+                end
             end
         end
     endcase
