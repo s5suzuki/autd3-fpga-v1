@@ -4,7 +4,7 @@
  * Created Date: 04/01/2022
  * Author: Shun Suzuki
  * -----
- * Last Modified: 04/01/2022
+ * Last Modified: 05/01/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2022 Hapis Lab. All rights reserved.
@@ -42,7 +42,7 @@ bit signed [WIDTH+1:0] a_right, b_right, s_right;
 bit signed [WIDTH+1:0] a_fold_left, b_fold_left, s_fold_left;
 bit signed [WIDTH+1:0] a_fold_right, b_fold_right, s_fold_right;
 
-bit [$clog2(DEPTH+ADDSUB_LATENCY*3)-1:0] cnt, lr_cnt, fold_cnt, set_cnt;
+bit [$clog2(DEPTH+(ADDSUB_LATENCY+1)*3)-1:0] cnt, lr_cnt, fold_cnt, set_cnt;
 
 enum bit {
          IDLE,
