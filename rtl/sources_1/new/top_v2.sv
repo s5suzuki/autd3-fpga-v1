@@ -4,7 +4,7 @@
  * Created Date: 24/12/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 05/01/2022
+ * Last Modified: 07/01/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -30,6 +30,8 @@ module top_v2(
            output var [3:0] GPIO_OUT
        );
 
+`include "cvt_uid.vh"
+
 localparam int WIDTH = 13;
 localparam int TRANS_NUM = 249;
 
@@ -44,8 +46,12 @@ bit [12:0] phase[0:TRANS_NUM-1];
 bit [12:0] duty_s[0:TRANS_NUM-1];
 bit [12:0] phase_s[0:TRANS_NUM-1];
 bit [12:0] step;
+bit PWM_OUT[0:TRANS_NUM-1];
 
 assign reset = ~RESET_N;
+for (genvar i = 0; i < TRANS_NUM; i++) begin
+    assign XDCR_OUT[cvt_uid(i) + 1] = PWM_OUT[i];
+end
 
 ultrasound_cnt_clk_gen ultrasound_cnt_clk_gen(
                            .clk_in1(MRCC_25P6M),
@@ -55,22 +61,30 @@ ultrasound_cnt_clk_gen ultrasound_cnt_clk_gen(
                            .locked()
                        );
 
-silent #(
-           .WIDTH(WIDTH),
-           .DEPTH(TRANS_NUM)
-       ) silent(
-           .CLK(clk_l),
-           .SYS_TIME(sys_time),
-           .ENABLE(1'b1),
-           .UPDATE_CYCLE(13'd1250),
-           .STEP(step),
-           .CYCLE(cycle),
-           .DUTY(duty),
-           .PHASE(phase),
-           .DUTY_S(duty_s),
-           .PHASE_S(phase_s),
-           .OUT_VALID()
-       );
+sync#(
+        .WIDTH(WIDTH)
+    ) sync(
+        .CLK(clk_l),
+        .SYS_TIME(sys_time),
+        .UPDATE_CYCLE(13'd1250),
+        .UPDATE(update)
+    );
+
+silent#(
+          .WIDTH(WIDTH),
+          .DEPTH(TRANS_NUM)
+      ) silent(
+          .CLK(clk_l),
+          .ENABLE(1'b1),
+          .UPDATE(update),
+          .STEP(step),
+          .CYCLE(cycle),
+          .DUTY(duty),
+          .PHASE(phase),
+          .DUTY_S(duty_s),
+          .PHASE_S(phase_s),
+          .OUT_VALID()
+      );
 
 transducers#(
                .WIDTH(WIDTH),
@@ -79,11 +93,11 @@ transducers#(
                .CLK(clk),
                .CLK_L(clk_l),
                .SYS_TIME(sys_time),
-               .UPDATE_CYCLE(13'd1250),
+               .UPDATE(update),
                .CYCLE(cycle),
                .DUTY(duty_s),
                .PHASE(phase_s),
-               .XDCR_OUT(XDCR_OUT)
+               .*
            );
 
 always_ff @(posedge clk) begin

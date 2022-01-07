@@ -1,10 +1,10 @@
 /*
- * File: sim_lpf.sv
+ * File: sim_silent.sv
  * Project: new
  * Created Date: 25/07/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 05/01/2022
+ * Last Modified: 07/01/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -12,7 +12,7 @@
  */
 
 `timescale 1ns / 1ps
-module sim_lpf();
+module sim_silent();
 
 parameter int CLK_FREQ = 50000000;
 parameter int CLK_PWM_FREQ = 200000000;

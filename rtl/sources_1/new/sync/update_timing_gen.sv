@@ -1,7 +1,7 @@
 /*
- * File: silent_timing_gen.sv
- * Project: silent
- * Created Date: 04/01/2022
+ * File: update_timing_gen.sv
+ * Project: sync
+ * Created Date: 05/01/2022
  * Author: Shun Suzuki
  * -----
  * Last Modified: 05/01/2022
@@ -12,7 +12,7 @@
  */
 
 `timescale 1ns / 1ps
-module silent_timing_gen#(
+module update_timing_gen#(
            parameter int WIDTH = 13
        )(
            input var CLK,
@@ -20,9 +20,6 @@ module silent_timing_gen#(
            input var [WIDTH-1:0] UPDATE_CYCLE,
            output var UPDATE
        );
-
-localparam [15:0] DIVIDER_LATENCY = 67;
-localparam [15:0] ADDSUB_LATENCY = 2;
 
 bit [63:0] divined;
 bit [15:0] divisor;

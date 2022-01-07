@@ -86,7 +86,8 @@ add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/transducers/pwm_prec
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/transducers/sync_time_cnt_gen.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/silent/silent.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/silent/silent_lpf_v2.sv
-add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/silent/silent_timing_gen.sv
+add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/sync/sync.sv
+add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/sync/update_timing_gen.sv
 # add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/config_manager.sv
 # add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/modulator.sv
 # add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/normal_operator.sv
@@ -135,8 +136,8 @@ proc add_sim_file {fileset_name library_name file_name} {
 }
 # add_sim_file sim_1 xil_defaultlib rtl/sim_1/new/sim_delayed_fifo.sv
 add_sim_file sim_1 xil_defaultlib rtl/sim_1/new/sim_sync.sv
-add_sim_file sim_1 xil_defaultlib rtl/sim_1/new/sim_lpf.sv
-add_sim_file sim_1 xil_defaultlib rtl/sim_1/new/sim_pwm_gen.sv
+add_sim_file sim_1 xil_defaultlib rtl/sim_1/new/sim_silent.sv
+add_sim_file sim_1 xil_defaultlib rtl/sim_1/new/sim_transducers.sv
 # add_sim_file sim_1 xil_defaultlib rtl/sim_1/new/sim_seq.sv
 add_sim_file sim_1 xil_defaultlib rtl/sim_1/new/sim_helper.sv
 
@@ -146,5 +147,5 @@ set_msg_config -id {Synth 8-5640} -new_severity {ADVISORY}
 set_msg_config -id {Synth 8-5858} -new_severity {ADVISORY}
 
 set_property top top_v2 [get_filesets sources_1]
-set_property top sim_lpf [get_filesets sim_1]
+set_property top sim_transducers [get_filesets sim_1]
 set_property top_lib xil_defaultlib [get_filesets sim_1]
