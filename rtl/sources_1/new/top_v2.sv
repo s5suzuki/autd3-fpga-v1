@@ -12,7 +12,9 @@
  */
 
 `timescale 1ns / 1ps
-module top_v2(
+module top_v2#(
+           parameter string ENABLE_SILENT = "TRUE"
+       )(
            input var [16:1] CPU_ADDR,
            inout tri [15:0] CPU_DATA,
            input var CPU_CKIO,
@@ -70,21 +72,27 @@ sync#(
         .UPDATE(update)
     );
 
-silent#(
-          .WIDTH(WIDTH),
-          .DEPTH(TRANS_NUM)
-      ) silent(
-          .CLK(clk_l),
-          .ENABLE(1'b1),
-          .UPDATE(update),
-          .STEP(step),
-          .CYCLE(cycle),
-          .DUTY(duty),
-          .PHASE(phase),
-          .DUTY_S(duty_s),
-          .PHASE_S(phase_s),
-          .OUT_VALID()
-      );
+if (ENABLE_SILENT == "TRUE") begin
+    silent#(
+              .WIDTH(WIDTH),
+              .DEPTH(TRANS_NUM)
+          ) silent(
+              .CLK(clk_l),
+              .ENABLE(1'b1),
+              .UPDATE(update),
+              .STEP(step),
+              .CYCLE(cycle),
+              .DUTY(duty),
+              .PHASE(phase),
+              .DUTY_S(duty_s),
+              .PHASE_S(phase_s),
+              .OUT_VALID()
+          );
+end
+else begin
+    assign duty_s = duty;
+    assign phase_s = phase;
+end
 
 transducers#(
                .WIDTH(WIDTH),

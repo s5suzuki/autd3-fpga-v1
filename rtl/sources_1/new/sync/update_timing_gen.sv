@@ -4,7 +4,7 @@
  * Created Date: 05/01/2022
  * Author: Shun Suzuki
  * -----
- * Last Modified: 05/01/2022
+ * Last Modified: 07/01/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2022 Hapis Lab. All rights reserved.
@@ -22,10 +22,41 @@ module update_timing_gen#(
        );
 
 bit [63:0] divined;
-bit [15:0] divisor;
 bit [63:0] _unused;
-bit [15:0] rem;
 bit rem_tvalid;
+if (WIDTH <= 16) begin
+    bit [15:0] divisor;
+    bit [15:0] rem;
+    div_64_16 div_64_16(
+                  .s_axis_dividend_tdata(divined),
+                  .s_axis_dividend_tvalid(1'b1),
+                  .s_axis_dividend_tready(),
+                  .s_axis_divisor_tdata(divisor),
+                  .s_axis_divisor_tvalid(1'b1),
+                  .s_axis_divisor_tready(),
+                  .aclk(CLK),
+                  .m_axis_dout_tdata({_unused, rem}),
+                  .m_axis_dout_tvalid(rem_tvalid)
+              );
+end
+else if (WIDTH <= 32) begin
+    bit [31:0] divisor;
+    bit [31:0] rem;
+    div_64_32 div_64_32(
+                  .s_axis_dividend_tdata(divined),
+                  .s_axis_dividend_tvalid(1'b1),
+                  .s_axis_dividend_tready(),
+                  .s_axis_divisor_tdata(divisor),
+                  .s_axis_divisor_tvalid(1'b1),
+                  .s_axis_divisor_tready(),
+                  .aclk(CLK),
+                  .m_axis_dout_tdata({_unused, rem}),
+                  .m_axis_dout_tvalid(rem_tvalid)
+              );
+end
+else begin
+    $error("not supported");
+end
 
 bit signed [WIDTH:0] a_sub_diff, b_sub_diff, s_sub_diff;
 bit signed [WIDTH:0] a_sub_fold_diff, b_sub_fold_diff, s_sub_fold_diff;
@@ -45,18 +76,6 @@ enum bit [2:0] {
      } state = IDLE;
 
 assign UPDATE = update;
-
-div_64_16 div_64_16(
-              .s_axis_dividend_tdata(divined),
-              .s_axis_dividend_tvalid(1'b1),
-              .s_axis_dividend_tready(),
-              .s_axis_divisor_tdata(divisor),
-              .s_axis_divisor_tvalid(1'b1),
-              .s_axis_divisor_tready(),
-              .aclk(CLK),
-              .m_axis_dout_tdata({_unused, rem}),
-              .m_axis_dout_tvalid(rem_tvalid)
-          );
 
 addsub#(
           .WIDTH(WIDTH+1)

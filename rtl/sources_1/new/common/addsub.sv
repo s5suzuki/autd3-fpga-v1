@@ -4,13 +4,14 @@
  * Created Date: 04/01/2022
  * Author: Shun Suzuki
  * -----
- * Last Modified: 04/01/2022
+ * Last Modified: 07/01/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2022 Hapis Lab. All rights reserved.
  * 
  */
 
+`timescale 1ns / 1ps
 module addsub#(
            parameter int WIDTH
        )(

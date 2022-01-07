@@ -73,29 +73,11 @@ proc add_verilog_file {fileset_name library_name file_name} {
     set_property "file_type" "SystemVerilog" $file_obj
     set_property "library" $library_name $file_obj
 }
-add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/common/addsub.sv
-# add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/interfaces/cpu_bus_if.sv
-# add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/interfaces/mod_sync_if.sv
-# add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/interfaces/seq_sync_if.sv
-# add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/sequence/focus_calculator.sv
-# add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/sequence/seq_operator.sv
-# add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/transducer/delayed_fifo.sv
-add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/transducers/transducers.sv
-add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/transducers/pwm_gen.sv
-add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/transducers/pwm_preconditioner.sv
-add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/transducers/sync_time_cnt_gen.sv
-add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/silent/silent.sv
-add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/silent/silent_lpf_v2.sv
-add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/sync/sync.sv
-add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/sync/update_timing_gen.sv
-# add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/config_manager.sv
-# add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/modulator.sv
-# add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/normal_operator.sv
-# add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/silent_lpf.sv
-# add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/synchronizer.sv
-# add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/top.sv
+set file_list [glob -nocomplain -join rtl/sources_1/new/* *.sv]
+foreach src_file_path $file_list {
+  add_verilog_file sources_1 xil_defaultlib $src_file_path
+}
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/top_v2.sv
-# add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/tr_cntroller.sv
 
 proc add_header_file {fileset_name library_name file_name} {
     set file    [file normalize $file_name]
@@ -105,26 +87,15 @@ proc add_header_file {fileset_name library_name file_name} {
     set_property "file_type" "Verilog Header" $file_obj
     set_property "library" $library_name $file_obj
 }
-add_header_file sources_1 xil_defaultlib rtl/sources_1/new/cvt_uid.vh
-# add_header_file sources_1 xil_defaultlib rtl/sources_1/new/param.vh
+set file_list [glob -nocomplain rtl/sources_1/new/headers/*.vh]
+foreach header_file_path $file_list {
+  add_header_file sources_1 xil_defaultlib $header_file_path
+}
 
-# import_ip rtl/sources_1/ip/addr_88/addr_88.xci
-# import_ip rtl/sources_1/ip/BRAM_CONFIG/BRAM_CONFIG.xci
-# import_ip rtl/sources_1/ip/BRAM_MOD_1/BRAM_MOD.xci
-# import_ip rtl/sources_1/ip/BRAM_SEQ_1/BRAM_SEQ.xci
-# import_ip rtl/sources_1/ip/BRAM16x512/BRAM16x512.xci
-# import_ip rtl/sources_1/ip/dist_mem_delay_1/dist_mem_delay.xci
-# import_ip rtl/sources_1/ip/div8/div8.xci
-# import_ip rtl/sources_1/ip/div64_48/div64_48.xci
-import_ip rtl/sources_1/ip/div_64_16/div_64_16.xci
-# import_ip rtl/sources_1/ip/divider/divider.xci
-# import_ip rtl/sources_1/ip/divider64/divider64.xci
-# import_ip rtl/sources_1/ip/lpf_silent/lpf_silent.xci
-# import_ip rtl/sources_1/ip/mult_19/mult_19.xci
-# import_ip rtl/sources_1/ip/mult_24/mult_24.xci
-# import_ip rtl/sources_1/ip/mult8x8/mult8x8.xci
-# import_ip rtl/sources_1/ip/sqrt_40/sqrt_40.xci
-import_ip rtl/sources_1/ip/ultrasound_cnt_clk_gen/ultrasound_cnt_clk_gen.xci
+set file_list [glob -nocomplain -join rtl/sources_1/ip/* *.xci]
+foreach xci_file_path $file_list {
+  import_ip $xci_file_path
+}
 
 proc add_sim_file {fileset_name library_name file_name} {
     set file    [file normalize $file_name]
@@ -134,12 +105,10 @@ proc add_sim_file {fileset_name library_name file_name} {
     set_property "file_type" "SystemVerilog" $file_obj
     set_property "library" $library_name $file_obj
 }
-# add_sim_file sim_1 xil_defaultlib rtl/sim_1/new/sim_delayed_fifo.sv
-add_sim_file sim_1 xil_defaultlib rtl/sim_1/new/sim_sync.sv
-add_sim_file sim_1 xil_defaultlib rtl/sim_1/new/sim_silent.sv
-add_sim_file sim_1 xil_defaultlib rtl/sim_1/new/sim_transducers.sv
-# add_sim_file sim_1 xil_defaultlib rtl/sim_1/new/sim_seq.sv
-add_sim_file sim_1 xil_defaultlib rtl/sim_1/new/sim_helper.sv
+set file_list [glob -nocomplain rtl/sim_1/new/*.sv]
+foreach sim_file_path $file_list {
+  add_sim_file sim_1 xil_defaultlib $sim_file_path
+}
 
 set_msg_config -id {Synth 8-7080} -new_severity {ADVISORY}
 set_msg_config -id {Synth 8-7129} -new_severity {ADVISORY}
