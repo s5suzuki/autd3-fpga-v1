@@ -13,7 +13,8 @@
 
 `timescale 1ns / 1ps
 module top_v2#(
-           parameter string ENABLE_SILENT = "TRUE"
+           parameter string ENABLE_SILENT = "TRUE",
+           parameter string ENABLE_MODULATION = "TRUE"
        )(
            input var [16:1] CPU_ADDR,
            inout tri [15:0] CPU_DATA,
@@ -45,6 +46,7 @@ bit [63:0] sys_time = 0;
 bit [12:0] cycle[0:TRANS_NUM-1];
 bit [12:0] duty[0:TRANS_NUM-1];
 bit [12:0] phase[0:TRANS_NUM-1];
+bit [12:0] duty_m[0:TRANS_NUM-1];
 bit [12:0] duty_s[0:TRANS_NUM-1];
 bit [12:0] phase_s[0:TRANS_NUM-1];
 bit [12:0] step;
@@ -72,6 +74,24 @@ sync#(
         .UPDATE(update)
     );
 
+if (ENABLE_MODULATION == "TRUE") begin
+    modulation#(
+                  .WIDTH(WIDTH),
+                  .DEPTH(TRANS_NUM)
+              ) modulation(
+                  .CLK(clk_l),
+                  .SYS_TIME(sys_time),
+                  .MOD_CYCLE(16'd4000),
+                  .UPDATE_CYCLE(32'd1250),
+                  .DUTY(duty),
+                  .DUTY_M(duty_m),
+                  .OUT_VALID()
+              );
+end
+else begin
+    assign duty_m = duty;
+end
+
 if (ENABLE_SILENT == "TRUE") begin
     silent#(
               .WIDTH(WIDTH),
@@ -82,7 +102,7 @@ if (ENABLE_SILENT == "TRUE") begin
               .UPDATE(update),
               .STEP(step),
               .CYCLE(cycle),
-              .DUTY(duty),
+              .DUTY(duty_m),
               .PHASE(phase),
               .DUTY_S(duty_s),
               .PHASE_S(phase_s),
@@ -90,7 +110,7 @@ if (ENABLE_SILENT == "TRUE") begin
           );
 end
 else begin
-    assign duty_s = duty;
+    assign duty_s = duty_m;
     assign phase_s = phase;
 end
 
