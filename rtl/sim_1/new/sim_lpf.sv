@@ -4,7 +4,7 @@
  * Created Date: 25/07/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 07/12/2021
+ * Last Modified: 07/01/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -45,11 +45,14 @@ assign p0_lpf = phases1[TRANS_NUM-1];
 silent_lpf_v2#(
                  .TRANS_NUM(TRANS_NUM)
              ) silent_lpf_v2(
-                 .CLK(lpf_clk),
+                 .CLK(sys_clk),
+                 .ENABLE(1'b1),
+                 .UPDATE(update),
                  .DUTY(duty1),
                  .PHASE(phase1),
                  .DUTYS(dutys1),
-                 .PHASES(phases1)
+                 .PHASES(phases1),
+                 .OUT_VALID()
              );
 
 initial begin

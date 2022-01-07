@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 09/12/2021
+ * Last Modified: 07/01/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -23,7 +23,6 @@ module tr_cntroller#(
            parameter string ENABLE_SYNC_DBG = "TRUE"
        ) (
            input var CLK,
-           input var CLK_LPF,
            input var [8:0] TIME,
            input var UPDATE,
            cpu_bus_if.slave_port CPU_BUS,
@@ -107,20 +106,17 @@ logic [7:0] duty_silent[0:TRANS_NUM-1];
 logic [7:0] phase_silent[0:TRANS_NUM-1];
 
 if (ENABLE_SILENT == "TRUE") begin
-    logic [7:0] ds[0:TRANS_NUM-1];
-    logic [7:0] ps[0:TRANS_NUM-1];
     silent_lpf_v2#(
                      .TRANS_NUM(TRANS_NUM)
                  ) silent_lpf_v2(
                      .*,
-                     .CLK(CLK_LPF),
+                     .ENABLE(SILENT),
+                     .UPDATE(update),
                      .DUTY(duty_modulated),
                      .PHASE(phase_raw),
-                     .DUTYS(ds),
-                     .PHASES(ps)
+                     .DUTYS(duty_silent),
+                     .PHASES(phase_silent)
                  );
-    assign duty_silent = SILENT ? ds : duty_modulated;
-    assign phase_silent = SILENT ? ps : phase_raw;
 end
 else begin
     assign duty_silent = duty_modulated;

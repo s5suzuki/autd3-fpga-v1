@@ -57,6 +57,7 @@ proc add_verilog_file {fileset_name library_name file_name} {
     set_property "file_type" "SystemVerilog" $file_obj
     set_property "library" $library_name $file_obj
 }
+add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/common/addsub.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/interfaces/cpu_bus_if.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/interfaces/mod_sync_if.sv
 add_verilog_file sources_1 xil_defaultlib rtl/sources_1/new/interfaces/seq_sync_if.sv
@@ -83,7 +84,6 @@ proc add_header_file {fileset_name library_name file_name} {
 add_header_file sources_1 xil_defaultlib rtl/sources_1/new/cvt_uid.vh
 add_header_file sources_1 xil_defaultlib rtl/sources_1/new/param.vh
 
-import_ip rtl/sources_1/ip/addr_88/addr_88.xci
 import_ip rtl/sources_1/ip/BRAM_CONFIG/BRAM_CONFIG.xci
 import_ip rtl/sources_1/ip/BRAM_MOD_1/BRAM_MOD.xci
 import_ip rtl/sources_1/ip/BRAM_SEQ_1/BRAM_SEQ.xci
@@ -93,7 +93,6 @@ import_ip rtl/sources_1/ip/div8/div8.xci
 import_ip rtl/sources_1/ip/div64_48/div64_48.xci
 import_ip rtl/sources_1/ip/divider/divider.xci
 import_ip rtl/sources_1/ip/divider64/divider64.xci
-import_ip rtl/sources_1/ip/lpf_silent/lpf_silent.xci
 import_ip rtl/sources_1/ip/mult_19/mult_19.xci
 import_ip rtl/sources_1/ip/mult_24/mult_24.xci
 import_ip rtl/sources_1/ip/mult8x8/mult8x8.xci
