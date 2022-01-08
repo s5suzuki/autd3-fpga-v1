@@ -21,12 +21,15 @@ module update_timing_gen#(
            output var UPDATE
        );
 
+localparam int REM_WIDTH = (WIDTH <= 16) ? 16 : 32;
+
 bit [63:0] divined;
+bit [REM_WIDTH-1:0] divisor;
 bit [63:0] _unused;
+bit [REM_WIDTH-1:0] rem;
 bit rem_tvalid;
+
 if (WIDTH <= 16) begin
-    bit [15:0] divisor;
-    bit [15:0] rem;
     div_64_16 div_64_16(
                   .s_axis_dividend_tdata(divined),
                   .s_axis_dividend_tvalid(1'b1),
@@ -40,8 +43,6 @@ if (WIDTH <= 16) begin
               );
 end
 else if (WIDTH <= 32) begin
-    bit [31:0] divisor;
-    bit [31:0] rem;
     div_64_32 div_64_32(
                   .s_axis_dividend_tdata(divined),
                   .s_axis_dividend_tvalid(1'b1),

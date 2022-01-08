@@ -30,17 +30,20 @@ bit [WIDTH-1:0] duty[0:DEPTH-1];
 bit [WIDTH-1:0] duty_m[0:DEPTH-1];
 
 bit [WIDTH-1:0] a;
-bit [7:0] b;
-bit [WIDTH+7:0] p;
+bit [8:0] b;
+bit [WIDTH+8:0] p;
 
 bit [$clog2(DEPTH+(MULT_LATENCY+1))-1:0] calc_cnt, set_cnt;
 bit out_valid = 0;
 
-assign OUT_VALUD = out_valid;
+assign OUT_VALID = out_valid;
+for (genvar i = 0; i < DEPTH; i++) begin
+    assign DUTY_M[i] = duty_m[i];
+end
 
 mult#(
         .WIDTH_A(WIDTH),
-        .WIDTH_B(8)
+        .WIDTH_B(9)
     ) mult(
         .CLK(CLK),
         .A(a),
@@ -70,12 +73,12 @@ always_ff @(posedge CLK) begin
         IDLE: begin
             if (UPDATE) begin
                 out_valid <= 0;
+                b <= MOD + 1;
                 state <= PROCESS;
             end
         end
         PROCESS: begin
             a <= duty[calc_cnt];
-            b <= MOD;
             calc_cnt <= calc_cnt + 1;
 
             if (calc_cnt > MULT_LATENCY) begin

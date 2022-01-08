@@ -38,8 +38,14 @@ module top_v2#(
 localparam int WIDTH = 13;
 localparam int TRANS_NUM = 249;
 
+localparam [1:0] BRAM_CONFIG_SELECT = 2'h0;
+localparam [1:0] BRAM_MOD_SELECT = 2'h0;
+localparam [13:0] MOD_BRAM_ADDR_OFFSET_ADDR = 14'h0006;
+
 bit clk;
 bit reset;
+
+bit [15:0] cpu_data_out;
 
 bit [63:0] sys_time = 0;
 
@@ -56,6 +62,16 @@ assign reset = ~RESET_N;
 for (genvar i = 0; i < TRANS_NUM; i++) begin
     assign XDCR_OUT[cvt_uid(i) + 1] = PWM_OUT[i];
 end
+
+assign CPU_DATA  = (~CPU_CS1_N && ~CPU_RD_N && CPU_RDWR) ? cpu_data_out : 16'bz;
+
+cpu_bus_if cpu_bus();
+assign cpu_bus.BUS_CLK = CPU_CKIO;
+assign cpu_bus.EN = ~CPU_CS1_N;
+assign cpu_bus.WE = ~CPU_WE0_N;
+assign cpu_bus.BRAM_SELECT = CPU_ADDR[16:15];
+assign cpu_bus.BRAM_ADDR = CPU_ADDR[14:1];
+assign cpu_bus.DATA_IN = CPU_DATA;
 
 ultrasound_cnt_clk_gen ultrasound_cnt_clk_gen(
                            .clk_in1(MRCC_25P6M),
@@ -77,9 +93,13 @@ sync#(
 if (ENABLE_MODULATION == "TRUE") begin
     modulation#(
                   .WIDTH(WIDTH),
-                  .DEPTH(TRANS_NUM)
+                  .DEPTH(TRANS_NUM),
+                  .BRAM_CONFIG_SELECT(BRAM_CONFIG_SELECT),
+                  .BRAM_MOD_SELECT(BRAM_MOD_SELECT),
+                  .MOD_BRAM_ADDR_OFFSET_ADDR(MOD_BRAM_ADDR_OFFSET_ADDR)
               ) modulation(
                   .CLK(clk_l),
+                  .CPU_BUS(cpu_bus.slave_port),
                   .SYS_TIME(sys_time),
                   .MOD_CYCLE(16'd4000),
                   .UPDATE_CYCLE(32'd1250),
@@ -133,6 +153,7 @@ always_ff @(posedge clk) begin
     cycle <= '{TRANS_NUM{13'd5000}};
     duty <= '{TRANS_NUM{13'd2500}};
     phase <= '{TRANS_NUM{13'd2500}};
+    cpu_data_out <= 16'd0;
     sys_time <= sys_time + 1;
 end
 
