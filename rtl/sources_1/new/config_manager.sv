@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 15/12/2021
+ * Last Modified: 15/01/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -23,6 +23,7 @@ module config_manager#(
            mod_sync_if.master_port MOD_SYNC,
            seq_sync_if.master_port SEQ_SYNC,
            output var SILENT,
+           output var [7:0] STEP,
            output var FORCE_FAN,
            input var THERMO,
            output var OUTPUT_EN,
@@ -74,6 +75,7 @@ localparam [5:0] BRAM_MOD_SYNC_TIME_1     = 6'h10;
 localparam [5:0] BRAM_MOD_SYNC_TIME_2     = 6'h11;
 localparam [5:0] BRAM_MOD_SYNC_TIME_3     = 6'h12;
 localparam [5:0] BRAM_CLK_INIT_FLAG       = 6'h13;
+localparam [5:0] BRAM_SILENT_STEP         = 6'h14;
 
 localparam int OUTPUT_ENABLE_IDX  = 0;
 localparam int OUTPUT_BALANCE_IDX = 1;
@@ -96,6 +98,7 @@ logic [15:0] seq_clk_cycle;
 logic [15:0] seq_clk_div;
 logic [63:0] seq_clk_sync_time;
 logic [15:0] wavelength;
+bit [7:0] step;
 
 enum logic [4:0] {
          READ_CTRL_FLAG,
@@ -109,6 +112,7 @@ enum logic [4:0] {
          READ_SEQ_CYCLE,
          READ_SEQ_FREQ_DIV,
          READ_WAVELENGTH,
+         READ_SILENT_STEP,
          READ_SEQ_CLK_SYNC_TIME_0,
          READ_SEQ_CLK_SYNC_TIME_1,
          READ_SEQ_CLK_SYNC_TIME_2,
@@ -121,6 +125,7 @@ assign OUTPUT_EN = ctrl_flags[OUTPUT_ENABLE_IDX];
 assign OUTPUT_BALANCE = ctrl_flags[OUTPUT_BALANCE_IDX];
 
 if (ENABLE_SILENT == "TRUE") begin
+    assign STEP = step;
     assign SILENT = ctrl_flags[SILENT_IDX];
 end
 assign FORCE_FAN = ctrl_flags[FORCE_FAN_IDX];
@@ -222,26 +227,33 @@ always_ff @(posedge CLK) begin
 
             mod_clk_sync_time[63:48] <= config_bram_dout;
 
+            state_props <= READ_SILENT_STEP;
+        end
+        READ_SILENT_STEP: begin
+            config_bram_addr <= BRAM_SILENT_STEP;
+
+            seq_clk_cycle <= config_bram_dout;
+
             state_props <= READ_SEQ_CLK_SYNC_TIME_0;
         end
         READ_SEQ_CLK_SYNC_TIME_0: begin
             config_bram_addr <= BRAM_SEQ_SYNC_TIME_0;
 
-            seq_clk_cycle <= config_bram_dout;
+            seq_clk_div <= config_bram_dout;
 
             state_props <= READ_SEQ_CLK_SYNC_TIME_1;
         end
         READ_SEQ_CLK_SYNC_TIME_1: begin
             config_bram_addr <= BRAM_SEQ_SYNC_TIME_1;
 
-            seq_clk_div <= config_bram_dout;
+            wavelength <= config_bram_dout;
 
             state_props <= READ_SEQ_CLK_SYNC_TIME_2;
         end
         READ_SEQ_CLK_SYNC_TIME_2: begin
             config_bram_addr <= BRAM_SEQ_SYNC_TIME_2;
 
-            wavelength <= config_bram_dout;
+            step <= config_bram_dout[7:0];
 
             state_props <= READ_SEQ_CLK_SYNC_TIME_3;
         end

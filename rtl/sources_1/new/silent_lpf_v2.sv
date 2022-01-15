@@ -4,7 +4,7 @@
  * Created Date: 25/07/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 06/01/2022
+ * Last Modified: 15/01/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -19,6 +19,7 @@ module silent_lpf_v2#(
            input var CLK,
            input var ENABLE,
            input var UPDATE,
+           input var [WIDTH-1:0] STEP,
            input var [WIDTH-1:0] DUTY[0:TRANS_NUM-1],
            input var [WIDTH-1:0] PHASE[0:TRANS_NUM-1],
            output var [WIDTH-1:0] DUTYS[0:TRANS_NUM-1],
@@ -27,7 +28,6 @@ module silent_lpf_v2#(
        );
 
 localparam int ADDSUB_LATENCY = 2;
-localparam [WIDTH-1:0] STEP = 3;
 
 bit signed [WIDTH:0] step, step_n;
 bit signed [WIDTH:0] duty[0:TRANS_NUM-1];

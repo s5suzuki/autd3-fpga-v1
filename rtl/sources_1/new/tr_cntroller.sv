@@ -4,7 +4,7 @@
  * Created Date: 09/05/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 07/01/2022
+ * Last Modified: 15/01/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -29,6 +29,7 @@ module tr_cntroller#(
            mod_sync_if.slave_port MOD_SYNC,
            seq_sync_if.slave_port SEQ_SYNC,
            input var SILENT,
+           input var [7:0] STEP,
            output var [15:0] MOD_CLK_CYCLE,
            output var [15:0] MOD_IDX,
            output var [15:0] SEQ_CLK_CYCLE,
@@ -112,6 +113,7 @@ if (ENABLE_SILENT == "TRUE") begin
                      .*,
                      .ENABLE(SILENT),
                      .UPDATE(update),
+                     .STEP(STEP),
                      .DUTY(duty_modulated),
                      .PHASE(phase_raw),
                      .DUTYS(duty_silent),
