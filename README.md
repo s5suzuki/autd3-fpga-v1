@@ -1,6 +1,6 @@
 # AUTD3 FPGA firmware
 
-Version: 1.10
+Version: 1.11
 
 This repository contains the FPGA design of [AUTD3](https://hapislab.org/airborne-ultrasound-tactile-display?lang=en).
 
@@ -78,7 +78,8 @@ If you have already generate project file and do not want to overwrite it, pass 
 |            | 0x11             | Mod clk sync time[47:32]           | R  |
 |            | 0x12             | Mod clk sync time[63:48]           | R  |
 |            | 0x13             | 0 = Mod clk init<br>1 = Seq clk init | R  |
-|            | 0x14             | unused                           | -  |
+|            | 0x14             | Silent step                          | R  |
+|            | 0x15             | unused                           | -  |
 |            | ︙               | ︙                               | ︙  |
 |            | 0x3E             | unused                           | -   |
 |            | 0x3F             | FPGA version number              | R   |
@@ -164,7 +165,8 @@ If you have already generate project file and do not want to overwrite it, pass 
 | 0x0012 (18)         | v1.8    | 
 | 0x0013 (19)         | v1.9    | 
 | 0x0014 (20)         | v1.10    | 
+| 0x0015 (21)         | v1.11    | 
 
 # Author
 
-Shun Suzuki, 2020-2021
+Shun Suzuki, 2020-2022

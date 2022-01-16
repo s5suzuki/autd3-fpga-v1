@@ -4,7 +4,7 @@
  * Created Date: 27/03/2021
  * Author: Shun Suzuki
  * -----
- * Last Modified: 09/12/2021
+ * Last Modified: 15/01/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -60,6 +60,8 @@ logic [15:0] mod_idx;
 logic [15:0] seq_clk_cycle;
 logic [15:0] seq_idx;
 
+bit [7:0] step;
+
 assign reset = ~RESET_N;
 assign CPU_DATA  = (~CPU_CS1_N && ~CPU_RD_N && CPU_RDWR) ? cpu_data_out : 16'bz;
 assign sync0_edge = (sync0 == 3'b011);
@@ -68,7 +70,7 @@ ultrasound_cnt_clk_gen ultrasound_cnt_clk_gen(
                            .clk_in1(MRCC_25P6M),
                            .reset(reset),
                            .clk_out1(sys_clk),
-                           .clk_out2(lpf_clk)
+                           .clk_out2()
                        );
 
 cpu_bus_if cpu_bus();
@@ -98,6 +100,7 @@ config_manager #(
                    .MOD_SYNC(mod_sync.master_port),
                    .SEQ_SYNC(seq_sync.master_port),
                    .SILENT(silent),
+                   .STEP(step),
                    .FORCE_FAN(FORCE_FAN),
                    .THERMO(THERMO),
                    .OUTPUT_EN(output_en),
@@ -128,13 +131,13 @@ tr_cntroller#(
                 .ENABLE_SYNC_DBG(ENABLE_SYNC_DBG)
             ) tr_cntroller(
                 .CLK(sys_clk),
-                .CLK_LPF(lpf_clk),
                 .TIME(time_cnt),
                 .UPDATE(update),
                 .CPU_BUS(cpu_bus.slave_port),
                 .MOD_SYNC(mod_sync.slave_port),
                 .SEQ_SYNC(seq_sync.slave_port),
                 .SILENT(silent),
+                .STEP(step),
                 .MOD_CLK_CYCLE(mod_clk_cycle),
                 .MOD_IDX(mod_idx),
                 .SEQ_CLK_CYCLE(seq_clk_cycle),
