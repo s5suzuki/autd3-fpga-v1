@@ -4,7 +4,7 @@
  * Created Date: 07/01/2022
  * Author: Shun Suzuki
  * -----
- * Last Modified: 07/01/2022
+ * Last Modified: 12/02/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2022 Hapis Lab. All rights reserved.
@@ -17,9 +17,9 @@ module mult#(
            parameter int WIDTH_B
        )(
            input var CLK,
-           input var [WIDTH_A-1:0] A,
-           input var [WIDTH_B-1:0] B,
-           output var [WIDTH_A+WIDTH_B-1:0] P
+           input var signed [WIDTH_A-1:0] A,
+           input var signed [WIDTH_B-1:0] B,
+           output var signed [WIDTH_A+WIDTH_B-1:0] P
        );
 
 MULT_MACRO #(

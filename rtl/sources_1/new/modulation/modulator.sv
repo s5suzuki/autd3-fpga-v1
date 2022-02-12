@@ -4,7 +4,7 @@
  * Created Date: 07/01/2022
  * Author: Shun Suzuki
  * -----
- * Last Modified: 07/01/2022
+ * Last Modified: 12/02/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2022 Hapis Lab. All rights reserved.
@@ -29,9 +29,9 @@ localparam int MULT_LATENCY = 3;
 bit [WIDTH-1:0] duty[0:DEPTH-1];
 bit [WIDTH-1:0] duty_m[0:DEPTH-1];
 
-bit [WIDTH-1:0] a;
-bit [8:0] b;
-bit [WIDTH+8:0] p;
+bit signed [WIDTH:0] a;
+bit signed [9:0] b;
+bit signed [WIDTH+8:0] p;
 
 bit [$clog2(DEPTH+(MULT_LATENCY+1))-1:0] calc_cnt, set_cnt;
 bit out_valid = 0;
@@ -42,8 +42,8 @@ for (genvar i = 0; i < DEPTH; i++) begin
 end
 
 mult#(
-        .WIDTH_A(WIDTH),
-        .WIDTH_B(9)
+        .WIDTH_A(WIDTH+1),
+        .WIDTH_B(10)
     ) mult(
         .CLK(CLK),
         .A(a),
@@ -72,17 +72,19 @@ always_ff @(posedge CLK) begin
     case(state)
         IDLE: begin
             if (UPDATE) begin
+                calc_cnt <= 0;
+                set_cnt <= 0;
                 out_valid <= 0;
-                b <= MOD + 1;
+                b <= MOD + 10'sd1;
                 state <= PROCESS;
             end
         end
         PROCESS: begin
-            a <= duty[calc_cnt];
+            a <= {1'b0, duty[calc_cnt]};
             calc_cnt <= calc_cnt + 1;
 
             if (calc_cnt > MULT_LATENCY) begin
-                duty_m[set_cnt] <= p[WIDTH+7:WIDTH];
+                duty_m[set_cnt] <= p[WIDTH+8:8];
 
                 set_cnt <= set_cnt + 1;
                 if (set_cnt == DEPTH - 1) begin

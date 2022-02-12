@@ -4,7 +4,7 @@
  * Created Date: 08/01/2022
  * Author: Shun Suzuki
  * -----
- * Last Modified: 08/01/2022
+ * Last Modified: 12/02/2022
  * Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
  * -----
  * Copyright (c) 2022 Hapis Lab. All rights reserved.
@@ -44,14 +44,16 @@ modulation#(
               .DEPTH(DEPTH)
           ) modulation(
               .CPU_BUS(sim_cpu_bus.cpu_bus.slave_port),
-              .MOD_CYCLE(16'd10),
+              .MOD_CYCLE(16'd9),
               .UPDATE_CYCLE(UPDATE_CYCLE),
               .*
           );
 
 initial begin
-    DUTY = '{DEPTH{ULTRASOUND_CYCLE/2}};
-    sim_cpu_bus.bram_write(0, 0, 0);
+    for(int i =0; i < DEPTH; i++) begin
+        DUTY[i] = $urandom_range(ULTRASOUND_CYCLE/2);
+    end
+    // sim_cpu_bus.bram_write(0, 0, 0);
     $finish;
 end
 
