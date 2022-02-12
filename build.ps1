@@ -3,7 +3,7 @@
 # Created Date: 06/12/2021
 # Author: Shun Suzuki
 # -----
-# Last Modified: 07/12/2021
+# Last Modified: 12/02/2022
 # Modified By: Shun Suzuki (suzuki@hapis.k.u-tokyo.ac.jp)
 # -----
 # Copyright (c) 2021 Hapis Lab. All rights reserved.
@@ -78,12 +78,12 @@ if ($no_build_project -eq $false) {
     Invoke-Expression $command
 }
 
-if (-not ($bitgen -eq $false)) {
+if ($bitgen -eq $true) {
     $command = "vivado -mode batch -source bitgen.tcl"
     Invoke-Expression $command
 }
 
-if (-not ($config -eq $false)) {
+if ($config -eq $true) {
     $command = "vivado -mode batch -source configuration.tcl"
     Invoke-Expression $command
 }
